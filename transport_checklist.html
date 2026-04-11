@@ -614,9 +614,40 @@ canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
 
 /* ===== PRINT / PDF ===== */
 @media print {
-  .tab-bar, .action-bar, .tab-panel:not(.active) { display: none !important; }
-  body { background: white; }
-  .tab-panel.active { display: block !important; padding: 0; }
+  /* ซ่อน UI ที่ไม่ต้องการ */
+  .tab-bar, .action-bar, .phase-bar,
+  .btn-next-phase, .btn-add-row, .btn-del-row,
+  .btn-del-step, .btn-clear-sig,
+  .sheet-backdrop, #input-camera, #input-gallery,
+  .photo-action-btn { display: none !important; }
+
+  /* แสดงทุก tab พร้อมกัน */
+  body { background: white !important; font-size: 11pt; }
+  .tab-panel { display: block !important; padding: 0 !important; break-inside: avoid; }
+  .photo-phase { display: block !important; }
+
+  /* page breaks */
+  #tab-info    { page-break-after: always; }
+  #tab-checklist { page-break-after: always; }
+  #tab-photos  { page-break-after: always; }
+
+  /* รูปภาพแสดงใน print */
+  .photo-slot { break-inside: avoid; }
+  .photo-slot img { display: block !important; }
+
+  /* ลายเซ็น */
+  .sig-canvas-wrap canvas { display: block !important; }
+
+  /* section headers */
+  .page-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .section-title-bar, .cs-header, .mat-table-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* เช็คลิสต์ */
+  .checklist-section.collapsed .cs-body { display: block !important; }
+  .cs-toggle { display: none !important; }
+
+  /* journey */
+  .journey-step { break-inside: avoid; }
 }
 </style>
 </head>
@@ -1305,127 +1336,21 @@ function resetAll() {
 }
 
 // ===== EXPORT PDF =====
-async function exportPDF() {
-  const btn = document.querySelector('.btn-export');
-  const orig = btn.innerHTML;
-  btn.innerHTML = '⏳ กำลังสร้าง PDF...';
-  btn.disabled = true;
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210, margin = 14;
-    let y = 14;
-
-    // Header
-    pdf.setFillColor(192, 57, 43);
-    pdf.rect(0, 0, W, 30, 'F');
-    pdf.setTextColor(255,255,255);
-    pdf.setFontSize(14); pdf.setFont('helvetica','bold');
-    pdf.text('Construction Material Transport Checklist', margin, 12);
-    pdf.setFontSize(9); pdf.setFont('helvetica','normal');
-    pdf.text('Vinyl Tiles / Rolls / Sheets / Cement 25kg', margin, 19);
-    pdf.text(docNum, margin, 26);
-
-    y = 38;
-    pdf.setTextColor(30,24,20);
-
-    // Info fields
-    const fields = [
-      ['Date', document.getElementById('f-date').value],
-      ['DO No.', document.getElementById('f-dono').value],
-      ['Truck Plate', document.getElementById('f-truck').value],
-      ['Truck Type', document.getElementById('f-trucktype').value],
-      ['Driver', document.getElementById('f-driver').value],
-      ['Phone', document.getElementById('f-phone').value],
-      ['Destination', document.getElementById('f-dest').value],
-      ['Dest. Type', document.getElementById('f-desttype').value],
-      ['Receiver', document.getElementById('f-receiver').value],
-    ];
-    pdf.setFontSize(9);
-    let col = 0;
-    fields.forEach(([k,v], i) => {
-      const x = col === 0 ? margin : W/2 + 4;
-      pdf.setFont('helvetica','bold'); pdf.text(k + ':', x, y);
-      pdf.setFont('helvetica','normal'); pdf.text(v || '-', x + 28, y);
-      if (col === 1 || i === fields.length-1) { y += 6; col = 0; } else { col = 1; }
+function exportPDF() {
+  // expand all checklist sections before printing
+  document.querySelectorAll('.checklist-section').forEach(s => s.classList.remove('collapsed'));
+  // show all photo phases
+  document.querySelectorAll('.photo-phase').forEach(p => p.style.display = 'block');
+  window.print();
+  // restore after print
+  setTimeout(() => {
+    document.querySelectorAll('.photo-phase').forEach((p, i) => {
+      p.style.display = i === 0 ? 'block' : 'none';
     });
-    y += 4;
-
-    // Materials
-    pdf.setFillColor(245,243,240); pdf.rect(margin, y, W-margin*2, 7, 'F');
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
-    pdf.text('Materials', margin+2, y+5);
-    y += 9;
-    const rows = document.querySelectorAll('#mat-rows .mat-row');
-    rows.forEach(row => {
-      const inputs = row.querySelectorAll('input');
-      const sel = row.querySelector('select');
-      const name = inputs[0].value, qty = inputs[1].value, unit = inputs[2].value;
-      if (name) {
-        pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
-        pdf.text(`• ${name} (${sel?.value||''}) ${qty||'-'} ${unit||''}`, margin+3, y);
-        y += 5.5;
-        if (y > 270) { pdf.addPage(); y = 14; }
-      }
-    });
-    y += 4;
-
-    // Checklist
-    pdf.setFillColor(245,243,240); pdf.rect(margin, y, W-margin*2, 7, 'F');
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
-    pdf.text('Inspection Checklist', margin+2, y+5);
-    y += 9;
-    clSections.forEach(sec => {
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5);
-      pdf.setFillColor(230,228,224); pdf.rect(margin, y-4, W-margin*2, 6, 'F');
-      pdf.text(sec.icon + ' ' + sec.title, margin+2, y);
-      y += 7;
-      sec.items.forEach((item, i) => {
-        const checked = clState[sec.id][i];
-        pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
-        const mark = checked ? '[✓]' : '[ ]';
-        pdf.text(mark + ' ' + item.t, margin+4, y);
-        y += 5;
-        if (y > 270) { pdf.addPage(); y = 14; }
-      });
-      y += 2;
-    });
-
-    // Signatures
-    y += 4;
-    if (y > 220) { pdf.addPage(); y = 14; }
-    pdf.setFillColor(245,243,240); pdf.rect(margin, y, W-margin*2, 7, 'F');
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
-    pdf.text('Signatures', margin+2, y+5);
-    y += 10;
-
-    const sigIds = ['sig-sender', 'sig-receiver'];
-    const sigLabels = ['Sender (Driver)', 'Receiver (Supervisor)'];
-    const nameIds = ['sig-sender-name', 'sig-receiver-name'];
-    const posIds = ['sig-sender-pos', 'sig-receiver-pos'];
-    const dateIds = ['sig-sender-date', 'sig-receiver-date'];
-
-    for (let s = 0; s < 2; s++) {
-      const canvas = document.getElementById(sigIds[s]);
-      const imgData = canvas.toDataURL('image/png');
-      const xOff = s === 0 ? margin : W/2 + 4;
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(8);
-      pdf.text(sigLabels[s], xOff, y);
-      pdf.addImage(imgData, 'PNG', xOff, y+2, 80, 22);
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
-      pdf.text('Name: ' + (document.getElementById(nameIds[s]).value||'-'), xOff, y+27);
-      pdf.text('Pos: ' + (document.getElementById(posIds[s]).value||'-'), xOff, y+32);
-      pdf.text('Date: ' + (document.getElementById(dateIds[s]).value||'-'), xOff, y+37);
-    }
-
-    pdf.save('transport-checklist-' + docNum + '.pdf');
-  } catch(e) {
-    alert('เกิดข้อผิดพลาด: ' + e.message);
-    console.error(e);
-  }
-  btn.innerHTML = orig;
-  btn.disabled = false;
+    // re-apply active phase
+    const activePhase = document.querySelector('.photo-phase.active');
+    if (activePhase) activePhase.style.display = 'block';
+  }, 1000);
 }
 </script>
 </body>
