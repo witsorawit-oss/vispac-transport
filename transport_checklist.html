@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เช็คลิสการขนส่งวัสดุก่อสร้าง</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --bg: #f5f3ef;
+  --surface: #ffffff;
+  --card: #faf9f7;
+  --border: #ddd9d0;
+  --border2: #c8c3b8;
+  --accent: #c0392b;
+  --accent2: #e67e22;
+  --accent-light: #fdf0ed;
+  --green: #27ae60;
+  --green-light: #eafaf1;
+  --text: #1a1814;
+  --text2: #4a4640;
+  --muted: #8c8880;
+  --warn: #e67e22;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.page-header {
+  background: var(--accent);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.page-header::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: 30%;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.08);
+}
+.header-inner {
+  position: relative; z-index: 1;
+  padding: 24px 20px 20px;
+}
+.header-top { display: flex; align-items: flex-start; gap: 14px; }
+.header-logo {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+.header-title h1 {
+  font-size: 1.25rem; font-weight: 800;
+  color: #fff; line-height: 1.3;
+}
+.header-title p { font-size: 0.78rem; color: rgba(255,255,255,0.75); margin-top: 3px; }
+.header-logo-img {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  display: flex; align-items: center; justify-content: center;
+  height: 52px;
+}
+.header-logo-img img {
+  height: 38px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+.doc-number {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+/* ===== TABS ===== */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: sticky; top: 0; z-index: 100;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover:not(.active) { color: var(--text2); }
+
+/* ===== TAB PANELS ===== */
+.tab-panel { display: none; padding: 16px; }
+.tab-panel.active { display: block; }
+
+/* ===== FORM FIELDS ===== */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.form-grid.full { grid-template-columns: 1fr; }
+.field {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.field.span2 { grid-column: span 2; }
+.field label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.field input, .field select, .field textarea {
+  background: transparent;
+  border: none;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.92rem;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  resize: none;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+
+/* ===== MATERIAL TABLE ===== */
+.section-title-bar {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 0.9rem;
+  margin: 14px 0 8px;
+  padding-left: 4px;
+  color: var(--text);
+}
+.section-title-bar::before {
+  content: '';
+  width: 4px; height: 18px;
+  background: var(--accent);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.mat-table {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.mat-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mat-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: 6px;
+}
+.mat-row:last-child { border-bottom: none; }
+.mat-row input {
+  background: transparent;
+  border: none;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  padding: 2px 0;
+}
+.mat-row input::placeholder { color: #ccc; font-size: 0.75rem; }
+.mat-type-select {
+  background: transparent;
+  border: none;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.82rem;
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+.btn-del-row {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-del-row:hover { background: #fde8e8; color: var(--accent); border-color: var(--accent); }
+.btn-add-row {
+  width: 100%;
+  padding: 9px;
+  border: 1.5px dashed var(--border2);
+  border-radius: 10px;
+  background: transparent;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all 0.15s;
+}
+.btn-add-row:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+/* ===== CHECKLIST ===== */
+.checklist-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.cs-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  background: var(--card);
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.cs-header:hover { background: #f0ede8; }
+.cs-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; }
+.cs-icon { font-size: 1.1rem; }
+.cs-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--border);
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.cs-badge.done { background: var(--green-light); color: var(--green); }
+.cs-toggle { color: var(--muted); font-size: 0.75rem; transition: transform 0.2s; }
+.cs-body { padding: 8px 10px; }
+.checklist-section.collapsed .cs-body { display: none; }
+.checklist-section.collapsed .cs-toggle { transform: rotate(-90deg); }
+
+.cl-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.cl-item:hover { background: #f7f5f2; }
+.cl-item.checked .cl-text { color: var(--muted); text-decoration: line-through; }
+.cl-cb {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border2);
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem;
+  transition: all 0.12s;
+}
+.cl-item.checked .cl-cb { background: var(--green); border-color: var(--green); color: #fff; }
+.cl-item.critical .cl-cb { border-color: var(--accent); }
+.cl-text { font-size: 0.88rem; line-height: 1.5; }
+.critical-tag {
+  font-size: 0.68rem;
+  background: #fde8e8;
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 600;
+}
+.cl-item.checked .critical-tag { display: none; }
+
+/* ===== PROGRESS ===== */
+.progress-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.prog-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.prog-label { font-size: 0.82rem; font-weight: 600; color: var(--text2); }
+.prog-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem; color: var(--accent); font-weight: 600; }
+.prog-track { height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; transition: width 0.3s ease; }
+.status-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 0.78rem; font-weight: 700;
+  margin-top: 10px;
+}
+.status-pending { background: #fef5e7; color: var(--warn); border: 1px solid #f5cba7; }
+.status-done { background: var(--green-light); color: var(--green); border: 1px solid #a9dfbf; }
+
+/* ===== PHOTO SECTION ===== */
+.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.photo-slot {
+  background: var(--surface);
+  border: 1.5px dashed var(--border2);
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s;
+}
+.photo-slot:hover { border-color: var(--accent); background: var(--accent-light); }
+.photo-slot.has-image { border-style: solid; border-color: var(--border2); }
+.photo-slot img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  position: absolute; top: 0; left: 0;
+}
+.photo-slot-label {
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--muted);
+  text-align: center; padding: 8px;
+  z-index: 1;
+}
+.photo-slot-icon { font-size: 1.4rem; z-index: 1; }
+.photo-slot .photo-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  color: #fff; font-size: 0.72rem; font-weight: 600;
+  padding: 6px 8px; z-index: 2;
+  display: none;
+}
+.photo-slot.has-image .photo-overlay { display: block; }
+.photo-slot input[type=file] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer;
+  width: 100%; height: 100%;
+}
+.photo-note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.photo-note label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; display: block; margin-bottom: 4px; }
+.photo-note textarea { background: transparent; border: none; font-family: 'Sarabun', sans-serif; font-size: 0.88rem; color: var(--text); width: 100%; outline: none; resize: none; min-height: 52px; }
+
+/* ===== SIGNATURE ===== */
+.sig-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.sig-header {
+  padding: 10px 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  font-weight: 700; font-size: 0.88rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sig-body { padding: 12px; }
+.sig-canvas-wrap {
+  border: 1.5px dashed var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafafa;
+  touch-action: none;
+  margin-bottom: 8px;
+}
+canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
+.sig-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sig-meta input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text);
+  outline: none;
+  width: 100%;
+}
+.sig-meta input::placeholder { color: var(--muted); }
+.btn-clear-sig {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.btn-clear-sig:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ===== ACTIONS ===== */
+.action-bar {
+  position: sticky; bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; gap: 10px;
+  z-index: 50;
+}
+.btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn:hover { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text2); }
+.btn-export { background: #1a1814; color: #fff; }
+
+/* ===== PHASE BAR ===== */
+.phase-bar {
+  display: flex; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  gap: 0;
+}
+.phase-step {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; flex: 1;
+  transition: opacity 0.15s;
+}
+.phase-step:hover { opacity: 0.75; }
+.phase-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--muted);
+  font-weight: 700; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.phase-step.active .phase-num { background: var(--accent); color: #fff; }
+.phase-step.done .phase-num { background: var(--green); color: #fff; }
+.phase-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-align: center; }
+.phase-step.active .phase-label { color: var(--accent); }
+.phase-step.done .phase-label { color: var(--green); }
+.phase-connector {
+  flex: 1; height: 2px;
+  background: var(--border); max-width: 40px;
+}
+.photo-phase { display: none; }
+.photo-phase.active { display: block; }
+.btn-next-phase {
+  width: 100%; padding: 11px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 10px;
+  font-family: 'Sarabun', sans-serif; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; margin-top: 4px; transition: opacity 0.15s;
+}
+.btn-next-phase:hover { opacity: 0.85; }
+.btn-outline-phase {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text2);
+  flex: 1;
+}
+
+/* ===== JOURNEY STEPS ===== */
+.journey-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.journey-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.journey-step-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.journey-step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-weight: 700; font-size: 0.78rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.journey-step-name {
+  flex: 1; background: transparent; border: none;
+  font-family: 'Sarabun', sans-serif; font-size: 0.9rem; font-weight: 600;
+  color: var(--text); outline: none;
+}
+.journey-step-name::placeholder { color: var(--muted); }
+.btn-del-step {
+  padding: 4px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent;
+  font-size: 0.78rem; color: var(--muted); cursor: pointer;
+}
+.btn-del-step:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.journey-step-body { padding: 10px 12px; }
+.journey-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.journey-step-body textarea {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px;
+  font-family: 'Sarabun', sans-serif; font-size: 0.82rem; color: var(--text);
+  outline: none; resize: none; min-height: 42px;
+}
+.journey-step-body textarea::placeholder { color: var(--muted); }
+
+/* ===== PRINT / PDF ===== */
+@media print {
+  .tab-bar, .action-bar, .tab-panel:not(.active) { display: none !important; }
+  body { background: white; }
+  .tab-panel.active { display: block !important; padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-logo">🚛</div>
+      <div class="header-title" style="flex:1">
+        <h1>เช็คลิสการขนส่งวัสดุก่อสร้าง</h1>
+        <p>กระเบื้องยาง / ม้วน / แผ่น / ปูน 25 กก.</p>
+        <span class="doc-number" id="doc-number">TRP-00001</span>
+      </div>
+      <div class="header-logo-img">
+        <img src="data:image/jpeg;base64,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" alt="VISPAC Logo">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('info',this)">📋 ข้อมูล</button>
+  <button class="tab-btn" onclick="switchTab('checklist',this)">✅ ตรวจสอบ</button>
+  <button class="tab-btn" onclick="switchTab('photos',this)">📸 รูปภาพ</button>
+  <button class="tab-btn" onclick="switchTab('sign',this)">✍️ ลายเซ็น</button>
+</div>
+
+<!-- =================== TAB: INFO =================== -->
+<div class="tab-panel active" id="tab-info">
+
+  <div class="section-title-bar">ข้อมูลการขนส่ง</div>
+  <div class="form-grid">
+    <div class="field">
+      <label>📅 วันที่ขนส่ง</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field">
+      <label>🔢 เลขที่ใบส่ง</label>
+      <input type="text" placeholder="DO-2025-XXXX" id="f-dono">
+    </div>
+    <div class="field">
+      <label>🚛 ทะเบียนรถ</label>
+      <input type="text" placeholder="กข 1234" id="f-truck">
+    </div>
+    <div class="field">
+      <label>📦 ประเภทรถ</label>
+      <select id="f-trucktype">
+        <option value="">เลือกประเภท</option>
+        <option>รถกระบะ</option>
+        <option>รถ 4 ล้อ (6 ตัน)</option>
+        <option>รถ 6 ล้อ</option>
+        <option>รถ 10 ล้อ</option>
+        <option>รถหัวลาก</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>👷 ผู้ขับรถ</label>
+      <input type="text" placeholder="ชื่อ-นามสกุล" id="f-driver">
+    </div>
+    <div class="field">
+      <label>📞 เบอร์โทร</label>
+      <input type="tel" placeholder="08x-xxx-xxxx" id="f-phone">
+    </div>
+    <div class="field span2">
+      <label>📍 สถานที่ส่ง</label>
+      <input type="text" placeholder="ชื่อโครงการ / ที่อยู่ / ไซต์งาน" id="f-dest">
+    </div>
+    <div class="field">
+      <label>🏢 ประเภทปลายทาง</label>
+      <select id="f-desttype">
+        <option value="">เลือกประเภท</option>
+        <option>ไซต์งานก่อสร้าง</option>
+        <option>โรงพยาบาล (รพ.)</option>
+        <option>ออฟฟิศ / สำนักงาน</option>
+        <option>คลังสินค้า</option>
+        <option>อื่นๆ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>👤 ผู้รับของ</label>
+      <input type="text" placeholder="ชื่อ-นามสกุล" id="f-receiver">
+    </div>
+    <div class="field span2">
+      <label>📝 หมายเหตุ</label>
+      <textarea placeholder="รายละเอียดเพิ่มเติม..." rows="2" id="f-note"></textarea>
+    </div>
+  </div>
+
+  <div class="section-title-bar">รายการวัสดุที่บรรทุก</div>
+  <div class="mat-table">
+    <div class="mat-table-header">
+      <span>รายการวัสดุ</span>
+      <span>ประเภท</span>
+      <span>จำนวน</span>
+      <span>หน่วย</span>
+      <span></span>
+    </div>
+    <div id="mat-rows">
+      <div class="mat-row">
+        <input type="text" placeholder="กระเบื้องยาง" value="กระเบื้องยาง">
+        <select class="mat-type-select"><option>แผ่น</option><option>ม้วน</option><option>ถุง</option><option>กล่อง</option><option>ชิ้น</option></select>
+        <input type="number" placeholder="0" min="0">
+        <input type="text" placeholder="แผ่น/ม้วน">
+        <button class="btn-del-row" onclick="delRow(this)">✕</button>
+      </div>
+      <div class="mat-row">
+        <input type="text" placeholder="ปูนซีเมนต์ 25 กก." value="ปูนซีเมนต์ 25 กก.">
+        <select class="mat-type-select"><option>ถุง</option><option>แผ่น</option><option>ม้วน</option><option>กล่อง</option><option>ชิ้น</option></select>
+        <input type="number" placeholder="0" min="0">
+        <input type="text" placeholder="ถุง">
+        <button class="btn-del-row" onclick="delRow(this)">✕</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn-add-row" onclick="addRow()">+ เพิ่มรายการวัสดุ</button>
+
+</div>
+
+<!-- =================== TAB: CHECKLIST =================== -->
+<div class="tab-panel" id="tab-checklist">
+
+  <div class="progress-card">
+    <div class="prog-top">
+      <span class="prog-label">ความคืบหน้าการตรวจสอบ</span>
+      <span class="prog-count" id="prog-text">0 / 0</span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+    <div><span class="status-chip status-pending" id="status-chip">⏳ รอดำเนินการ</span></div>
+  </div>
+
+  <div id="cl-container"></div>
+
+</div>
+
+<!-- =================== TAB: PHOTOS =================== -->
+<div class="tab-panel" id="tab-photos">
+
+  <!-- PHASE BAR -->
+  <div class="phase-bar">
+    <div class="phase-step active" onclick="showPhase('before',this)">
+      <span class="phase-num">1</span>
+      <span class="phase-label">ก่อนขนส่ง</span>
+    </div>
+    <div class="phase-connector"></div>
+    <div class="phase-step" onclick="showPhase('during',this)">
+      <span class="phase-num">2</span>
+      <span class="phase-label">ขณะส่ง</span>
+    </div>
+    <div class="phase-connector"></div>
+    <div class="phase-step" onclick="showPhase('after',this)">
+      <span class="phase-num">3</span>
+      <span class="phase-label">ส่งมอบแล้ว</span>
+    </div>
+  </div>
+
+  <!-- PHASE 1: ก่อนขนส่ง -->
+  <div class="photo-phase active" id="phase-before">
+    <div class="section-title-bar">📦 ก่อนขนส่ง — สภาพรถและวัสดุที่คลัง</div>
+    <div class="photo-grid">
+      <div class="photo-slot" id="slot-b1">
+        <span class="photo-slot-icon">🚛</span>
+        <span class="photo-slot-label">สภาพรถ + ทะเบียน</span>
+        <div class="photo-overlay" id="ov-b1">สภาพรถ + ทะเบียน</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b1','ov-b1')">
+      </div>
+      <div class="photo-slot" id="slot-b2">
+        <span class="photo-slot-icon">🔗</span>
+        <span class="photo-slot-label">การผูกมัดวัสดุบนรถ</span>
+        <div class="photo-overlay" id="ov-b2">การผูกมัดวัสดุบนรถ</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b2','ov-b2')">
+      </div>
+      <div class="photo-slot" id="slot-b3">
+        <span class="photo-slot-icon">🪨</span>
+        <span class="photo-slot-label">สภาพวัสดุก่อนส่ง</span>
+        <div class="photo-overlay" id="ov-b3">สภาพวัสดุก่อนส่ง</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b3','ov-b3')">
+      </div>
+      <div class="photo-slot" id="slot-b4">
+        <span class="photo-slot-icon">📋</span>
+        <span class="photo-slot-label">ใบส่งของ / เอกสาร</span>
+        <div class="photo-overlay" id="ov-b4">ใบส่งของ / เอกสาร</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b4','ov-b4')">
+      </div>
+    </div>
+    <div class="photo-note">
+      <label>หมายเหตุก่อนขนส่ง</label>
+      <textarea placeholder="บันทึกสภาพวัสดุ จำนวน หรือปัญหาที่พบก่อนออกเดินทาง..."></textarea>
+    </div>
+    <button class="btn-next-phase" onclick="showPhaseByName('during')">ถัดไป: ขณะส่ง →</button>
+  </div>
+
+  <!-- PHASE 2: ขณะส่ง -->
+  <div class="photo-phase" id="phase-during">
+    <div class="section-title-bar">🚶 ขณะส่ง — เส้นทางจากที่จอดรถถึงจุดวางวัสดุ</div>
+
+    <!-- Journey steps -->
+    <div class="journey-list" id="journey-list">
+      <!-- steps rendered by JS -->
+    </div>
+    <button class="btn-add-row" onclick="addJourneyStep()" style="margin-bottom:14px">+ เพิ่มจุดถ่ายภาพระหว่างทาง</button>
+
+    <div class="photo-note">
+      <label>หมายเหตุขณะส่ง</label>
+      <textarea placeholder="บันทึกสภาพเส้นทาง / อุปสรรคที่พบขณะขนวัสดุ..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-next-phase btn-outline-phase" onclick="showPhaseByName('before')">← ก่อนขนส่ง</button>
+      <button class="btn-next-phase" onclick="showPhaseByName('after')">ถัดไป: ส่งมอบแล้ว →</button>
+    </div>
+  </div>
+
+  <!-- PHASE 3: หลังส่งมอบ -->
+  <div class="photo-phase" id="phase-after">
+    <div class="section-title-bar">✅ ส่งมอบแล้ว — สภาพวัสดุที่จุดปลายทาง</div>
+    <div class="photo-grid">
+      <div class="photo-slot" id="slot-a1">
+        <span class="photo-slot-icon">📍</span>
+        <span class="photo-slot-label">จุดวางวัสดุ (overview)</span>
+        <div class="photo-overlay" id="ov-a1">จุดวางวัสดุ (overview)</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a1','ov-a1')">
+      </div>
+      <div class="photo-slot" id="slot-a2">
+        <span class="photo-slot-icon">🪨</span>
+        <span class="photo-slot-label">สภาพวัสดุหลังส่งมอบ</span>
+        <div class="photo-overlay" id="ov-a2">สภาพวัสดุหลังส่งมอบ</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a2','ov-a2')">
+      </div>
+      <div class="photo-slot" id="slot-a3">
+        <span class="photo-slot-icon">🏗️</span>
+        <span class="photo-slot-label">หน้าไซต์งาน / ปลายทาง</span>
+        <div class="photo-overlay" id="ov-a3">หน้าไซต์งาน / ปลายทาง</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a3','ov-a3')">
+      </div>
+      <div class="photo-slot" id="slot-a4">
+        <span class="photo-slot-icon">📄</span>
+        <span class="photo-slot-label">ใบส่งของที่เซ็นแล้ว</span>
+        <div class="photo-overlay" id="ov-a4">ใบส่งของที่เซ็นแล้ว</div>
+        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a4','ov-a4')">
+      </div>
+    </div>
+    <div class="photo-note">
+      <label>หมายเหตุหลังส่งมอบ</label>
+      <textarea placeholder="บันทึกสภาพวัสดุ / ความเสียหาย / ปัญหาที่พบหลังส่งมอบ..."></textarea>
+    </div>
+    <button class="btn-next-phase btn-outline-phase" onclick="showPhaseByName('during')">← ขณะส่ง</button>
+  </div>
+
+</div>
+
+<!-- =================== TAB: SIGNATURE =================== -->
+<div class="tab-panel" id="tab-sign">
+
+  <!-- Sender -->
+  <div class="sig-wrap">
+    <div class="sig-header">
+      <span>✍️ ลายเซ็นผู้ส่ง (พนักงานขับรถ/ลูกจ้าง)</span>
+      <button class="btn-clear-sig" onclick="clearSig('sig-sender')">ล้าง</button>
+    </div>
+    <div class="sig-body">
+      <div class="sig-canvas-wrap">
+        <canvas id="sig-sender" width="600" height="140"></canvas>
+      </div>
+      <div class="sig-meta">
+        <input type="text" placeholder="ชื่อ-นามสกุลผู้ส่ง" id="sig-sender-name">
+        <input type="text" placeholder="ตำแหน่ง" id="sig-sender-pos">
+        <input type="date" id="sig-sender-date">
+        <input type="text" placeholder="เวลา (เช่น 09:30)" id="sig-sender-time">
+      </div>
+    </div>
+  </div>
+
+  <!-- Receiver -->
+  <div class="sig-wrap">
+    <div class="sig-header">
+      <span>✍️ ลายเซ็นผู้รับ (ซูปเปอร์ไวเซอร์/หัวหน้างาน)</span>
+      <button class="btn-clear-sig" onclick="clearSig('sig-receiver')">ล้าง</button>
+    </div>
+    <div class="sig-body">
+      <div class="sig-canvas-wrap">
+        <canvas id="sig-receiver" width="600" height="140"></canvas>
+      </div>
+      <div class="sig-meta">
+        <input type="text" placeholder="ชื่อ-นามสกุลผู้รับ" id="sig-receiver-name">
+        <input type="text" placeholder="ตำแหน่ง" id="sig-receiver-pos">
+        <input type="date" id="sig-receiver-date">
+        <input type="text" placeholder="เวลา (เช่น 14:00)" id="sig-receiver-time">
+      </div>
+    </div>
+  </div>
+
+  <div class="field" style="margin-bottom:14px">
+    <label>📝 หมายเหตุการส่งมอบ</label>
+    <textarea placeholder="บันทึกหมายเหตุการส่งมอบ เช่น วัสดุครบถ้วน / มีความเสียหาย..." rows="3" style="background:transparent;border:none;font-family:'Sarabun',sans-serif;font-size:0.88rem;color:var(--text);width:100%;outline:none;resize:none;"></textarea>
+  </div>
+
+</div>
+
+<!-- =================== ACTION BAR =================== -->
+<div class="action-bar">
+  <button class="btn btn-secondary" onclick="resetAll()">🔄 รีเซ็ต</button>
+  <button class="btn btn-export" onclick="exportPDF()">📄 Export PDF</button>
+</div>
+
+<script>
+// ===== DOC NUMBER =====
+const docNum = 'TRP-' + String(Date.now()).slice(-5);
+document.getElementById('doc-number').textContent = docNum;
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('sig-sender-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('sig-receiver-date').value = new Date().toISOString().split('T')[0];
+
+// ===== TABS =====
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== MATERIAL ROWS =====
+function addRow() {
+  const row = document.createElement('div');
+  row.className = 'mat-row';
+  row.innerHTML = `
+    <input type="text" placeholder="ชื่อวัสดุ">
+    <select class="mat-type-select"><option>แผ่น</option><option>ม้วน</option><option>ถุง</option><option>กล่อง</option><option>ชิ้น</option></select>
+    <input type="number" placeholder="0" min="0">
+    <input type="text" placeholder="หน่วย">
+    <button class="btn-del-row" onclick="delRow(this)">✕</button>
+  `;
+  document.getElementById('mat-rows').appendChild(row);
+}
+function delRow(btn) {
+  const rows = document.querySelectorAll('#mat-rows .mat-row');
+  if (rows.length > 1) btn.closest('.mat-row').remove();
+}
+
+// ===== CHECKLIST DATA =====
+const clSections = [
+  { id:'vehicle', icon:'🔧', title:'สภาพรถและความพร้อม', items:[
+    { t:'ตรวจสอบระดับน้ำมันเครื่อง', c:true },
+    { t:'ตรวจสอบระดับน้ำในหม้อน้ำ', c:false },
+    { t:'ตรวจสอบแรงดันลมยางทุกเส้น (รวมยางอะไหล่)', c:true },
+    { t:'ตรวจสอบไฟหน้า ไฟท้าย ไฟเบรก ไฟสัญญาณ', c:false },
+    { t:'ตรวจสอบระบบเบรก', c:true },
+    { t:'น้ำมันเชื้อเพลิงเพียงพอสำหรับการเดินทาง', c:false },
+    { t:'ตรวจสอบพวงมาลัยและช่วงล่าง', c:false },
+  ]},
+  { id:'load', icon:'📦', title:'การบรรทุกและผูกมัดวัสดุ', items:[
+    { t:'น้ำหนักบรรทุกไม่เกินพิกัดกฎหมาย', c:true },
+    { t:'จัดวางวัสดุให้สมดุล ไม่เอียงข้างใดข้างหนึ่ง', c:true },
+    { t:'กระเบื้องยาง/แผ่น วางซ้อนอย่างระมัดระวัง ไม่ทับกันหนักเกินไป', c:false },
+    { t:'ม้วนวัสดุล็อคไม่ให้กลิ้ง', c:true },
+    { t:'ถุงปูน 25 กก. เรียงอย่างมั่นคง ไม่วางซ้อนสูงเกิน', c:true },
+    { t:'ผูกมัดด้วยโซ่/สายรัดให้แน่นหนาทุกจุด', c:true },
+    { t:'ตรวจสอบสภาพโซ่/สายรัดไม่ชำรุด', c:false },
+    { t:'วัสดุยื่นเกินท้ายรถ ติดธงแดง/ไฟสัญญาณ', c:true },
+    { t:'คลุมผ้าใบ/ตาข่ายกันวัสดุหล่น', c:true },
+  ]},
+  { id:'docs', icon:'📋', title:'เอกสารและใบอนุญาต', items:[
+    { t:'ใบขับขี่ถูกประเภทและยังไม่หมดอายุ', c:true },
+    { t:'เอกสารจดทะเบียนรถยนต์', c:false },
+    { t:'ประกันภัยรถยนต์ยังไม่หมดอายุ', c:false },
+    { t:'ใบส่งสินค้า (DO) ตรงกับวัสดุที่บรรทุก', c:true },
+    { t:'แผนที่/ข้อมูลเส้นทางปลายทาง', c:false },
+    { t:'เบอร์ติดต่อผู้รับของที่ปลายทาง', c:false },
+  ]},
+  { id:'dest_check', icon:'🏗️', title:'การตรวจสอบตามประเภทปลายทาง', items:[
+    { t:'[ไซต์งาน] ประสานงานซูปเปอร์ไวเซอร์รับทราบเวลาส่งล่วงหน้า', c:false },
+    { t:'[ไซต์งาน] ตรวจสอบเส้นทางเข้าไซต์รถผ่านได้', c:false },
+    { t:'[รพ./ออฟฟิศ] แจ้งทางเข้า-ออก ที่จอดรถขนส่ง', c:false },
+    { t:'[รพ./ออฟฟิศ] ปฏิบัติตามกฎระเบียบสถานที่อย่างเคร่งครัด', c:false },
+    { t:'ตรวจสอบพื้นที่วางสินค้าปลายทางเพียงพอ', c:false },
+  ]},
+  { id:'safety', icon:'🦺', title:'อุปกรณ์ความปลอดภัย', items:[
+    { t:'ถังดับเพลิงในรถอยู่ในสภาพพร้อมใช้', c:true },
+    { t:'สามเหลี่ยมกันชนฉุกเฉิน (อย่างน้อย 2 อัน)', c:true },
+    { t:'ชุดปฐมพยาบาลเบื้องต้น', c:false },
+    { t:'PPE ผู้ขับ: หมวก นิรภัย รองเท้าหัวเหล็ก เสื้อกั๊กสะท้อนแสง', c:false },
+    { t:'โทรศัพท์มือถือและแบตเตอรี่เพียงพอ', c:false },
+  ]},
+  { id:'delivery', icon:'✅', title:'การส่งมอบที่ปลายทาง', items:[
+    { t:'ถ่ายรูปสภาพวัสดุก่อนลงจากรถ', c:true },
+    { t:'นับจำนวนวัสดุตรงกับใบส่งของ', c:true },
+    { t:'ตรวจสอบวัสดุไม่เสียหายระหว่างขนส่ง', c:true },
+    { t:'ถ่ายรูปสภาพวัสดุหลังส่งมอบ', c:false },
+    { t:'ผู้รับลงนามในใบส่งสินค้า', c:true },
+    { t:'บันทึกเวลาถึงและเวลาออกจากสถานที่', c:false },
+    { t:'ส่งมอบสำเนาใบส่งของให้ผู้รับ', c:false },
+  ]},
+];
+
+let clState = {};
+function buildChecklist() {
+  const c = document.getElementById('cl-container');
+  c.innerHTML = '';
+  clSections.forEach(sec => {
+    clState[sec.id] = sec.items.map(() => false);
+    const el = document.createElement('div');
+    el.className = 'checklist-section';
+    el.id = 'cls-' + sec.id;
+    el.innerHTML = `
+      <div class="cs-header" onclick="toggleCls('${sec.id}')">
+        <div class="cs-title">
+          <span class="cs-icon">${sec.icon}</span>
+          <span>${sec.title}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="cs-badge" id="csbadge-${sec.id}">0/${sec.items.length}</span>
+          <span class="cs-toggle">▼</span>
+        </div>
+      </div>
+      <div class="cs-body">
+        ${sec.items.map((item,i) => `
+          <div class="cl-item${item.c?' critical':''}" id="cli-${sec.id}-${i}" onclick="toggleItem('${sec.id}',${i})">
+            <div class="cl-cb" id="clcb-${sec.id}-${i}"></div>
+            <div class="cl-text">${item.t}${item.c ? '<span class="critical-tag">สำคัญ</span>' : ''}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    c.appendChild(el);
+  });
+  updateProgress();
+}
+
+function toggleCls(id) {
+  document.getElementById('cls-' + id).classList.toggle('collapsed');
+}
+function toggleItem(sec, idx) {
+  clState[sec][idx] = !clState[sec][idx];
+  const item = document.getElementById(`cli-${sec}-${idx}`);
+  const cb = document.getElementById(`clcb-${sec}-${idx}`);
+  item.classList.toggle('checked', clState[sec][idx]);
+  cb.textContent = clState[sec][idx] ? '✓' : '';
+  updateBadge(sec);
+  updateProgress();
+}
+function updateBadge(sec) {
+  const total = clSections.find(s => s.id === sec).items.length;
+  const done = clState[sec].filter(Boolean).length;
+  const b = document.getElementById('csbadge-' + sec);
+  b.textContent = `${done}/${total}`;
+  b.className = 'cs-badge' + (done === total ? ' done' : '');
+}
+function updateProgress() {
+  let total = 0, done = 0;
+  clSections.forEach(s => { total += s.items.length; done += clState[s.id].filter(Boolean).length; });
+  document.getElementById('prog-text').textContent = `${done} / ${total}`;
+  document.getElementById('prog-fill').style.width = `${(done/total)*100}%`;
+  const chip = document.getElementById('status-chip');
+  if (done === total) {
+    chip.className = 'status-chip status-done';
+    chip.textContent = '✅ ตรวจสอบครบทุกรายการ';
+  } else {
+    chip.className = 'status-chip status-pending';
+    chip.textContent = `⏳ ตรวจสอบแล้ว ${done} จาก ${total} รายการ`;
+  }
+}
+buildChecklist();
+
+// ===== PHASE SWITCHING =====
+const phaseOrder = ['before','during','after'];
+function showPhase(name, btn) {
+  document.querySelectorAll('.photo-phase').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.phase-step').forEach(b => b.classList.remove('active'));
+  document.getElementById('phase-' + name).classList.add('active');
+  btn.classList.add('active');
+  // mark previous steps as done
+  const idx = phaseOrder.indexOf(name);
+  document.querySelectorAll('.phase-step').forEach((s, i) => {
+    s.classList.remove('done');
+    if (i < idx) s.classList.add('done');
+  });
+}
+function showPhaseByName(name) {
+  const btns = document.querySelectorAll('.phase-step');
+  const idx = phaseOrder.indexOf(name);
+  showPhase(name, btns[idx]);
+}
+
+// ===== JOURNEY STEPS =====
+let journeyCount = 0;
+const defaultSteps = [
+  { label:'จอดรถที่ลานจอด / หน้าอาคาร', hint:'ถ่ายรูปรถจอดชัดเจน ระบุตำแหน่ง' },
+  { label:'ทางเข้าอาคาร / ประตูหน้าไซต์', hint:'ถ่ายรูปทางเข้าพร้อมวัสดุ' },
+  { label:'ขณะลำเลียงวัสดุ (ระหว่างทาง)', hint:'ถ่ายรูปขณะยกหรือลำเลียง' },
+  { label:'จุดวางวัสดุปลายทาง', hint:'ถ่ายรูปวัสดุที่วางครบ ณ จุดส่ง' },
+];
+
+function buildJourneyStep(label, hint, num) {
+  const id = 'jstep-' + num;
+  const div = document.createElement('div');
+  div.className = 'journey-step';
+  div.id = id;
+  div.innerHTML = `
+    <div class="journey-step-header">
+      <div class="journey-step-num">${num}</div>
+      <input class="journey-step-name" type="text" value="${label}" placeholder="ชื่อจุด เช่น ทางเข้าอาคาร">
+      <button class="btn-del-step" onclick="delJourneyStep('${id}')">ลบ</button>
+    </div>
+    <div class="journey-step-body">
+      <div class="journey-photos">
+        <div class="photo-slot" id="jslot-${num}a" style="aspect-ratio:4/3">
+          <span class="photo-slot-icon">📷</span>
+          <span class="photo-slot-label">ภาพที่ 1</span>
+          <div class="photo-overlay" id="jov-${num}a">ภาพที่ 1</div>
+          <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'jslot-${num}a','jov-${num}a')">
+        </div>
+        <div class="photo-slot" id="jslot-${num}b" style="aspect-ratio:4/3">
+          <span class="photo-slot-icon">📷</span>
+          <span class="photo-slot-label">ภาพที่ 2</span>
+          <div class="photo-overlay" id="jov-${num}b">ภาพที่ 2</div>
+          <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'jslot-${num}b','jov-${num}b')">
+        </div>
+      </div>
+      <textarea placeholder="${hint}"></textarea>
+    </div>
+  `;
+  return div;
+}
+
+function addJourneyStep(label='จุดถ่ายภาพเพิ่มเติม', hint='บันทึกรายละเอียด...') {
+  journeyCount++;
+  const list = document.getElementById('journey-list');
+  list.appendChild(buildJourneyStep(label, hint, journeyCount));
+  renumberJourneySteps();
+}
+
+function delJourneyStep(id) {
+  const el = document.getElementById(id);
+  if (document.querySelectorAll('.journey-step').length <= 1) return;
+  el.remove();
+  renumberJourneySteps();
+}
+
+function renumberJourneySteps() {
+  document.querySelectorAll('.journey-step-num').forEach((el, i) => {
+    el.textContent = i + 1;
+  });
+}
+
+// init default journey steps
+defaultSteps.forEach(s => addJourneyStep(s.label, s.hint));
+
+
+// ===== PHOTOS =====
+function loadPhoto(input, slotId, ovId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const slot = document.getElementById(slotId);
+    slot.querySelectorAll('.photo-slot-icon, .photo-slot-label').forEach(el => el.style.display = 'none');
+    let img = slot.querySelector('img');
+    if (!img) { img = document.createElement('img'); slot.prepend(img); }
+    img.src = e.target.result;
+    slot.classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== SIGNATURE =====
+const sigPads = {};
+function initSig(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio || 600;
+  canvas.height = 140 * window.devicePixelRatio || 140;
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  ctx.strokeStyle = '#1a1814';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  let drawing = false, lastX = 0, lastY = 0;
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return [(t.clientX - r.left) * (canvas.width / r.width / (window.devicePixelRatio||1)),
+            (t.clientY - r.top) * (canvas.height / r.height / (window.devicePixelRatio||1))];
+  }
+  canvas.addEventListener('mousedown', e => { drawing = true; [lastX,lastY] = getPos(e); });
+  canvas.addEventListener('mousemove', e => {
+    if (!drawing) return;
+    const [x,y] = getPos(e);
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+    [lastX,lastY] = [x,y];
+  });
+  canvas.addEventListener('mouseup', () => drawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; [lastX,lastY] = getPos(e); }, {passive:false});
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!drawing) return;
+    const [x,y] = getPos(e);
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+    [lastX,lastY] = [x,y];
+  }, {passive:false});
+  canvas.addEventListener('touchend', () => drawing = false);
+  sigPads[id] = { ctx, canvas };
+}
+function clearSig(id) {
+  const { ctx, canvas } = sigPads[id];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+initSig('sig-sender');
+initSig('sig-receiver');
+
+// ===== RESET =====
+function resetAll() {
+  if (!confirm('รีเซ็ตข้อมูลทั้งหมด?')) return;
+  clSections.forEach(s => {
+    clState[s.id] = s.items.map(() => false);
+    s.items.forEach((_,i) => {
+      document.getElementById(`cli-${s.id}-${i}`).classList.remove('checked');
+      document.getElementById(`clcb-${s.id}-${i}`).textContent = '';
+    });
+    updateBadge(s.id);
+  });
+  updateProgress();
+  clearSig('sig-sender');
+  clearSig('sig-receiver');
+}
+
+// ===== EXPORT PDF =====
+async function exportPDF() {
+  const btn = document.querySelector('.btn-export');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ กำลังสร้าง PDF...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, margin = 14;
+    let y = 14;
+
+    // Header
+    pdf.setFillColor(192, 57, 43);
+    pdf.rect(0, 0, W, 30, 'F');
+    pdf.setTextColor(255,255,255);
+    pdf.setFontSize(14); pdf.setFont('helvetica','bold');
+    pdf.text('Construction Material Transport Checklist', margin, 12);
+    pdf.setFontSize(9); pdf.setFont('helvetica','normal');
+    pdf.text('Vinyl Tiles / Rolls / Sheets / Cement 25kg', margin, 19);
+    pdf.text(docNum, margin, 26);
+
+    y = 38;
+    pdf.setTextColor(30,24,20);
+
+    // Info fields
+    const fields = [
+      ['Date', document.getElementById('f-date').value],
+      ['DO No.', document.getElementById('f-dono').value],
+      ['Truck Plate', document.getElementById('f-truck').value],
+      ['Truck Type', document.getElementById('f-trucktype').value],
+      ['Driver', document.getElementById('f-driver').value],
+      ['Phone', document.getElementById('f-phone').value],
+      ['Destination', document.getElementById('f-dest').value],
+      ['Dest. Type', document.getElementById('f-desttype').value],
+      ['Receiver', document.getElementById('f-receiver').value],
+    ];
+    pdf.setFontSize(9);
+    let col = 0;
+    fields.forEach(([k,v], i) => {
+      const x = col === 0 ? margin : W/2 + 4;
+      pdf.setFont('helvetica','bold'); pdf.text(k + ':', x, y);
+      pdf.setFont('helvetica','normal'); pdf.text(v || '-', x + 28, y);
+      if (col === 1 || i === fields.length-1) { y += 6; col = 0; } else { col = 1; }
+    });
+    y += 4;
+
+    // Materials
+    pdf.setFillColor(245,243,240); pdf.rect(margin, y, W-margin*2, 7, 'F');
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+    pdf.text('Materials', margin+2, y+5);
+    y += 9;
+    const rows = document.querySelectorAll('#mat-rows .mat-row');
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const sel = row.querySelector('select');
+      const name = inputs[0].value, qty = inputs[1].value, unit = inputs[2].value;
+      if (name) {
+        pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
+        pdf.text(`• ${name} (${sel?.value||''}) ${qty||'-'} ${unit||''}`, margin+3, y);
+        y += 5.5;
+        if (y > 270) { pdf.addPage(); y = 14; }
+      }
+    });
+    y += 4;
+
+    // Checklist
+    pdf.setFillColor(245,243,240); pdf.rect(margin, y, W-margin*2, 7, 'F');
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+    pdf.text('Inspection Checklist', margin+2, y+5);
+    y += 9;
+    clSections.forEach(sec => {
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5);
+      pdf.setFillColor(230,228,224); pdf.rect(margin, y-4, W-margin*2, 6, 'F');
+      pdf.text(sec.icon + ' ' + sec.title, margin+2, y);
+      y += 7;
+      sec.items.forEach((item, i) => {
+        const checked = clState[sec.id][i];
+        pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+        const mark = checked ? '[✓]' : '[ ]';
+        pdf.text(mark + ' ' + item.t, margin+4, y);
+        y += 5;
+        if (y > 270) { pdf.addPage(); y = 14; }
+      });
+      y += 2;
+    });
+
+    // Signatures
+    y += 4;
+    if (y > 220) { pdf.addPage(); y = 14; }
+    pdf.setFillColor(245,243,240); pdf.rect(margin, y, W-margin*2, 7, 'F');
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+    pdf.text('Signatures', margin+2, y+5);
+    y += 10;
+
+    const sigIds = ['sig-sender', 'sig-receiver'];
+    const sigLabels = ['Sender (Driver)', 'Receiver (Supervisor)'];
+    const nameIds = ['sig-sender-name', 'sig-receiver-name'];
+    const posIds = ['sig-sender-pos', 'sig-receiver-pos'];
+    const dateIds = ['sig-sender-date', 'sig-receiver-date'];
+
+    for (let s = 0; s < 2; s++) {
+      const canvas = document.getElementById(sigIds[s]);
+      const imgData = canvas.toDataURL('image/png');
+      const xOff = s === 0 ? margin : W/2 + 4;
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(8);
+      pdf.text(sigLabels[s], xOff, y);
+      pdf.addImage(imgData, 'PNG', xOff, y+2, 80, 22);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
+      pdf.text('Name: ' + (document.getElementById(nameIds[s]).value||'-'), xOff, y+27);
+      pdf.text('Pos: ' + (document.getElementById(posIds[s]).value||'-'), xOff, y+32);
+      pdf.text('Date: ' + (document.getElementById(dateIds[s]).value||'-'), xOff, y+37);
+    }
+
+    pdf.save('transport-checklist-' + docNum + '.pdf');
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+    console.error(e);
+  }
+  btn.innerHTML = orig;
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
