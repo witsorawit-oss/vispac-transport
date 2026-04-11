@@ -1360,7 +1360,7 @@ function showToast(msg, color='#1a1814') {
 async function saveToSheets() {
   const btn = document.querySelector('.btn-save');
   const orig = btn.innerHTML;
-  btn.innerHTML = '⏳ กำลังบันทึก...';
+  btn.innerHTML = '⏳ กำลังสร้าง PDF...';
   btn.disabled = true;
 
   // collect materials
@@ -1378,6 +1378,33 @@ async function saveToSheets() {
     checked += clState[s.id].filter(Boolean).length;
   });
 
+  // generate PDF as base64 using html2canvas
+  let pdfBase64 = '';
+  try {
+    // show all tabs and phases for capture
+    document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = 'block'; p.style.padding = '16px'; });
+    document.querySelectorAll('.photo-phase').forEach(p => p.style.display = 'block');
+    document.querySelectorAll('.checklist-section').forEach(s => s.classList.remove('collapsed'));
+    document.querySelectorAll('.action-bar, .tab-bar, .sheet-backdrop').forEach(el => el.style.display = 'none');
+
+    const canvas = await html2canvas(document.body, { scale: 1.5, useCORS: true, logging: false });
+    pdfBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+
+    // restore
+    document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.style.padding = ''; });
+    document.querySelectorAll('.photo-phase').forEach((p, i) => p.style.display = '');
+    document.querySelector('.photo-phase.active').style.display = 'block';
+    document.querySelectorAll('.action-bar, .tab-bar').forEach(el => el.style.display = '');
+    // re-activate correct tab
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+      const tabId = activeTab.getAttribute('onclick').match(/'(\w+)'/)?.[1];
+      if (tabId) { document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active')); document.getElementById('tab-' + tabId).classList.add('active'); }
+    }
+  } catch(err) { console.error('PDF capture error:', err); }
+
+  btn.innerHTML = '⏳ กำลังบันทึก...';
+
   const payload = {
     dono:      document.getElementById('f-dono').value,
     date:      document.getElementById('f-date').value,
@@ -1393,6 +1420,7 @@ async function saveToSheets() {
     totalCount: total,
     note:      document.getElementById('f-note').value,
     docNum,
+    pdfBase64,
   };
 
   try {
@@ -1402,7 +1430,7 @@ async function saveToSheets() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    showToast('✅ บันทึกลง Google Sheets แล้ว', '#27ae60');
+    showToast('✅ บันทึกและอัปโหลด PDF แล้ว', '#27ae60');
   } catch(e) {
     showToast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', '#c0392b');
   }
