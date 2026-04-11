@@ -516,6 +516,7 @@ canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
 .btn:active { transform: scale(0.97); }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text2); }
+.btn-save { background: #27ae60; color: #fff; }
 .btn-export { background: #1a1814; color: #fff; }
 
 /* ===== PHASE BAR ===== */
@@ -977,8 +978,17 @@ canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
 <!-- =================== ACTION BAR =================== -->
 <div class="action-bar">
   <button class="btn btn-secondary" onclick="resetAll()">🔄 รีเซ็ต</button>
-  <button class="btn btn-export" onclick="exportPDF()">📄 Export PDF</button>
+  <button class="btn btn-save" onclick="saveToSheets()">💾 บันทึก</button>
+  <button class="btn btn-export" onclick="exportPDF()">📄 PDF</button>
 </div>
+
+<!-- TOAST -->
+<div id="toast" style="
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  background:#1a1814; color:#fff; padding:10px 20px; border-radius:20px;
+  font-size:0.88rem; font-weight:600; z-index:9999;
+  opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap;
+"></div>
 
 <script>
 // ===== DOC NUMBER =====
@@ -1336,7 +1346,71 @@ function resetAll() {
 }
 
 // ===== EXPORT PDF =====
-function exportPDF() {
+// ===== SAVE TO GOOGLE SHEETS =====
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzLmnENqdbKcQiIzErHtiSY5qPOPZ-xBK6nR_rJ9pk9UY8sat0TTSB3NF272ywZHKpXOg/exec';
+
+function showToast(msg, color='#1a1814') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 3000);
+}
+
+async function saveToSheets() {
+  const btn = document.querySelector('.btn-save');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ กำลังบันทึก...';
+  btn.disabled = true;
+
+  // collect materials
+  const matRows = document.querySelectorAll('#mat-rows .mat-row');
+  const materials = Array.from(matRows).map(r => {
+    const inputs = r.querySelectorAll('input');
+    const sel = r.querySelector('select');
+    return `${inputs[0].value} (${sel?.value||''}) ${inputs[1].value||'0'}`;
+  }).filter(m => m.trim()).join(', ');
+
+  // collect checklist progress
+  let checked = 0, total = 0;
+  clSections.forEach(s => {
+    total += s.items.length;
+    checked += clState[s.id].filter(Boolean).length;
+  });
+
+  const payload = {
+    dono:      document.getElementById('f-dono').value,
+    date:      document.getElementById('f-date').value,
+    truck:     document.getElementById('f-truck').value,
+    trucktype: document.getElementById('f-trucktype').value,
+    driver:    document.getElementById('f-driver').value,
+    phone:     document.getElementById('f-phone').value,
+    dest:      document.getElementById('f-dest').value,
+    desttype:  document.getElementById('f-desttype').value,
+    receiver:  document.getElementById('f-receiver').value,
+    materials,
+    checkedCount: checked,
+    totalCount: total,
+    note:      document.getElementById('f-note').value,
+    docNum,
+  };
+
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    showToast('✅ บันทึกลง Google Sheets แล้ว', '#27ae60');
+  } catch(e) {
+    showToast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', '#c0392b');
+  }
+
+  btn.innerHTML = orig;
+  btn.disabled = false;
+}
+
   // expand all checklist sections before printing
   document.querySelectorAll('.checklist-section').forEach(s => s.classList.remove('collapsed'));
   // show all photo phases
