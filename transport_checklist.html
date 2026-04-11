@@ -377,11 +377,60 @@ body {
   display: none;
 }
 .photo-slot.has-image .photo-overlay { display: block; }
-.photo-slot input[type=file] {
+.photo-slot input[type=file] { display: none; }
+.photo-action-btn {
   position: absolute; inset: 0;
-  opacity: 0; cursor: pointer;
-  width: 100%; height: 100%;
+  background: transparent; border: none;
+  cursor: pointer; width: 100%; height: 100%;
+  z-index: 2;
 }
+
+/* ===== BOTTOM SHEET ===== */
+.sheet-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  align-items: flex-end;
+}
+.sheet-backdrop.open { display: flex; }
+.sheet {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+  width: 100%;
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.sheet-title {
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--muted); text-align: center;
+  margin-bottom: 14px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.sheet-btn {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; padding: 14px 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 10px;
+  font-family: 'Sarabun', sans-serif; font-size: 1rem; font-weight: 600;
+  color: var(--text); cursor: pointer; text-align: left;
+  transition: background 0.12s;
+}
+.sheet-btn:hover { background: var(--accent-light); border-color: var(--accent); }
+.sheet-btn-icon { font-size: 1.4rem; flex-shrink: 0; }
+.sheet-btn-sub { font-size: 0.78rem; color: var(--muted); font-weight: 400; display: block; }
+.sheet-cancel {
+  width: 100%; padding: 13px;
+  background: transparent; border: 1.5px solid var(--border);
+  border-radius: 12px; font-family: 'Sarabun', sans-serif;
+  font-size: 0.95rem; font-weight: 700; color: var(--muted);
+  cursor: pointer; margin-top: 4px;
+}
+.sheet-cancel:hover { border-color: var(--accent); color: var(--accent); }
 .photo-note {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -734,25 +783,25 @@ canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
         <span class="photo-slot-icon">🚛</span>
         <span class="photo-slot-label">สภาพรถ + ทะเบียน</span>
         <div class="photo-overlay" id="ov-b1">สภาพรถ + ทะเบียน</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b1','ov-b1')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-b1','ov-b1','สภาพรถ + ทะเบียน')"></button>
       </div>
       <div class="photo-slot" id="slot-b2">
         <span class="photo-slot-icon">🔗</span>
         <span class="photo-slot-label">การผูกมัดวัสดุบนรถ</span>
         <div class="photo-overlay" id="ov-b2">การผูกมัดวัสดุบนรถ</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b2','ov-b2')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-b2','ov-b2','การผูกมัดวัสดุบนรถ')"></button>
       </div>
       <div class="photo-slot" id="slot-b3">
         <span class="photo-slot-icon">🪨</span>
         <span class="photo-slot-label">สภาพวัสดุก่อนส่ง</span>
         <div class="photo-overlay" id="ov-b3">สภาพวัสดุก่อนส่ง</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b3','ov-b3')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-b3','ov-b3','สภาพวัสดุก่อนส่ง')"></button>
       </div>
       <div class="photo-slot" id="slot-b4">
         <span class="photo-slot-icon">📋</span>
         <span class="photo-slot-label">ใบส่งของ / เอกสาร</span>
         <div class="photo-overlay" id="ov-b4">ใบส่งของ / เอกสาร</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-b4','ov-b4')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-b4','ov-b4','ใบส่งของ / เอกสาร')"></button>
       </div>
     </div>
     <div class="photo-note">
@@ -790,25 +839,25 @@ canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
         <span class="photo-slot-icon">📍</span>
         <span class="photo-slot-label">จุดวางวัสดุ (overview)</span>
         <div class="photo-overlay" id="ov-a1">จุดวางวัสดุ (overview)</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a1','ov-a1')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-a1','ov-a1','จุดวางวัสดุ (overview)')"></button>
       </div>
       <div class="photo-slot" id="slot-a2">
         <span class="photo-slot-icon">🪨</span>
         <span class="photo-slot-label">สภาพวัสดุหลังส่งมอบ</span>
         <div class="photo-overlay" id="ov-a2">สภาพวัสดุหลังส่งมอบ</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a2','ov-a2')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-a2','ov-a2','สภาพวัสดุหลังส่งมอบ')"></button>
       </div>
       <div class="photo-slot" id="slot-a3">
         <span class="photo-slot-icon">🏗️</span>
         <span class="photo-slot-label">หน้าไซต์งาน / ปลายทาง</span>
         <div class="photo-overlay" id="ov-a3">หน้าไซต์งาน / ปลายทาง</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a3','ov-a3')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-a3','ov-a3','หน้าไซต์งาน / ปลายทาง')"></button>
       </div>
       <div class="photo-slot" id="slot-a4">
         <span class="photo-slot-icon">📄</span>
         <span class="photo-slot-label">ใบส่งของที่เซ็นแล้ว</span>
         <div class="photo-overlay" id="ov-a4">ใบส่งของที่เซ็นแล้ว</div>
-        <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'slot-a4','ov-a4')">
+        <button class="photo-action-btn" onclick="openPhotoSheet('slot-a4','ov-a4','ใบส่งของที่เซ็นแล้ว')"></button>
       </div>
     </div>
     <div class="photo-note">
@@ -867,6 +916,32 @@ canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
   </div>
 
 </div>
+
+<!-- ===== BOTTOM SHEET: CAMERA / GALLERY ===== -->
+<div class="sheet-backdrop" id="photo-sheet" onclick="closeSheet(event)">
+  <div class="sheet">
+    <div class="sheet-title" id="sheet-slot-label">เลือกรูปภาพ</div>
+    <button class="sheet-btn" onclick="triggerCapture('camera')">
+      <span class="sheet-btn-icon">📷</span>
+      <span>
+        ถ่ายรูปเดี๋ยวนี้
+        <span class="sheet-btn-sub">เปิดกล้องและถ่ายทันที</span>
+      </span>
+    </button>
+    <button class="sheet-btn" onclick="triggerCapture('gallery')">
+      <span class="sheet-btn-icon">🖼️</span>
+      <span>
+        เลือกจากคลังรูป
+        <span class="sheet-btn-sub">เลือกรูปที่ถ่ายไว้แล้ว</span>
+      </span>
+    </button>
+    <button class="sheet-cancel" onclick="closeSheetDirect()">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- hidden file inputs -->
+<input type="file" id="input-camera"  accept="image/*" capture="environment" style="display:none" onchange="handleSheetFile(this)">
+<input type="file" id="input-gallery" accept="image/*" style="display:none" onchange="handleSheetFile(this)">
 
 <!-- =================== ACTION BAR =================== -->
 <div class="action-bar">
@@ -1078,13 +1153,13 @@ function buildJourneyStep(label, hint, num) {
           <span class="photo-slot-icon">📷</span>
           <span class="photo-slot-label">ภาพที่ 1</span>
           <div class="photo-overlay" id="jov-${num}a">ภาพที่ 1</div>
-          <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'jslot-${num}a','jov-${num}a')">
+          <button class="photo-action-btn" onclick="openPhotoSheet('jslot-${num}a','jov-${num}a','ภาพที่ 1')"></button>
         </div>
         <div class="photo-slot" id="jslot-${num}b" style="aspect-ratio:4/3">
           <span class="photo-slot-icon">📷</span>
           <span class="photo-slot-label">ภาพที่ 2</span>
           <div class="photo-overlay" id="jov-${num}b">ภาพที่ 2</div>
-          <input type="file" accept="image/*" capture="environment" onchange="loadPhoto(this,'jslot-${num}b','jov-${num}b')">
+          <button class="photo-action-btn" onclick="openPhotoSheet('jslot-${num}b','jov-${num}b','ภาพที่ 2')"></button>
         </div>
       </div>
       <textarea placeholder="${hint}"></textarea>
@@ -1117,19 +1192,54 @@ function renumberJourneySteps() {
 defaultSteps.forEach(s => addJourneyStep(s.label, s.hint));
 
 
-// ===== PHOTOS =====
+// ===== PHOTO SHEET =====
+let activeSlotId = null, activeOvId = null;
+
+function openPhotoSheet(slotId, ovId, label) {
+  activeSlotId = slotId;
+  activeOvId = ovId;
+  document.getElementById('sheet-slot-label').textContent = label || 'เลือกรูปภาพ';
+  document.getElementById('photo-sheet').classList.add('open');
+}
+function closeSheetDirect() {
+  document.getElementById('photo-sheet').classList.remove('open');
+}
+function closeSheet(e) {
+  if (e.target === document.getElementById('photo-sheet')) closeSheetDirect();
+}
+function triggerCapture(mode) {
+  closeSheetDirect();
+  setTimeout(() => {
+    document.getElementById(mode === 'camera' ? 'input-camera' : 'input-gallery').click();
+  }, 200);
+}
+function handleSheetFile(input) {
+  const file = input.files[0];
+  if (!file || !activeSlotId) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    setPhotoSlot(activeSlotId, activeOvId, e.target.result);
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+function setPhotoSlot(slotId, ovId, src) {
+  const slot = document.getElementById(slotId);
+  if (!slot) return;
+  slot.querySelectorAll('.photo-slot-icon, .photo-slot-label').forEach(el => el.style.display = 'none');
+  let img = slot.querySelector('img');
+  if (!img) { img = document.createElement('img'); slot.prepend(img); }
+  img.src = src;
+  slot.classList.add('has-image');
+  if (ovId) { const ov = document.getElementById(ovId); if (ov) ov.style.display = 'block'; }
+}
+
+// legacy compat (keep for any inline usage)
 function loadPhoto(input, slotId, ovId) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
-    const slot = document.getElementById(slotId);
-    slot.querySelectorAll('.photo-slot-icon, .photo-slot-label').forEach(el => el.style.display = 'none');
-    let img = slot.querySelector('img');
-    if (!img) { img = document.createElement('img'); slot.prepend(img); }
-    img.src = e.target.result;
-    slot.classList.add('has-image');
-  };
+  reader.onload = e => setPhotoSlot(slotId, ovId, e.target.result);
   reader.readAsDataURL(file);
 }
 
