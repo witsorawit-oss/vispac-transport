@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฟอร์มตรวจงาน</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #111418;
+  --surface: #181c24;
+  --surface2: #1e2330;
+  --surface3: #252c3d;
+  --border: #2a3148;
+  --border2: #3a4460;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59,130,246,0.2);
+  --green: #22c55e;
+  --green-glow: rgba(34,197,94,0.15);
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --red-glow: rgba(239,68,68,0.18);
+  --text: #e2e8f4;
+  --text-muted: #64748b;
+  --text-dim: #334155;
+  --font: 'Sarabun', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* TOP BAR */
+.topbar {
+  height: 54px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  flex: 1;
+}
+.topbar-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.tb-btn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all .2s;
+}
+.tb-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tb-btn.green { border-color: rgba(34,197,94,.4); color: var(--green); background: var(--green-glow); }
+.tb-btn.green:hover { border-color: var(--green); }
+.tb-btn.red { border-color: rgba(239,68,68,.3); color: var(--red); background: var(--red-glow); }
+.tb-divider { width: 1px; height: 24px; background: var(--border); }
+
+/* LAYOUT */
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ptab {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+}
+.ptab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.panel-body { flex: 1; overflow-y: auto; padding: 14px; }
+.panel-body::-webkit-scrollbar { width: 4px; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* FORM FIELDS */
+.field { margin-bottom: 12px; }
+.flabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.finp {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+  appearance: none;
+}
+.finp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+textarea.finp { resize: vertical; min-height: 72px; line-height: 1.5; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* PIN LIST */
+.pin-list { display: flex; flex-direction: column; gap: 8px; }
+.pin-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .2s;
+}
+.pin-card:hover { border-color: var(--border2); }
+.pin-card.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+.pin-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.pin-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  flex-shrink: 0;
+  color: white;
+}
+.pin-badge.ok   { background: var(--green); }
+.pin-badge.ng   { background: var(--red); }
+.pin-badge.warn { background: var(--amber); }
+.pin-badge.open { background: var(--accent); }
+.pin-info { flex: 1; min-width: 0; }
+.pin-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pin-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.pin-photos {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+  flex-wrap: wrap;
+}
+.pin-photo-thumb {
+  width: 52px;
+  height: 40px;
+  border-radius: 5px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.pin-photo-thumb:hover { opacity: .8; }
+.pin-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 10px;
+}
+.pa-btn {
+  flex: 1;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface3);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: var(--font);
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s;
+}
+.pa-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pa-btn.del { border-color: rgba(239,68,68,.2); color: var(--red); }
+.pa-btn.del:hover { background: var(--red-glow); }
+
+/* PDF VIEWER */
+.pdf-viewer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0a0c10;
+  position: relative;
+}
+.pdf-toolbar {
+  height: 44px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  flex-shrink: 0;
+}
+.pdf-toolbar select, .pdf-toolbar input[type="number"] {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 8px;
+  outline: none;
+}
+.pdf-pages { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+.tool-btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: var(--font);
+  white-space: nowrap;
+}
+.tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tool-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+.tb-sep { width: 1px; height: 20px; background: var(--border); }
+
+/* PDF CANVAS AREA */
+.pdf-canvas-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+.pdf-canvas-wrap::-webkit-scrollbar { width: 6px; height: 6px; }
+.pdf-canvas-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.pdf-container {
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  cursor: crosshair;
+}
+.pdf-container.pan-mode { cursor: grab; }
+.pdf-container.pan-mode:active { cursor: grabbing; }
+
+#pdfCanvas {
+  display: block;
+  max-width: none;
+}
+
+/* PDF EMPTY STATE */
+.pdf-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-muted);
+}
+.pdf-empty .icon { font-size: 52px; opacity: .4; }
+.pdf-empty p { font-size: 13px; text-align: center; line-height: 1.7; }
+.upload-pdf-btn {
+  padding: 12px 28px;
+  border-radius: 9px;
+  border: 1.5px dashed var(--border2);
+  background: var(--surface2);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all .2s;
+}
+.upload-pdf-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+
+/* PIN MARKERS ON PDF */
+.pdf-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  z-index: 20;
+  animation: pinDrop .25s ease;
+  user-select: none;
+}
+@keyframes pinDrop {
+  from { transform: translate(-50%, -180%); opacity: 0; }
+  to   { transform: translate(-50%, -100%); opacity: 1; }
+}
+.pdf-pin-body {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2.5px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  transition: transform .15s;
+}
+.pdf-pin:hover .pdf-pin-body { transform: rotate(-45deg) scale(1.15); }
+.pdf-pin-num {
+  transform: rotate(45deg);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--mono);
+  line-height: 1;
+}
+.pdf-pin-label {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  color: white;
+  font-family: var(--mono);
+  transform: translateX(-2px);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.pdf-pin.active .pdf-pin-body { box-shadow: 0 0 0 4px rgba(255,255,255,0.3), 0 3px 10px rgba(0,0,0,.5); }
+
+/* PIN POPUP */
+.pin-popup {
+  position: fixed;
+  z-index: 1000;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: 0 12px 48px rgba(0,0,0,.7);
+  width: 320px;
+  padding: 16px;
+  display: none;
+  animation: popIn .2s ease;
+}
+@keyframes popIn {
+  from { opacity:0; transform: scale(.92) translateY(6px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.popup-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.popup-title { font-size: 14px; font-weight: 700; flex: 1; }
+.popup-close {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all .2s;
+}
+.popup-close:hover { border-color: var(--red); color: var(--red); }
+
+/* STATUS SELECTOR */
+.status-btns { display: flex; gap: 6px; margin-bottom: 12px; }
+.s-btn {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s;
+  font-family: var(--font);
+}
+.s-btn.ok.sel   { border-color: var(--green); color: var(--green); background: var(--green-glow); }
+.s-btn.ng.sel   { border-color: var(--red); color: var(--red); background: var(--red-glow); }
+.s-btn.warn.sel { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,.12); }
+
+/* PHOTO GRID IN POPUP */
+.photo-grid-popup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.photo-cell {
+  aspect-ratio: 4/3;
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.photo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-cell .del-img {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--red);
+  border: none;
+  color: white;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.photo-cell:hover .del-img { opacity: 1; }
+.add-photo-cell {
+  aspect-ratio: 4/3;
+  border: 1.5px dashed var(--border2);
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 10px;
+  gap: 3px;
+  transition: all .2s;
+}
+.add-photo-cell:hover { border-color: var(--accent); color: var(--accent); }
+
+/* POPUP ACTIONS */
+.popup-actions { display: flex; gap: 8px; margin-top: 14px; }
+.pop-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+}
+.pop-btn.save { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+.pop-btn.save:hover { filter: brightness(1.1); }
+.pop-btn.del { border-color: rgba(239,68,68,.3); color: var(--red); }
+.pop-btn.del:hover { background: var(--red-glow); }
+
+/* IMAGE PREVIEW OVERLAY */
+.img-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.9);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.img-overlay img {
+  max-width: 92vw;
+  max-height: 92vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 3000;
+  opacity: 0;
+  transition: all .3s;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* STAT BAR */
+.stat-bar {
+  height: 36px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.stat-item { display: flex; align-items: center; gap: 5px; }
+.stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* DRAG HIGHLIGHT */
+.pdf-container.drag-over { outline: 3px dashed var(--accent); }
+
+/* Scrollbar */
+.panel-body::-webkit-scrollbar { width: 5px; }
+.panel-body::-webkit-scrollbar-track { background: transparent; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">🔍 ฟอร์มตรวจงาน / Site Inspection Form</div>
+  <div class="topbar-id" id="formId">INS-2026-0001</div>
+  <div class="tb-divider"></div>
+  <button class="tb-btn" onclick="document.getElementById('pdfFileInput').click()">📄 อัพโหลด PDF แบบ</button>
+  <input type="file" id="pdfFileInput" accept="application/pdf,image/*" style="display:none" onchange="loadPlanFile(this)">
+  <button class="tb-btn" onclick="printReport()" style="border-color:#8b5cf6;color:#8b5cf6">🖨️ ปริ้น</button>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="panel-tabs">
+      <div class="ptab active" id="tab-info" onclick="switchTab('info')">📋 ข้อมูล</div>
+      <div class="ptab" id="tab-pins" onclick="switchTab('pins')">📍 จุดตรวจ</div>
+    </div>
+
+    <!-- TAB: INFO -->
+    <div class="panel-body" id="body-info">
+      <div class="field">
+        <div class="flabel">โครงการ / Project</div>
+        <input class="finp" id="projectName" placeholder="ชื่อโครงการ...">
+      </div>
+      <div class="g2">
+        <div class="field">
+          <div class="flabel">วันที่ตรวจ</div>
+          <input class="finp" id="inspectDate" type="date">
+        </div>
+        <div class="field">
+          <div class="flabel">เวลา</div>
+          <input class="finp" id="inspectTime" type="time">
+        </div>
+      </div>
+      <div class="field">
+        <div class="flabel">ผู้ตรวจ / Inspector</div>
+        <input class="finp" id="inspector" placeholder="ชื่อ-นามสกุล">
+      </div>
+      <div class="g2">
+        <div class="field">
+          <div class="flabel">อาคาร / Zone</div>
+          <input class="finp" id="building" placeholder="อาคาร A...">
+        </div>
+        <div class="field">
+          <div class="flabel">ชั้น / Floor</div>
+          <input class="finp" id="floor" placeholder="ชั้น 1...">
+        </div>
+      </div>
+      <div class="field">
+        <div class="flabel">หมายเหตุ / Remarks</div>
+        <textarea class="finp" id="remarks" placeholder="บันทึกเพิ่มเติม..."></textarea>
+      </div>
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <div style="font-size:10px;color:var(--text-muted);line-height:1.8">
+        <b style="color:var(--text)">วิธีใช้:</b><br>
+        1. อัพโหลด PDF แบบ ด้านขวา<br>
+        2. เลือกโหมด <b style="color:var(--accent)">📍 ปักหมุด</b><br>
+        3. คลิกบนแบบเพื่อสร้างจุดตรวจ<br>
+        4. คลิกที่หมุดเพื่อเพิ่มรูปและรายละเอียด<br>
+        5. กด 💾 Save เพื่อบันทึก
+      </div>
+    </div>
+
+    <!-- TAB: PINS -->
+    <div class="panel-body" id="body-pins" style="display:none">
+      <div id="pinListEmpty" style="text-align:center;padding:30px 0;color:var(--text-muted);font-size:12px">
+        <div style="font-size:28px;margin-bottom:8px">📍</div>
+        ยังไม่มีจุดตรวจ<br>คลิกบนแบบเพื่อปักหมุด
+      </div>
+      <div class="pin-list" id="pinList"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: PDF VIEWER -->
+  <div class="pdf-viewer" id="pdfViewer">
+
+    <!-- TOOLBAR -->
+    <div class="pdf-toolbar">
+      <button class="tool-btn active" id="modePinBtn" onclick="setMode('pin')">📍 ปักหมุด</button>
+      <button class="tool-btn" id="modePanBtn" onclick="setMode('pan')">🔍 เลื่อนดู</button>
+      <div class="tb-sep"></div>
+      <button class="tool-btn" onclick="zoomOut()">－</button>
+      <span class="pdf-pages" id="zoomLabel">100%</span>
+      <button class="tool-btn" onclick="zoomIn()">＋</button>
+      <button class="tool-btn" onclick="zoomFit()">⊡ Fit</button>
+      <div class="tb-sep"></div>
+      <button class="tool-btn" onclick="prevPage()">◀</button>
+      <span class="pdf-pages" id="pageLabel">— / —</span>
+      <button class="tool-btn" onclick="nextPage()">▶</button>
+      <div class="tb-sep"></div>
+      <button class="tool-btn" onclick="clearAllPins()" style="color:var(--red)">🗑 ล้างหมุด</button>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="pdf-canvas-wrap" id="pdfCanvasWrap">
+      <!-- Empty state -->
+      <div class="pdf-empty" id="pdfEmpty">
+        <div class="icon">📐</div>
+        <p>อัพโหลด PDF แบบหรือรูป<br>เพื่อเริ่มปักหมุดตรวจงาน</p>
+        <button class="upload-pdf-btn" onclick="document.getElementById('pdfFileInput').click()">📄 เลือกไฟล์ PDF / รูป</button>
+      </div>
+
+      <!-- PDF Container (hidden until loaded) -->
+      <div class="pdf-container" id="pdfContainer" style="display:none" onclick="handleCanvasClick(event)">
+        <canvas id="pdfCanvas"></canvas>
+        <!-- pins render here -->
+      </div>
+    </div>
+
+    <!-- STAT BAR -->
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--accent)"></div>
+        <span>จุดทั้งหมด: <b id="statTotal">0</b></span>
+      </div>
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--green)"></div>
+        <span>ผ่าน: <b id="statOk">0</b></span>
+      </div>
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--red)"></div>
+        <span>ไม่ผ่าน: <b id="statNg">0</b></span>
+      </div>
+      <div class="stat-item">
+        <div class="stat-dot" style="background:var(--amber)"></div>
+        <span>แก้ไข: <b id="statWarn">0</b></span>
+      </div>
+      <div style="flex:1"></div>
+      <span id="statMode" style="color:var(--accent)">โหมด: ปักหมุด</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- PIN POPUP -->
+<div class="pin-popup" id="pinPopup">
+  <div class="popup-head" id="popupDragHandle" style="cursor:move;user-select:none">
+    <div class="pin-badge open" id="popupBadge">1</div>
+    <div class="popup-title" id="popupTitle">จุดตรวจ #1</div>
+    <span style="font-size:10px;color:var(--text-dim);margin-right:4px" title="ลากเพื่อย้าย">⠿</span>
+    <button class="popup-close" onclick="closePopup()">×</button>
+  </div>
+
+  <div class="field" style="margin-bottom:10px">
+    <div class="flabel">ชื่อ / รายละเอียดจุด</div>
+    <input class="finp" id="popupLabel" placeholder="เช่น ผนังห้องน้ำ, เพดานชั้น 2..." style="font-size:12px">
+  </div>
+
+  <div class="flabel" style="margin-bottom:6px">สถานะ</div>
+  <div class="status-btns">
+    <button class="s-btn ok"   onclick="setPopupStatus('ok')">✅ ผ่าน</button>
+    <button class="s-btn warn" onclick="setPopupStatus('warn')">⚠️ แก้ไข</button>
+    <button class="s-btn ng"   onclick="setPopupStatus('ng')">❌ ไม่ผ่าน</button>
+  </div>
+
+  <div class="field" style="margin-bottom:10px">
+    <div class="flabel">หมายเหตุ</div>
+    <textarea class="finp" id="popupNote" placeholder="บันทึก..." style="min-height:56px;font-size:12px"></textarea>
+  </div>
+
+  <div class="flabel" style="margin-bottom:6px">📷 รูปก่อนแก้ไข / Before</div>
+  <div class="photo-grid-popup" id="popupPhotoGrid">
+    <div class="add-photo-cell" onclick="document.getElementById('popupPhotoInput').click()">
+      <span style="font-size:18px">🖼️</span>
+      <span>คลังรูป</span>
+    </div>
+    <div class="add-photo-cell" onclick="document.getElementById('popupCameraInput').click()" style="border-color:rgba(34,197,94,.4);color:var(--green)">
+      <span style="font-size:18px">📸</span>
+      <span>ถ่ายรูป</span>
+    </div>
+  </div>
+  <input type="file" id="popupPhotoInput" accept="image/*" multiple style="display:none" onchange="handlePopupPhoto(this,'before')">
+  <input type="file" id="popupCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePopupPhoto(this,'before')">
+
+  <div class="popup-actions">
+    <button class="pop-btn del" onclick="deleteCurrentPin()">🗑 ลบจุด</button>
+    <button class="pop-btn save" onclick="savePopup()">✓ บันทึก</button>
+  </div>
+</div>
+
+<!-- IMAGE PREVIEW -->
+<div class="img-overlay" id="imgOverlay" onclick="this.style.display='none'">
+  <img id="imgOverlayImg" src="" alt="">
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- CONFIG ----
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ---- STATE ----
+let pins = [];        // [{id, x, y, label, status, note, photos:[base64]}]
+let pinCounter = 0;
+let activePinId = null;
+let mode = 'pin';     // 'pin' | 'pan'
+let pdfDoc = null;
+let currentPage = 1;
+let totalPages = 1;
+let zoom = 1.0;
+let planImageSrc = null;  // base64 if image uploaded
+let planType = null;      // 'pdf' | 'image'
+let planPdfStoredBase64 = null; // PDF stored as base64 for save/load
+let popupPinId = null;
+let popupStatus = 'open';
+let popupPhotos = [];      // before photos
+let popupAfterPhotos = []; // after photos
+
+// ---- INIT ----
+function init() {
+  const now = new Date();
+  const rnd = String(Math.floor(Math.random()*9000)+1000);
+  document.getElementById('formId').textContent = `INS-${now.getFullYear()}-${rnd}`;
+  const ymd = now.toISOString().split('T')[0];
+  document.getElementById('inspectDate').value = ymd;
+  const hhmm = now.toTimeString().slice(0,5);
+  document.getElementById('inspectTime').value = hhmm;
+}
+
+// ---- TABS ----
+function switchTab(tab) {
+  ['info','pins'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('body-'+t).style.display = t===tab ? '' : 'none';
+  });
+}
+
+// ---- LOAD PDF / IMAGE ----
+async function loadPlanFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  showToast('⏳ กำลังโหลด...');
+
+  if (file.type === 'application/pdf') {
+    planType = 'pdf';
+    planImageSrc = null;
+    const arrayBuffer = await file.arrayBuffer();
+    // Store as base64 for save/load
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    planPdfStoredBase64 = btoa(binary);
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    totalPages = pdfDoc.numPages;
+    currentPage = 1;
+    await renderPage(currentPage);
+  } else {
+    // Image
+    planType = 'image';
+    pdfDoc = null;
+    totalPages = 1;
+    currentPage = 1;
+    const reader = new FileReader();
+    reader.onload = async e => {
+      planImageSrc = e.target.result;
+      await renderImage(planImageSrc);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+async function renderPage(pageNum) {
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({ scale: zoom });
+  const canvas = document.getElementById('pdfCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  showContainer(canvas.width, canvas.height);
+  document.getElementById('pageLabel').textContent = `${pageNum} / ${totalPages}`;
+  document.getElementById('zoomLabel').textContent = Math.round(zoom*100) + '%';
+  renderPins();
+  showToast('✅ โหลดแล้ว');
+}
+
+async function renderImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.getElementById('pdfCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width * zoom;
+      canvas.height = img.height * zoom;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      showContainer(canvas.width, canvas.height);
+      document.getElementById('pageLabel').textContent = '1 / 1';
+      document.getElementById('zoomLabel').textContent = Math.round(zoom*100) + '%';
+      renderPins();
+      showToast('✅ โหลดรูปแล้ว');
+      resolve();
+    };
+    img.src = src;
+  });
+}
+
+function showContainer(w, h) {
+  document.getElementById('pdfEmpty').style.display = 'none';
+  const container = document.getElementById('pdfContainer');
+  container.style.display = 'inline-block';
+}
+
+async function rerender() {
+  if (!planType) return;
+  if (planType === 'pdf' && pdfDoc) await renderPage(currentPage);
+  else if (planType === 'image' && planImageSrc) await renderImage(planImageSrc);
+}
+
+// ---- ZOOM / PAGE ----
+async function zoomIn()  { zoom = Math.min(zoom + 0.25, 4); await rerender(); }
+async function zoomOut() { zoom = Math.max(zoom - 0.25, 0.25); await rerender(); }
+async function zoomFit() {
+  const wrap = document.getElementById('pdfCanvasWrap');
+  const canvas = document.getElementById('pdfCanvas');
+  if (!canvas.width) return;
+  const naturalW = canvas.width / zoom;
+  zoom = Math.min((wrap.clientWidth - 40) / naturalW, 1.5);
+  await rerender();
+}
+async function prevPage() {
+  if (currentPage > 1) { currentPage--; await rerender(); }
+}
+async function nextPage() {
+  if (currentPage < totalPages) { currentPage++; await rerender(); }
+}
+
+// ---- MODE ----
+function setMode(m) {
+  mode = m;
+  document.getElementById('modePinBtn').classList.toggle('active', m==='pin');
+  document.getElementById('modePanBtn').classList.toggle('active', m==='pan');
+  const container = document.getElementById('pdfContainer');
+  container.classList.toggle('pan-mode', m==='pan');
+  document.getElementById('statMode').textContent = m==='pin' ? 'โหมด: ปักหมุด' : 'โหมด: เลื่อนดู';
+}
+
+// ---- CLICK TO PIN ----
+function handleCanvasClick(e) {
+  if (mode !== 'pin') return;
+  if (e.target.closest('.pdf-pin')) return;
+  const container = document.getElementById('pdfContainer');
+  const rect = container.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(2);
+  const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(2);
+  // Use sequential number based on current pin count, not deleted counter
+  const pinNum = pins.length + 1;
+  pinCounter = Math.max(pinCounter, pinNum);
+  const pin = { id: pinNum, x, y, label: '', status: 'open', note: '', photos: [], afterPhotos: [], page: currentPage };
+  pins.push(pin);
+  renderPins();
+  updateStats();
+  updatePinList();
+  openPopup(pin.id, e.clientX, e.clientY);
+  showToast(`📍 สร้างจุด #${pinNum}`);
+}
+
+// ---- RENDER PINS ----
+function renderPins() {
+  const container = document.getElementById('pdfContainer');
+  container.querySelectorAll('.pdf-pin').forEach(el => el.remove());
+
+  pins.filter(p => p.page === currentPage).forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'pdf-pin' + (p.id === activePinId ? ' active' : '');
+    el.dataset.pinId = p.id;
+    el.style.left = p.x + '%';
+    el.style.top = p.y + '%';
+
+    const colors = { ok:'#22c55e', ng:'#ef4444', warn:'#f59e0b', open:'#3b82f6' };
+    const color = colors[p.status] || colors.open;
+
+    el.innerHTML = `
+      <div class="pdf-pin-body" style="background:${color}">
+        <span class="pdf-pin-num">${p.id}</span>
+      </div>
+      <div class="pdf-pin-label" style="background:${color}">${p.label || '#'+p.id}</div>
+    `;
+    el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      openPopup(p.id, ev.clientX, ev.clientY);
+    });
+    container.appendChild(el);
+  });
+}
+
+// ---- POPUP ----
+function openPopup(pinId, clientX, clientY) {
+  const pin = pins.find(p => p.id === pinId);
+  if (!pin) return;
+  popupPinId = pinId;
+  activePinId = pinId;
+  popupPhotos = [...(pin.photos || [])];
+  popupAfterPhotos = [...(pin.afterPhotos || [])];
+  popupStatus = pin.status || 'open';
+
+  document.getElementById('popupTitle').textContent = `จุดตรวจ #${pin.id}`;
+  document.getElementById('popupLabel').value = pin.label || '';
+  document.getElementById('popupNote').value = pin.note || '';
+
+  const colors = { ok:'#22c55e', ng:'#ef4444', warn:'#f59e0b', open:'#3b82f6' };
+  const badge = document.getElementById('popupBadge');
+  badge.textContent = pin.id;
+  badge.style.background = colors[popupStatus] || colors.open;
+  badge.className = 'pin-badge ' + popupStatus;
+
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('sel'));
+  if (popupStatus !== 'open') document.querySelector(`.s-btn.${popupStatus}`)?.classList.add('sel');
+
+  renderPopupPhotos();
+  renderPopupAfterPhotos();
+
+  const popup = document.getElementById('pinPopup');
+  popup.style.display = 'block';
+
+  // Position popup smartly
+  const pw = 320, ph = 480;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = clientX + 12;
+  let top  = clientY - 40;
+  if (left + pw > vw - 10) left = clientX - pw - 12;
+  if (top + ph > vh - 10) top = vh - ph - 10;
+  if (top < 60) top = 60;
+  popup.style.left = left + 'px';
+  popup.style.top  = top + 'px';
+
+  renderPins();
+}
+
+function closePopup() {
+  document.getElementById('pinPopup').style.display = 'none';
+  activePinId = null;
+  popupPinId = null;
+  renderPins();
+}
+
+function setPopupStatus(s) {
+  popupStatus = s;
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('sel'));
+  document.querySelector(`.s-btn.${s}`)?.classList.add('sel');
+  const colors = { ok:'#22c55e', ng:'#ef4444', warn:'#f59e0b', open:'#3b82f6' };
+  const badge = document.getElementById('popupBadge');
+  badge.style.background = colors[s] || colors.open;
+  badge.className = 'pin-badge ' + s;
+}
+
+function savePopup() {
+  if (!popupPinId) return;
+  const pin = pins.find(p => p.id === popupPinId);
+  if (!pin) return;
+  pin.label  = document.getElementById('popupLabel').value;
+  pin.note   = document.getElementById('popupNote').value;
+  pin.status = popupStatus;
+  pin.photos      = [...popupPhotos];
+  pin.afterPhotos = [...popupAfterPhotos];
+  renderPins();
+  updateStats();
+  updatePinList();
+  closePopup();
+  showToast('✅ บันทึกจุดแล้ว');
+}
+
+function deleteCurrentPin() {
+  if (!popupPinId) return;
+  deletePinById(popupPinId);
+  closePopup();
+}
+
+function deletePinById(pinId) {
+  pins = pins.filter(p => p.id !== pinId);
+  // Renumber remaining pins sequentially 1, 2, 3...
+  pins.forEach((p, i) => { p.id = i + 1; });
+  pinCounter = pins.length;
+  if (activePinId === pinId) { activePinId = null; popupPinId = null; }
+  renderPins();
+  updateStats();
+  updatePinList();
+  showToast(`🗑 ลบจุดแล้ว`);
+}
+
+// ---- POPUP DRAG ----
+function initPopupDrag() {
+  const popup  = document.getElementById('pinPopup');
+  const handle = document.getElementById('popupDragHandle');
+  let dragging = false, ox = 0, oy = 0;
+
+  handle.addEventListener('mousedown', e => {
+    if (e.target.closest('button')) return;
+    dragging = true;
+    const rect = popup.getBoundingClientRect();
+    ox = e.clientX - rect.left;
+    oy = e.clientY - rect.top;
+    popup.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const pw = popup.offsetWidth, ph = popup.offsetHeight;
+    let left = e.clientX - ox;
+    let top  = e.clientY - oy;
+    left = Math.max(0, Math.min(left, vw - pw));
+    top  = Math.max(54, Math.min(top,  vh - ph - 36));
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
+  });
+
+  document.addEventListener('mouseup', () => { dragging = false; });
+
+  // Touch support
+  handle.addEventListener('touchstart', e => {
+    if (e.target.closest('button')) return;
+    const t = e.touches[0];
+    const rect = popup.getBoundingClientRect();
+    ox = t.clientX - rect.left;
+    oy = t.clientY - rect.top;
+    dragging = true;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const pw = popup.offsetWidth, ph = popup.offsetHeight;
+    let left = t.clientX - ox;
+    let top  = t.clientY - oy;
+    left = Math.max(0, Math.min(left, vw - pw));
+    top  = Math.max(54, Math.min(top,  vh - ph - 36));
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => { dragging = false; });
+}
+
+
+function clearAllPins() {
+  if (!confirm('ล้างหมุดทั้งหมดหรือไม่?')) return;
+  pins = []; pinCounter = 0;
+  renderPins(); updateStats(); updatePinList();
+  showToast('🗑 ล้างหมุดทั้งหมด');
+}
+
+// ---- PHOTOS IN POPUP ----
+function handlePopupPhoto(input, type) {
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (type === 'after') {
+        popupAfterPhotos.push(e.target.result);
+        renderPopupAfterPhotos();
+      } else {
+        popupPhotos.push(e.target.result);
+        renderPopupPhotos();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderPopupPhotos() {
+  const grid = document.getElementById('popupPhotoGrid');
+  grid.innerHTML = '';
+  popupPhotos.forEach((src, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'photo-cell';
+    cell.innerHTML = `<img src="${src}" onclick="previewImg('${src}')">
+      <button class="del-img" onclick="event.stopPropagation();popupPhotos.splice(${i},1);renderPopupPhotos()">×</button>`;
+    grid.appendChild(cell);
+  });
+  // Gallery btn
+  const g = document.createElement('div');
+  g.className = 'add-photo-cell';
+  g.innerHTML = `<span style="font-size:16px">🖼️</span><span>คลัง</span>`;
+  g.onclick = () => document.getElementById('popupPhotoInput').click();
+  grid.appendChild(g);
+  // Camera btn
+  const cam = document.createElement('div');
+  cam.className = 'add-photo-cell';
+  cam.style.borderColor = 'rgba(34,197,94,.4)';
+  cam.style.color = 'var(--green)';
+  cam.innerHTML = `<span style="font-size:16px">📸</span><span>กล้อง</span>`;
+  cam.onclick = () => document.getElementById('popupCameraInput').click();
+  grid.appendChild(cam);
+}
+
+function renderPopupAfterPhotos() {
+  const grid = document.getElementById('popupAfterGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  popupAfterPhotos.forEach((src, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'photo-cell';
+    cell.style.border = '1px solid rgba(34,197,94,.4)';
+    cell.innerHTML = `<img src="${src}" onclick="previewImg('${src}')">
+      <div style="position:absolute;bottom:3px;left:3px;background:rgba(34,197,94,.85);color:#0f172a;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px">AFTER</div>
+      <button class="del-img" onclick="event.stopPropagation();popupAfterPhotos.splice(${i},1);renderPopupAfterPhotos()">×</button>`;
+    grid.appendChild(cell);
+  });
+  // Gallery btn
+  const g = document.createElement('div');
+  g.className = 'add-photo-cell';
+  g.style.borderColor = 'rgba(34,197,94,.3)';
+  g.style.color = 'var(--green)';
+  g.innerHTML = `<span style="font-size:16px">🖼️</span><span>คลัง</span>`;
+  g.onclick = () => document.getElementById('popupAfterInput').click();
+  grid.appendChild(g);
+  // Camera btn
+  const cam = document.createElement('div');
+  cam.className = 'add-photo-cell';
+  cam.style.cssText = 'border-color:rgba(34,197,94,.5);color:var(--green);background:var(--green-glow)';
+  cam.innerHTML = `<span style="font-size:16px">📸</span><span>กล้อง</span>`;
+  cam.onclick = () => document.getElementById('popupAfterCamera').click();
+  grid.appendChild(cam);
+}
+
+function removePopupPhoto(idx) {
+  popupPhotos.splice(idx, 1);
+  renderPopupPhotos();
+}
+
+function previewImg(src) {
+  document.getElementById('imgOverlayImg').src = src;
+  document.getElementById('imgOverlay').style.display = 'flex';
+}
+
+// ---- PIN LIST (left panel) ----
+function updatePinList() {
+  const list = document.getElementById('pinList');
+  const empty = document.getElementById('pinListEmpty');
+  list.innerHTML = '';
+  empty.style.display = pins.length === 0 ? '' : 'none';
+
+  pins.forEach(p => {
+    const colors = { ok:'#22c55e', ng:'#ef4444', warn:'#f59e0b', open:'#3b82f6' };
+    const statusLabels = { ok:'ผ่าน', ng:'ไม่ผ่าน', warn:'แก้ไข', open:'รอตรวจ' };
+    const card = document.createElement('div');
+    card.className = 'pin-card' + (p.id === activePinId ? ' active' : '');
+    card.innerHTML = `
+      <div class="pin-card-head" onclick="jumpToPin(${p.id})">
+        <div class="pin-badge ${p.status}" style="background:${colors[p.status]||colors.open}">${p.id}</div>
+        <div class="pin-info">
+          <div class="pin-title">${p.label || 'จุด #'+p.id}</div>
+          <div class="pin-sub">หน้า ${p.page} · ${statusLabels[p.status]||'รอตรวจ'} · Before:${p.photos.length} After:${(p.afterPhotos||[]).length}</div>
+        </div>
+        <button onclick="event.stopPropagation();deletePinById(${p.id})"
+          style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:var(--red);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;transition:all .2s"
+          onmouseenter="this.style.background='rgba(239,68,68,.2)'"
+          onmouseleave="this.style.background='rgba(239,68,68,.08)'"
+          title="ลบจุดนี้">×</button>
+      </div>
+      ${p.photos.length > 0 ? `<div class="pin-photos">${p.photos.slice(0,4).map(s=>`<img class="pin-photo-thumb" src="${s}" onclick="previewImg('${s}')">`).join('')}${p.photos.length>4?`<div style="display:flex;align-items:center;justify-content:center;width:52px;height:40px;border-radius:5px;border:1px solid var(--border);font-size:10px;color:var(--text-muted)">+${p.photos.length-4}</div>`:''}</div>` : ''}
+    `;
+    list.appendChild(card);
+  });
+
+  if (pins.length > 0) switchTab('pins');
+}
+
+function jumpToPin(pinId) {
+  const pin = pins.find(p => p.id === pinId);
+  if (!pin) return;
+  if (pin.page !== currentPage) {
+    currentPage = pin.page;
+    rerender().then(() => {
+      const container = document.getElementById('pdfContainer');
+      const el = container.querySelector(`[data-pin-id="${pinId}"]`);
+      if (el) {
+        const x = parseFloat(pin.x)/100 * container.offsetWidth;
+        const y = parseFloat(pin.y)/100 * container.offsetHeight;
+        openPopup(pinId, x + container.getBoundingClientRect().left, y + container.getBoundingClientRect().top);
+      }
+    });
+  } else {
+    const container = document.getElementById('pdfContainer');
+    const rect = container.getBoundingClientRect();
+    const cx = parseFloat(pin.x)/100 * rect.width + rect.left;
+    const cy = parseFloat(pin.y)/100 * rect.height + rect.top;
+    openPopup(pinId, cx, cy);
+  }
+}
+
+// ---- STATS ----
+function updateStats() {
+  const counts = { ok:0, ng:0, warn:0, open:0 };
+  pins.forEach(p => counts[p.status] = (counts[p.status]||0)+1);
+  document.getElementById('statTotal').textContent = pins.length;
+  document.getElementById('statOk').textContent   = counts.ok   || 0;
+  document.getElementById('statNg').textContent   = counts.ng   || 0;
+  document.getElementById('statWarn').textContent = counts.warn || 0;
+}
+
+// ---- SAVE / LOAD JSON ----
+async function saveJSON() {
+  const formId = document.getElementById('formId').textContent;
+  const projectName = v('projectName');
+  const defaultName = projectName
+    ? `${projectName}_${formId}_Inspection`
+    : `${formId}_Inspection`;
+
+  const filename = prompt('ตั้งชื่อไฟล์ (ไม่ต้องใส่นามสกุล .json)', defaultName);
+  if (filename === null) return; // ยกเลิก
+  if (!filename.trim()) { showToast('⚠️ กรุณาใส่ชื่อไฟล์'); return; }
+
+  showToast('⏳ กำลังบันทึก...');
+
+  // Encode PDF as base64 if needed
+  let planPdfBase64 = null;
+  if (planType === 'pdf' && pdfDoc) {
+    planPdfBase64 = planPdfStoredBase64 || null;
+  }
+
+  const data = {
+    version: '2.0',
+    savedAt: new Date().toISOString(),
+    formId,
+    fields: {
+      projectName: v('projectName'),
+      inspectDate: v('inspectDate'),
+      inspectTime: v('inspectTime'),
+      inspector: v('inspector'),
+      building: v('building'),
+      floor: v('floor'),
+      remarks: v('remarks'),
+    },
+    pins,
+    pinCounter,
+    planType,
+    planImageSrc,
+    planPdfBase64,
+    currentPage,
+    zoom,
+  };
+
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename.trim()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`💾 บันทึก "${filename.trim()}.json" สำเร็จ`);
+}
+
+function loadJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  showToast('⏳ กำลังโหลด...');
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      document.getElementById('formId').textContent = data.formId || '';
+      if (data.fields) Object.entries(data.fields).forEach(([id,val]) => {
+        const el = document.getElementById(id); if(el) el.value = val;
+      });
+      pins        = data.pins || [];
+      pinCounter  = data.pinCounter || pins.length;
+      planType    = data.planType   || null;
+      planImageSrc = data.planImageSrc || null;
+      zoom        = data.zoom        || 1;
+      currentPage = data.currentPage || 1;
+
+      if (planType === 'pdf' && data.planPdfBase64) {
+        // Restore PDF from base64
+        planPdfStoredBase64 = data.planPdfBase64;
+        const binary = atob(data.planPdfBase64);
+        const bytes  = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        pdfDoc     = await pdfjsLib.getDocument({ data: bytes }).promise;
+        totalPages = pdfDoc.numPages;
+        currentPage = Math.min(currentPage, totalPages);
+        await renderPage(currentPage);
+      } else if (planType === 'image' && planImageSrc) {
+        await renderImage(planImageSrc);
+      }
+
+      updateStats();
+      updatePinList();
+      showToast('📂 โหลดข้อมูลสำเร็จ!');
+    } catch(err) {
+      console.error(err);
+      showToast('❌ ไฟล์ไม่ถูกต้อง');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ---- PRINT ----
+async function printReport() {
+  const formId = document.getElementById('formId').textContent;
+  const projectName = v('projectName');
+  const defaultName = projectName
+    ? `${projectName}_${formId}_Report`
+    : `${formId}_Report`;
+
+  const filename = prompt('ตั้งชื่อไฟล์ PDF (สำหรับ Save as PDF)', defaultName);
+  if (filename === null) return; // ยกเลิก
+
+  showToast('⏳ กำลังเตรียมรูปความละเอียดสูง...');
+  const planSnap = (planType) ? await captureCanvasWithPins() : null;
+
+  const statusLabels = { ok:'✅ ผ่าน', ng:'❌ ไม่ผ่าน', warn:'⚠️ แก้ไข', open:'🔵 รอตรวจ' };
+  const statusColors = { ok:'#16a34a', ng:'#dc2626', warn:'#d97706', open:'#2563eb' };
+
+  const pinRows = pins.map(p => `
+    <tr>
+      <td style="text-align:center;font-family:monospace;font-weight:700">${p.id}</td>
+      <td>${p.label||'—'}</td>
+      <td>หน้า ${p.page}</td>
+      <td style="color:${statusColors[p.status]||statusColors.open};font-weight:600">${statusLabels[p.status]||'รอตรวจ'}</td>
+      <td>${p.note||'—'}</td>
+      <td style="text-align:center">${p.photos.length}</td>
+    </tr>
+  `).join('');
+
+  const photoSections = pins.filter(p=>p.photos.length>0||(p.afterPhotos||[]).length>0).map(p=>`
+    <div style="page-break-inside:avoid;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:8px;padding:4px 8px;background:#f1f5f9;border-radius:4px">
+        จุด #${p.id} — ${p.label||'ไม่มีชื่อ'} · ${statusLabels[p.status]||'รอตรวจ'}
+        ${p.note ? `<span style="font-weight:400;color:#64748b"> · ${p.note}</span>` : ''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:9px;font-weight:700;color:#e67e22;border-left:3px solid #e67e22;padding-left:6px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Before — ก่อนแก้ไข (${p.photos.length} รูป)</div>
+          <div style="display:grid;grid-template-columns:repeat(${Math.min(p.photos.length||1,2)},1fr);gap:5px">
+            ${p.photos.length > 0 ? p.photos.map(s=>`<img src="${s}" style="width:100%;height:100px;object-fit:cover;border-radius:5px;border:1px solid #e2e8f0">`).join('') : '<div style="height:80px;background:#fafbfd;border-radius:5px;border:1px dashed #e2e8f0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:10px">ไม่มีรูป</div>'}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:700;color:#16a34a;border-left:3px solid #16a34a;padding-left:6px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">After — แก้ไขแล้ว (${(p.afterPhotos||[]).length} รูป)</div>
+          <div style="display:grid;grid-template-columns:repeat(${Math.min((p.afterPhotos||[]).length||1,2)},1fr);gap:5px">
+            ${(p.afterPhotos||[]).length > 0 ? (p.afterPhotos||[]).map(s=>`<img src="${s}" style="width:100%;height:100px;object-fit:cover;border-radius:5px;border:1px solid #dcfce7">`).join('') : '<div style="height:80px;background:#f0fdf4;border-radius:5px;border:1px dashed #bbf7d0;display:flex;align-items:center;justify-content:center;color:#86efac;font-size:10px">ยังไม่มีรูป After</div>'}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  let iframe = document.getElementById('__pf');
+  if (iframe) iframe.remove();
+  iframe = document.createElement('iframe');
+  iframe.id = '__pf';
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none';
+  document.body.appendChild(iframe);
+  const pw = iframe.contentWindow;
+  pw.document.open();
+  pw.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+<title>${filename.trim()}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:#0f172a;font-size:11px;padding:18px 20px}
+  @page{size:A4;margin:12mm 14mm 16mm 14mm}
+  h1{font-size:18px;font-weight:700;color:#1e40af;margin-bottom:3px}
+  h2{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px}
+  .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;margin-bottom:14px;padding:10px 14px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0}
+  .mf-label{font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .mf-val{font-size:11px;color:#1e293b;font-weight:500;margin-top:1px}
+  table{width:100%;border-collapse:collapse;margin-bottom:14px}
+  th{background:#1e40af;color:white;padding:7px 10px;font-size:10px;text-align:left;font-weight:600;letter-spacing:.05em}
+  td{border:1px solid #e2e8f0;padding:6px 10px;font-size:11px;vertical-align:top}
+  tr:nth-child(even) td{background:#f8fafc}
+  .plan-img{width:100%;max-height:360px;object-fit:contain;border:1px solid #e2e8f0;border-radius:6px;background:#f1f5f9;display:block;margin-bottom:14px;page-break-inside:avoid}
+  .footer{margin-top:16px;border-top:1px solid #e2e8f0;padding-top:8px;display:flex;justify-content:space-between;font-size:9px;color:#94a3b8}
+  .stat-row{display:flex;gap:16px;margin-bottom:12px;padding:8px 14px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0}
+  .stat-chip{font-size:11px;font-weight:600}
+</style></head><body>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #1e40af;padding-bottom:12px;margin-bottom:14px">
+  <div>
+    <h1>ฟอร์มตรวจงาน / Site Inspection Report</h1>
+    <div style="font-size:11px;color:#64748b;font-family:monospace;margin-top:3px">${formId}</div>
+  </div>
+  <img src="data:image/jpeg;base64,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" style="height:50px;object-fit:contain;margin-left:16px">
+</div>
+<div class="meta">
+  <div><div class="mf-label">โครงการ</div><div class="mf-val">${v('projectName')||'—'}</div></div>
+  <div><div class="mf-label">ผู้ตรวจ</div><div class="mf-val">${v('inspector')||'—'}</div></div>
+  <div><div class="mf-label">วันที่ / เวลา</div><div class="mf-val">${v('inspectDate')||'—'} ${v('inspectTime')||''}</div></div>
+  <div><div class="mf-label">อาคาร</div><div class="mf-val">${v('building')||'—'}</div></div>
+  <div><div class="mf-label">ชั้น</div><div class="mf-val">${v('floor')||'—'}</div></div>
+  <div><div class="mf-label">หมายเหตุ</div><div class="mf-val">${v('remarks')||'—'}</div></div>
+</div>
+<div class="stat-row">
+  <span class="stat-chip" style="color:#1d4ed8">จุดทั้งหมด: ${pins.length}</span>
+  <span class="stat-chip" style="color:#16a34a">ผ่าน: ${pins.filter(p=>p.status==='ok').length}</span>
+  <span class="stat-chip" style="color:#dc2626">ไม่ผ่าน: ${pins.filter(p=>p.status==='ng').length}</span>
+  <span class="stat-chip" style="color:#d97706">แก้ไข: ${pins.filter(p=>p.status==='warn').length}</span>
+  <span class="stat-chip" style="color:#94a3b8">รอตรวจ: ${pins.filter(p=>p.status==='open').length}</span>
+</div>
+${planSnap ? `<h2>แบบพร้อมหมุดตรวจ</h2><img class="plan-img" src="${planSnap}">` : ''}
+<h2>รายการจุดตรวจ</h2>
+<table><thead><tr>
+  <th style="width:32px">ที่</th><th>ชื่อ/รายละเอียด</th><th style="width:55px">หน้า</th>
+  <th style="width:80px">สถานะ</th><th>หมายเหตุ</th><th style="width:42px;text-align:center">รูป</th>
+</tr></thead><tbody>${pinRows||'<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:16px">ไม่มีจุดตรวจ</td></tr>'}</tbody></table>
+${photoSections ? `<h2>รูปภาพประจำจุด</h2>${photoSections}` : ''}
+<div class="footer">
+  <span>พิมพ์: ${new Date().toLocaleString('th-TH')}</span>
+  <span>${formId} | Site Inspection Form</span>
+  <span>หน้า 1/1</span>
+</div>
+</body></html>`);
+  pw.document.close();
+  setTimeout(() => { try { iframe.contentWindow.focus(); iframe.contentWindow.print(); showToast('🖨️ กำลังปริ้น...'); } catch(e) { showToast('⚠️ กรุณาใช้ Ctrl+P'); } }, 900);
+}
+
+async function captureCanvasWithPins() {
+  const colors = { ok:'#22c55e', ng:'#ef4444', warn:'#f59e0b', open:'#3b82f6' };
+  const SCALE = 3; // 3x resolution for sharp print
+
+  let srcCanvas;
+
+  if (planType === 'pdf' && pdfDoc) {
+    // Re-render current page at high resolution
+    const page = await pdfDoc.getPage(currentPage);
+    const viewport = page.getViewport({ scale: SCALE });
+    const hiCanvas = document.createElement('canvas');
+    hiCanvas.width  = viewport.width;
+    hiCanvas.height = viewport.height;
+    await page.render({ canvasContext: hiCanvas.getContext('2d'), viewport }).promise;
+    srcCanvas = hiCanvas;
+  } else if (planType === 'image' && planImageSrc) {
+    // Draw image at high resolution
+    await new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const hiCanvas = document.createElement('canvas');
+        hiCanvas.width  = img.naturalWidth  * SCALE;
+        hiCanvas.height = img.naturalHeight * SCALE;
+        hiCanvas.getContext('2d').drawImage(img, 0, 0, hiCanvas.width, hiCanvas.height);
+        srcCanvas = hiCanvas;
+        resolve();
+      };
+      img.src = planImageSrc;
+    });
+  } else {
+    return null;
+  }
+
+  // Draw pins on top at matching high-res scale
+  const out = document.createElement('canvas');
+  out.width  = srcCanvas.width;
+  out.height = srcCanvas.height;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(srcCanvas, 0, 0);
+
+  const W = out.width, H = out.height;
+  const PIN_R   = 14 * SCALE;
+  const FONT_N  = `bold ${10 * SCALE}px sans-serif`;
+  const FONT_L  = `bold ${8  * SCALE}px sans-serif`;
+  const LBL_H   = 16 * SCALE;
+  const LBL_PAD = 8  * SCALE;
+
+  pins.filter(p => p.page === currentPage).forEach(p => {
+    const px = parseFloat(p.x) / 100 * W;
+    const py = parseFloat(p.y) / 100 * H;
+    const color = colors[p.status] || colors.open;
+
+    // Drop shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur  = 10 * SCALE;
+    ctx.shadowOffsetY = 2 * SCALE;
+
+    // Teardrop body (rotated square with arc)
+    ctx.save();
+    ctx.translate(px, py - PIN_R - 4 * SCALE);
+    ctx.rotate(Math.PI / 4);
+    ctx.beginPath();
+    ctx.arc(0, 0, PIN_R, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2.5 * SCALE;
+    ctx.stroke();
+    ctx.restore();
+
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur  = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Number inside pin
+    ctx.fillStyle = 'white';
+    ctx.font = FONT_N;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(p.id), px, py - PIN_R - 4 * SCALE);
+
+    // Label tag below pin
+    const label = p.label ? (p.label.length > 14 ? p.label.slice(0, 14) + '…' : p.label) : `#${p.id}`;
+    ctx.font = FONT_L;
+    const tw = ctx.measureText(label).width + LBL_PAD * 2;
+    const lx = px - tw / 2;
+    const ly = py + 3 * SCALE;
+
+    // Label background with rounded corners
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, tw, LBL_H, 3 * SCALE);
+    ctx.fill();
+
+    ctx.fillStyle = 'white';
+    ctx.font = FONT_L;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, px, ly + LBL_H / 2);
+  });
+
+  return out.toDataURL('image/png');
+}
+
+function v(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close popup when clicking outside
+document.addEventListener('click', e => {
+  const popup = document.getElementById('pinPopup');
+  if (popup.style.display === 'block' && !popup.contains(e.target) && !e.target.closest('.pdf-pin') && !e.target.closest('.pdf-canvas-wrap')) {
+    closePopup();
+  }
+});
+
+// Keyboard: Escape closes popup
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePopup();
+  if (e.key === 'p' || e.key === 'P') setMode('pin');
+  if (e.key === 'v' || e.key === 'V') setMode('pan');
+});
+
+init();
+initPopupDrag();
+</script>
+</body>
+</html>
