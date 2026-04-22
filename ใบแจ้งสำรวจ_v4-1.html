@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ใบแจ้งงานสำรวจ — VISPAC</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ee;--surface:#fff;--surface2:#faf9f6;--border:#d8d3c8;
+  --border-strong:#b0a898;--text:#1a1814;--text-mid:#5a5549;--text-light:#8a847a;
+  --accent:#2b5fa3;--accent-dark:#1e4578;--accent-light:#e8eef8;
+  --danger:#c0392b;--success:#27ae60;--warn:#e67e22;
+  --header-bg:#1a2a4a;--tag-blue:#dbeafe;--tag-blue-text:#1e40af;
+  --radius:6px;--shadow:0 2px 8px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ═══ COMPANY SELECTOR BAR ═══ */
+.co-bar{background:#111d30;padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.co-bar-label{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.06em;white-space:nowrap}
+.co-btns{display:flex;gap:6px;flex-wrap:wrap}
+.co-btn{display:flex;align-items:center;gap:7px;padding:5px 14px 5px 8px;border:1.5px solid rgba(255,255,255,.18);border-radius:6px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.co-btn:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff}
+.co-btn.active{border-color:#4a9eff;background:rgba(74,158,255,.15);color:#fff}
+.co-btn svg{flex-shrink:0}
+.co-btn.active .co-check{display:flex}
+.co-check{display:none;width:14px;height:14px;border-radius:50%;background:#4a9eff;align-items:center;justify-content:center;font-size:9px;color:#fff;margin-left:2px}
+
+/* ═══ HEADER ═══ */
+.doc-header{background:var(--header-bg);color:#fff}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 24px 14px;flex-wrap:wrap;gap:12px}
+.header-logo-area{display:flex;align-items:center;gap:14px;flex:1;min-width:200px}
+.header-logo-img{height:48px;max-width:200px;object-fit:contain;filter:brightness(0) invert(1);opacity:.95}
+/* Fallback text badge when no logo */
+.logo-text-fallback{font-size:20px;font-weight:900;letter-spacing:.08em;color:#fff}
+.header-center{flex:2;text-align:center}
+.doc-title{font-size:20px;font-weight:800;letter-spacing:.06em}
+.sv-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:3px;font-size:12px;color:rgba(255,255,255,.55)}
+.sv-input{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);width:110px;font-size:12px;text-align:center;outline:none;padding:0 4px}
+.header-addr{text-align:right;font-size:10.5px;color:rgba(255,255,255,.45);line-height:1.5;flex:1;min-width:160px}
+
+/* Print logo block */
+.print-logo-block{display:none}
+
+/* ═══ TABS ═══ */
+.tab-bar{display:flex;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.08)}
+.tab-btn{flex:1;padding:11px 6px;border:none;background:transparent;color:rgba(255,255,255,.6);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.03em}
+.tab-btn.active{background:rgba(255,255,255,.12);color:#fff;border-bottom:2px solid #4a9eff}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+
+/* ═══ WRAPPER ═══ */
+.wrapper{max-width:940px;margin:0 auto;padding:18px 14px 60px}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ═══ CARD ═══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden}
+.card-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 14px;font-weight:700;font-size:12.5px;color:var(--text-mid);letter-spacing:.04em;display:flex;align-items:center;gap:7px}
+.card-icon{width:18px;height:18px;background:var(--accent);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;flex-shrink:0}
+.card-body{padding:14px}
+
+/* ═══ FORM ═══ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.form-row{display:flex;flex-direction:column;gap:3px}
+.form-row.full{grid-column:1/-1}
+label{font-size:11.5px;font-weight:700;color:var(--text-mid);letter-spacing:.03em}
+input[type=text],input[type=date],input[type=tel],input[type=number],select,textarea{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:13.5px;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(43,95,163,.12)}
+textarea{resize:vertical;min-height:64px}
+
+/* ═══ TABLES ═══ */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--header-bg);color:#fff;padding:8px 10px;text-align:left;font-weight:700;font-size:12px}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:hover td{background:#f9f8f5}
+.tbl tfoot td{background:var(--surface2);font-weight:700;border-top:2px solid var(--border-strong)}
+.num-input{width:72px;padding:5px 7px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;text-align:right;outline:none}
+.num-input:focus{border-color:var(--accent)}
+.note-input-tbl{width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12.5px;color:var(--warn);outline:none}
+.svc-sel{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;background:#fff;outline:none;cursor:pointer}
+.svc-sel:focus{border-color:var(--accent)}
+.range-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;background:var(--tag-blue);color:var(--tag-blue-text)}
+.price-display{font-weight:700;color:var(--accent-dark);text-align:right;font-variant-numeric:tabular-nums}
+
+/* ═══ BUTTONS ═══ */
+.btn-remove{width:28px;height:28px;border:none;background:#fee2e2;color:var(--danger);border-radius:4px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .12s}
+.btn-remove:hover{background:#fca5a5}
+.btn-add-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;border:1.5px dashed var(--accent);border-radius:var(--radius);background:var(--accent-light);color:var(--accent);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;width:100%;justify-content:center}
+.btn-add-row:hover{background:#d0dcf2;border-style:solid}
+.btn-add-row .plus{font-size:17px}
+.btn{padding:9px 20px;border-radius:var(--radius);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;gap:5px}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border-strong);color:var(--text-mid)}
+.btn-secondary:hover{background:var(--border)}
+.btn-print{background:#1e3a5f;color:#fff}
+.btn-print:hover{background:var(--header-bg)}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* ═══ AREA CHIPS ═══ */
+.area-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.area-chip{padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;border:1.5px solid var(--border);cursor:pointer;background:#fff;color:var(--text-mid);transition:all .12s}
+.area-chip:hover,.area-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ═══ WAYPOINT ═══ */
+.waypoint-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.waypoint-row{display:flex;align-items:flex-start;gap:8px;background:#f8f7f4;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.waypoint-num{min-width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:3px}
+.waypoint-fields{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.waypoint-fields .full{grid-column:1/-1}
+.transport-note{width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;resize:vertical;min-height:52px;outline:none}
+.transport-note:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(43,95,163,.1)}
+
+/* ═══ PHOTO GRID ═══ */
+.photo-section{margin-bottom:14px}
+.photo-section-title{font-size:12.5px;font-weight:700;color:var(--text-mid);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px}
+.photo-slot{position:relative;aspect-ratio:4/3;border:2px dashed var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface2);cursor:pointer;transition:border-color .15s}
+.photo-slot:hover{border-color:var(--accent);background:var(--accent-light)}
+.photo-slot .slot-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-light);pointer-events:none;text-align:center;padding:6px}
+.photo-slot .slot-icon{font-size:24px;line-height:1}
+.photo-slot .slot-name{font-size:10.5px;font-weight:600;line-height:1.3}
+.photo-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-slot .photo-del{position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:5}
+.photo-slot:hover .photo-del,.photo-slot.has-img .photo-del{opacity:1}
+.photo-slot.add-slot{border-style:dashed;border-color:var(--accent);opacity:.65}
+.photo-slot.add-slot:hover{opacity:1}
+
+/* ═══ PHOTO MODAL ═══ */
+.photo-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.photo-modal-overlay.open{opacity:1;pointer-events:all}
+.photo-modal{background:#fff;border-radius:14px 14px 0 0;padding:20px 16px 32px;width:100%;max-width:480px;transform:translateY(40px);transition:transform .2s}
+.photo-modal-overlay.open .photo-modal{transform:translateY(0)}
+.photo-modal h3{font-size:14px;font-weight:700;color:var(--text-mid);text-align:center;margin-bottom:16px}
+.photo-modal-btns{display:flex;gap:10px}
+.photo-modal-btn{flex:1;padding:14px 8px;border:2px solid var(--border);border-radius:10px;background:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text);transition:all .15s;position:relative;overflow:hidden}
+.photo-modal-btn .btn-icon{font-size:28px}
+.photo-modal-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.photo-modal-cancel{margin-top:12px;width:100%;padding:11px;border:none;background:#f5f3ee;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-mid)}
+.photo-modal-cancel:hover{background:var(--border)}
+
+/* ═══ STEP NAV ═══ */
+.step-nav{display:flex;margin-bottom:14px}
+.step-btn{flex:1;padding:9px 6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-light);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s}
+.step-btn:not(:last-child){border-right:none}
+.step-btn:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.step-btn:last-child{border-radius:0 var(--radius) var(--radius) 0}
+.step-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;z-index:1}
+.step-btn .step-num{display:inline-flex;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.12);font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px}
+.step-btn.active .step-num{background:rgba(255,255,255,.25)}
+.step-pane{display:none}.step-pane.active{display:block}
+
+/* ═══ PRINT SECTION BREAK ═══ */
+.print-section-break{display:none}
+
+/* ══════════════════════════════════════════
+   PRINT STYLES
+══════════════════════════════════════════ */
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff;font-size:11.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .co-bar{display:none!important}
+  .wrapper{padding:0 4px;max-width:100%}
+
+  /* Show ALL panes */
+  .tab-bar,.step-nav,.btn-add-row,.actions,.btn-remove,
+  .photo-modal-overlay,.area-chips{display:none!important}
+  .tab-pane{display:block!important;page-break-inside:auto}
+  .step-pane{display:block!important}
+
+  #tab-transport{page-break-before:always}
+  #tab-photos{page-break-before:always}
+
+  /* ── PRINT HEADER LAYOUT ── */
+  .doc-header{page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .header-inner{padding:10px 16px}
+  .header-logo-img{height:42px}
+  /* Show company full name in print if needed */
+  .header-addr{font-size:9.5px}
+
+  /* Print logo block — white bg version */
+  .print-logo-block{
+    display:flex!important;
+    align-items:center;gap:10px;
+    padding:8px 14px;
+    background:#fff!important;
+    border-bottom:2px solid #1a2a4a;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  .print-logo-block svg{width:auto;height:44px}
+  .print-logo-block .co-name-block{display:flex;flex-direction:column;gap:0}
+  .print-logo-block .co-name-main{font-size:16px;font-weight:900;color:#1a2a4a;letter-spacing:.06em;line-height:1.1}
+  .print-logo-block .co-name-sub{font-size:9px;color:#5a5549;letter-spacing:.05em;font-weight:600}
+  .print-logo-block .co-divider{width:1px;height:36px;background:#d8d3c8;margin:0 8px}
+  .print-logo-block .doc-print-title{font-size:15px;font-weight:800;color:#1a2a4a;letter-spacing:.05em}
+  .print-logo-block .sv-print{font-size:11px;color:#5a5549;margin-top:1px}
+  /* Hide screen header in print, show print-logo-block */
+  .doc-header .header-inner,.doc-header .tab-bar{display:none!important}
+
+  /* Cards */
+  .card{box-shadow:none;border:1px solid #bbb;margin-bottom:10px;page-break-inside:avoid}
+  .card-header{background:#1a2a4a!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .card-icon{background:rgba(255,255,255,.3)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tbl th{background:#1a2a4a!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tbl tfoot td{background:#f5f3ee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* Photo grid print */
+  .photo-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
+  .photo-slot{aspect-ratio:4/3!important;border:1px solid #bbb!important;border-radius:4px!important}
+  .photo-slot img{object-fit:cover!important;width:100%!important;height:100%!important}
+  .photo-slot .slot-label{display:flex!important}
+  .photo-slot .photo-del,.add-slot{display:none!important}
+  .photo-slot .slot-name{font-size:9px!important;color:#555!important}
+
+  .waypoint-row{page-break-inside:avoid;background:#f9f8f5!important;border:1px solid #ccc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .waypoint-num{background:#1a2a4a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  .print-section-break{display:block!important;padding-top:6px}
+  .print-tab-heading{font-size:14px;font-weight:800;color:#1a2a4a;border-bottom:2px solid #1a2a4a;padding-bottom:4px;margin-bottom:10px;letter-spacing:.04em}
+
+  input[type=text],input[type=date],input[type=tel],input[type=number],select,textarea{
+    border:none!important;border-bottom:1px solid #999!important;border-radius:0!important;
+    padding:3px 2px!important;box-shadow:none!important;font-size:12px!important
+  }
+}
+@media(max-width:640px){
+  .form-grid{grid-template-columns:1fr}
+  .waypoint-fields{grid-template-columns:1fr}
+  .photo-grid{grid-template-columns:repeat(2,1fr)}
+  .co-btns{gap:4px}
+  .co-btn{font-size:11px;padding:4px 10px 4px 6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     COMPANY SELECTOR BAR
+═══════════════════════════════════ -->
+<div class="co-bar no-print">
+  <span class="co-bar-label">บริษัท:</span>
+  <div class="co-btns">
+    <button class="co-btn active" id="cobtn-vispac" onclick="selectCompany('vispac',this)">
+      <svg width="20" height="20" viewBox="0 0 40 40"><rect width="40" height="40" rx="5" fill="#2b5fa3"/><text x="20" y="28" font-family="Arial Black,Arial" font-weight="900" font-size="22" fill="white" text-anchor="middle">V</text></svg>
+      VISPAC
+      <span class="co-check">✓</span>
+    </button>
+    <button class="co-btn" id="cobtn-vbuilder" onclick="selectCompany('vbuilder',this)">
+      <svg width="20" height="20" viewBox="0 0 40 40"><rect width="40" height="40" rx="5" fill="#c0392b"/><text x="20" y="28" font-family="Arial Black,Arial" font-weight="900" font-size="19" fill="white" text-anchor="middle">VB</text></svg>
+      V.BUILDER
+      <span class="co-check">✓</span>
+    </button>
+    <button class="co-btn" id="cobtn-unicom" onclick="selectCompany('unicom',this)">
+      <svg width="20" height="20" viewBox="0 0 40 40"><rect width="40" height="40" rx="5" fill="#27ae60"/><text x="20" y="28" font-family="Arial Black,Arial" font-weight="900" font-size="15" fill="white" text-anchor="middle">UNI</text></svg>
+      UNICOM
+      <span class="co-check">✓</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     HEADER (changes by company)
+═══════════════════════════════════ -->
+<div class="doc-header" id="docHeader">
+
+  <!-- Print-only logo block (white bg, appears at top of every print page) -->
+  <div class="print-logo-block" id="printLogoBlock">
+    <div id="printLogoSvg"><!-- filled by JS --></div>
+    <div class="co-divider"></div>
+    <div class="co-name-block">
+      <div class="co-name-main" id="printCoName">VISPAC</div>
+      <div class="co-name-sub" id="printCoSub">The Premium Construction Solution Company</div>
+    </div>
+    <div class="co-divider"></div>
+    <div>
+      <div class="doc-print-title">ใบแจ้งงานสำรวจ</div>
+      <div class="sv-print">SV <span id="printSvNum">—</span></div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="font-size:9px;color:#8a847a;text-align:right;line-height:1.5;" id="printAddr">
+      888 หมู่ 13 ถ.บางนา-ตราด ซอย 45 บางพลี สมุทรปราการ 10540<br>
+      Tel:(02)316-0888 Fax:(02)316-5381
+    </div>
+  </div>
+
+  <!-- Screen header -->
+  <div class="header-inner">
+    <div class="header-logo-area" id="headerLogoArea">
+      <!-- Logo SVG injected by JS -->
+    </div>
+    <div class="header-center">
+      <div class="doc-title">ใบแจ้งงานสำรวจ</div>
+      <div class="sv-row">SV <input id="svNum" class="sv-input" placeholder="……/………" oninput="document.getElementById('printSvNum').textContent=this.value||'—'"></div>
+    </div>
+    <div class="header-addr" id="headerAddr">
+      888 หมู่ 13 ถ.บางนา-ตราด ซอย 45<br>บางพลี สมุทรปราการ 10540<br>Tel:(02)316-0888
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('survey',this)">📋 ใบแจ้งสำรวจ</button>
+    <button class="tab-btn" onclick="switchTab('transport',this)">🚛 เช็คลิสขนส่ง</button>
+    <button class="tab-btn" onclick="switchTab('photos',this)">📸 รูปภาพสำรวจ</button>
+  </div>
+</div><!-- /doc-header -->
+
+<div class="wrapper">
+
+<!-- ═══════════════════════════════════ TAB 1 — SURVEY ═══════════════════════════════════ -->
+<div id="tab-survey" class="tab-pane active">
+  <div class="print-section-break" style="page-break-before:avoid!important">
+    <div class="print-tab-heading">📋 ใบแจ้งงานสำรวจ</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📋</span>ข้อมูลโครงการ</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-row full"><label>โครงการ</label><input type="text" id="projectName" placeholder="ชื่อโครงการ"></div>
+        <div class="form-row"><label>บริษัท</label><input type="text" id="companyName" placeholder="ชื่อบริษัทลูกค้า"></div>
+        <div class="form-row"><label>รหัสโครงการ</label><input type="text" id="projectCode" placeholder="รหัส"></div>
+        <div class="form-row"><label>ผู้มีอำนาจที่ได้ติดต่อ</label><input type="text" id="contactPerson" placeholder="ชื่อ-นามสกุล"></div>
+        <div class="form-row"><label>กำหนดการเข้าติดตั้ง</label><input type="date" id="installDate"></div>
+        <div class="form-row"><label>โทรศัพท์</label><input type="tel" id="phone" placeholder="เบอร์โทร"></div>
+        <div class="form-row"><label>ฝ่ายขาย</label><input type="text" id="salesPerson" placeholder="ชื่อฝ่ายขาย"></div>
+        <div class="form-row"><label>วันที่สำรวจ</label><input type="date" id="surveyDate"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🔍</span>ผลการประเมินและสำรวจพื้นที่ก่อนเข้าติดตั้ง</div>
+    <div class="card-body">
+      <table class="tbl"><thead><tr><th style="width:36px;">#</th><th style="width:46%;">ลักษณะของปัญหา</th><th>ข้อคิดเห็น / แนวทางแก้ไข</th><th class="no-print" style="width:40px;">ลบ</th></tr></thead>
+        <tbody id="problemBody"></tbody>
+      </table>
+      <button class="btn-add-row no-print" onclick="addProblemRow()"><span class="plus">＋</span>เพิ่มรายการปัญหา</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-header"><span class="card-icon">📐</span>ขนาดพื้นที่งาน (ตร.ม.)</div>
+    <div class="card-body" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:150px;"><label style="display:block;margin-bottom:4px;">พื้นที่รวม (ตร.ม.)</label><input type="number" id="totalArea" placeholder="0" oninput="updateAreaRange()" style="max-width:160px;"></div>
+      <div><div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">เลือกด่วน</div>
+        <div class="area-chips">
+          <div class="area-chip" onclick="setArea(20)">20</div><div class="area-chip" onclick="setArea(40)">40</div>
+          <div class="area-chip" onclick="setArea(60)">60</div><div class="area-chip" onclick="setArea(80)">80</div>
+          <div class="area-chip" onclick="setArea(120)">120</div><div class="area-chip" onclick="setArea(200)">200+</div>
+        </div>
+      </div>
+      <div style="padding:8px 14px;background:var(--accent-light);border-radius:6px;border:1px solid #c5d4ef;text-align:center;">
+        <div style="font-size:11px;color:var(--text-light);">ช่วงราคาที่ใช้</div>
+        <div id="rangeLabel" style="font-size:14px;font-weight:700;color:var(--accent);">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">💰</span>ราคาที่ต้องเสนอ / ปริมาณวัสดุ</div>
+    <div class="card-body">
+      <table class="tbl">
+        <thead><tr>
+          <th style="width:32px;">#</th><th style="min-width:200px;">รายการบริการ</th>
+          <th style="width:88px;">ปริมาณ (ตร.ม.)</th>
+          <th class="no-print" style="width:105px;text-align:center;">ช่วงราคา</th>
+          <th style="width:90px;text-align:right;">ราคา/หน่วย</th>
+          <th style="width:90px;text-align:right;">รวม (บาท)</th>
+          <th style="min-width:110px;">หมายเหตุ/แก้ราคา</th>
+          <th class="no-print" style="width:36px;text-align:center;">ลบ</th>
+        </tr></thead>
+        <tbody id="priceBody"></tbody>
+        <tfoot><tr>
+          <td colspan="5" style="text-align:right;padding-right:10px;font-size:12px;color:var(--text-mid);">ยอดรวมทั้งหมด</td>
+          <td class="price-display" style="font-size:15px;" id="grandTotal">0</td>
+          <td colspan="2"></td>
+        </tr></tfoot>
+      </table>
+      <button class="btn-add-row no-print" onclick="addPriceRow()"><span class="plus">＋</span>เพิ่มรายการราคา</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🏗️</span>สภาพหน้างานก่อนส่งสินค้า</div>
+    <div class="card-body">
+      <table class="tbl"><thead><tr><th style="width:36px;">#</th><th>รายละเอียดสภาพหน้างาน</th><th class="no-print" style="width:40px;">ลบ</th></tr></thead>
+        <tbody id="siteBody"></tbody>
+      </table>
+      <button class="btn-add-row no-print" onclick="addSiteRow()"><span class="plus">＋</span>เพิ่มรายการสภาพหน้างาน</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📝</span>หมายเหตุ</div>
+    <div class="card-body"><textarea id="remarks" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">✍️</span>ลงชื่อผู้แจ้งสำรวจ</div>
+    <div class="card-body" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+      <div style="flex:1;min-width:160px;"><label>ชื่อ-นามสกุล</label><input type="text" id="signerName" placeholder="ผู้แจ้งสำรวจ" style="margin-top:4px;"></div>
+      <div style="min-width:130px;"><label>วันที่</label><input type="date" id="signDate" style="margin-top:4px;"></div>
+      <div style="padding-bottom:4px;color:var(--text-light);font-size:13px;border-top:1.5px solid var(--border-strong);padding-top:8px;flex:1;min-width:130px;text-align:center;">ลงชื่อ...............................<br><span style="font-size:11px;">(ผู้แจ้งสำรวจ)</span></div>
+    </div>
+  </div>
+
+  <div class="actions no-print">
+    <button class="btn btn-secondary" onclick="clearSurvey()">🗑️ ล้าง</button>
+    <button class="btn btn-secondary" onclick="saveForm()">💾 บันทึก</button>
+    <button class="btn btn-print" onclick="printAll()">🖨️ พิมพ์ทั้งหมด</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 2 — TRANSPORT ═══════════════════════════════════ -->
+<div id="tab-transport" class="tab-pane">
+  <div class="print-section-break"><div class="print-tab-heading">🚛 เช็คลิสการขนส่ง</div></div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">🚛</span>ข้อมูลการขนส่ง</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-row"><label>วันที่ขนส่ง</label><input type="date" id="tr-date"></div>
+        <div class="form-row"><label>เลขที่ใบส่ง</label><input type="text" id="tr-docno" placeholder="TRP-XXXXX"></div>
+        <div class="form-row"><label>ทะเบียนรถ</label><input type="text" id="tr-plate" placeholder="กข 1234 กรุงเทพ"></div>
+        <div class="form-row"><label>ประเภทรถ</label>
+          <select id="tr-trucktype"><option value="">— เลือก —</option>
+            <option>รถกระบะ</option><option>รถ 4 ล้อ (6 ตัน)</option>
+            <option>รถ 6 ล้อ</option><option>รถ 10 ล้อ</option><option>รถหัวลาก</option>
+          </select>
+        </div>
+        <div class="form-row"><label>ผู้ขับรถ</label><input type="text" id="tr-driver" placeholder="ชื่อคนขับ"></div>
+        <div class="form-row"><label>เบอร์โทร</label><input type="tel" id="tr-tel" placeholder="0XX-XXX-XXXX"></div>
+        <div class="form-row full"><label>สถานที่ส่ง / ชื่อโครงการ</label><input type="text" id="tr-dest" placeholder="ชื่อโครงการปลายทาง"></div>
+        <div class="form-row"><label>ประเภทปลายทาง</label>
+          <select id="tr-desttype"><option value="">— เลือก —</option>
+            <option>ไซต์งานก่อสร้าง</option><option>โรงพยาบาล (รพ.)</option>
+            <option>ออฟฟิศ / สำนักงาน</option><option>คลังสินค้า</option><option>อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-row"><label>ผู้รับของ</label><input type="text" id="tr-receiver" placeholder="ชื่อผู้รับ"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-nav no-print">
+    <button class="step-btn active" onclick="switchStep(2,this)"><span class="step-num">1</span>ระหว่างส่ง</button>
+    <button class="step-btn" onclick="switchStep(3,this)"><span class="step-num">2</span>ส่งมอบแล้ว</button>
+  </div>
+
+  <div id="step-2" class="step-pane active">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🚶</span>ระหว่างส่ง — เส้นทางจากจุดจอดถึงจุดวางวัสดุ</div>
+      <div class="card-body">
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--text-mid);margin-bottom:8px;">📍 จุดเส้นทาง (จอดหน้าอาคาร → ขนผ่านไหน → วางตรงไหน)</div>
+          <div class="waypoint-list" id="waypointList"></div>
+          <button class="btn-add-row no-print" onclick="addWaypoint()"><span class="plus">＋</span>เพิ่มจุดเส้นทาง</button>
+        </div>
+        <div class="photo-section" style="margin-top:12px;">
+          <div class="photo-section-title">📸 รูปภาพระหว่างส่ง</div>
+          <div class="photo-grid" id="grid-step2"></div>
+        </div>
+        <label style="display:block;margin-top:10px;margin-bottom:4px;">หมายเหตุระหว่างส่ง</label>
+        <textarea class="transport-note" id="tr-note2" placeholder="บันทึกหมายเหตุ..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="step-3" class="step-pane">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span>ส่งมอบแล้ว — สภาพวัสดุที่จุดปลายทาง</div>
+      <div class="card-body">
+        <div class="photo-section">
+          <div class="photo-section-title">📸 รูปภาพหลังส่งมอบ</div>
+          <div class="photo-grid" id="grid-step3"></div>
+        </div>
+        <label style="display:block;margin-top:10px;margin-bottom:4px;">หมายเหตุหลังส่งมอบ</label>
+        <textarea class="transport-note" id="tr-note3" placeholder="บันทึกหมายเหตุ..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions no-print">
+    <button class="btn btn-secondary" onclick="clearTransport()">🗑️ ล้าง</button>
+    <button class="btn btn-print" onclick="printAll()">🖨️ พิมพ์ทั้งหมด</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ TAB 3 — PHOTOS ═══════════════════════════════════ -->
+<div id="tab-photos" class="tab-pane">
+  <div class="print-section-break"><div class="print-tab-heading">📸 รูปภาพสำรวจหน้างาน</div></div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-icon">📸</span>รูปภาพสำรวจหน้างาน</div>
+    <div class="card-body">
+      <div class="no-print" style="margin-bottom:12px;padding:10px 12px;background:var(--accent-light);border-radius:var(--radius);font-size:12.5px;color:var(--accent-dark);">
+        💡 กดกรอบรูป → เลือก <strong>ถ่ายจากกล้อง</strong> หรือ <strong>เลือกจากคลัง</strong> — รูปถูกบีบอัดอัตโนมัติเพื่อประหยัดไฟล์
+      </div>
+      <div class="photo-section">
+        <div class="photo-section-title" style="font-size:13px;">🏗️ ภาพรวมพื้นที่งาน</div>
+        <div class="photo-grid" id="spgrid-overview"></div>
+      </div>
+      <div class="photo-section">
+        <div class="photo-section-title" style="font-size:13px;">🪨 สภาพพื้นก่อนติดตั้ง</div>
+        <div class="photo-grid" id="spgrid-floor"></div>
+      </div>
+      <div class="photo-section">
+        <div class="photo-section-title" style="font-size:13px;">📐 จุดวัด / รายละเอียดงาน</div>
+        <div class="photo-grid" id="spgrid-measure"></div>
+      </div>
+      <div class="photo-section">
+        <div class="photo-section-title" style="font-size:13px;">⚠️ จุดที่ต้องระวัง / ปัญหา</div>
+        <div class="photo-grid" id="spgrid-issue"></div>
+      </div>
+      <div class="photo-section">
+        <div class="photo-section-title" style="font-size:13px;">📌 อื่นๆ</div>
+        <div class="photo-grid" id="spgrid-misc"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions no-print">
+    <button class="btn btn-print" onclick="printAll()">🖨️ พิมพ์ทั้งหมด</button>
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+
+<!-- PHOTO PICKER MODAL — inputs live HERE, triggered by user gesture directly -->
+<div class="photo-modal-overlay" id="photoModal">
+  <div class="photo-modal">
+    <h3>เลือกรูปภาพ</h3>
+    <div class="photo-modal-btns">
+      <!-- Camera: label wraps input so tap = file dialog immediately, no JS needed -->
+      <label class="photo-modal-btn" id="lblCamera" for="fileCamera">
+        <span class="btn-icon">📷</span><span>ถ่ายจากกล้อง</span>
+        <input type="file" id="fileCamera" accept="image/*" capture="environment"
+               style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;"
+               onchange="onFileChosen(this,true)">
+      </label>
+      <!-- Gallery: label wraps input, multiple allowed -->
+      <label class="photo-modal-btn" id="lblGallery" for="fileGallery">
+        <span class="btn-icon">🖼️</span><span>เลือกจากคลัง</span>
+        <input type="file" id="fileGallery" accept="image/*" multiple
+               style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;"
+               onchange="onFileChosen(this,false)">
+      </label>
+    </div>
+    <button class="photo-modal-cancel" onclick="closePhotoModal()">ยกเลิก</button>
+  </div>
+</div>
+
+
+<script>
+// ════════════════════════════════════════════════════
+// COMPANY DEFINITIONS
+// ════════════════════════════════════════════════════
+const COMPANIES = {
+  vispac: {
+    name: 'VISPAC',
+    sub: 'The Premium Construction Solution Company',
+    addr: '888 หมู่ 13 ถ.บางนา-ตราด ซอย 45 บางพลี สมุทรปราการ 10540\nTel:(02)316-0888 Fax:(02)316-5381',
+    headerBg: '#1a1a1a',
+    logoImg: 'data:image/png;base64,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',
+    logoScreenStyle: 'height:44px;max-width:220px;object-fit:contain;filter:brightness(0) invert(1);opacity:.9',
+    logoPrintStyle:  'height:40px;max-width:200px;object-fit:contain',
+  },
+  vbuilder: {
+    name: 'V.BUILDER',
+    sub: 'Construction & Building Solutions',
+    addr: '888 หมู่ 13 ถ.บางนา-ตราด ซอย 45 บางพลี สมุทรปราการ 10540\nTel:(02)316-0888 Fax:(02)316-5381',
+    headerBg: '#180808',
+    logoImg: 'data:image/png;base64,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',
+    logoScreenStyle: 'height:58px;max-width:90px;object-fit:contain',
+    logoPrintStyle:  'height:52px;max-width:80px;object-fit:contain',
+  },
+  unicom: {
+    name: 'UNICOM',
+    sub: 'UNICOM Import-Export Co., Ltd. | บริษัท ยูนิคอม อิมพอร์ต-เอ็กซ์พอร์ต จำกัด',
+    addr: 'เลขที่ 888 หมู่ 13 ถ.บางนา-ตราด ซ.45 ต.บางแก้ว อ.บางพลี จ.สมุทรปราการ 10540',
+    headerBg: '#111111',
+    logoImg: 'data:image/png;base64,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',
+    logoScreenStyle: 'height:50px;max-width:160px;object-fit:contain;filter:invert(1)',
+    logoPrintStyle:  'height:46px;max-width:150px;object-fit:contain',
+  },
+};
+
+let currentCompany = 'vispac';
+
+function selectCompany(id, btn) {
+  currentCompany = id;
+  // update buttons
+  document.querySelectorAll('.co-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyCompanyTheme(id);
+  saveCompany(id);
+}
+
+function applyCompanyTheme(id) {
+  const co = COMPANIES[id];
+  if (!co) return;
+  document.getElementById('docHeader').style.background = co.headerBg;
+  document.getElementById('headerLogoArea').innerHTML =
+    '<img src="'+co.logoImg+'" style="'+co.logoScreenStyle+'" alt="'+co.name+'">';
+  document.getElementById('headerAddr').innerHTML = co.addr.replace(/\n/g,'<br>');
+  document.getElementById('printLogoSvg').innerHTML =
+    '<img src="'+co.logoImg+'" style="'+co.logoPrintStyle+'" alt="'+co.name+'">';
+  document.getElementById('printCoName').textContent = co.name;
+  document.getElementById('printCoSub').textContent = co.sub;
+  document.getElementById('printAddr').innerHTML = co.addr.replace(/\n/g,'<br>');
+  document.title = 'ใบแจ้งงานสำรวจ — ' + co.name;
+}
+
+function saveCompany(id) {
+  try { localStorage.setItem('surveyCompany', id); } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════
+const SERVICES=[
+  {id:1,name:"จัดกระเบื้องยางลัง",prices:[1200,1500,2000,2500,25]},
+  {id:2,name:"จัดตามกาว",prices:[1200,1500,1800,2000,20]},
+  {id:3,name:"ค่าแรงขนวัสดุลงนอกสถานที่",prices:[1500,2000,2500,3000,30]},
+  {id:4,name:"ปรับพื้นตามยน 2 เที่ยว (ไม่รวมปูน)",prices:[3000,3500,4500,5000,50]},
+  {id:5,name:"ปรับพื้นด้วยปูนระดับ Self Leveling",prices:[3500,4000,4500,5000,50]},
+  {id:6,name:"ติดตั้งกระเบื้องยาง (เต็มผืน) รวมกาว",prices:[4000,4500,4800,5000,50]},
+  {id:7,name:"ติดตั้งกระเบื้องยาง (แบบ T) รวมกาว",prices:[4500,6000,7000,8000,80]},
+  {id:8,name:"ติดตั้งกระเบื้องยาง (Plank) ก้างปลา ไม่ตัดแต่ง",prices:[5000,6500,8500,10000,100]},
+  {id:9,name:"ติดตั้งกระเบื้องยาง (Plank) ตัดแต่งทุกทิศ",prices:[7000,9500,12000,15000,150]},
+  {id:10,name:"ติดตั้งกระเบื้องยาง (Loose lay)",prices:[3500,5500,7000,8000,80]},
+  {id:11,name:"ติดตั้งกระเบื้องยาง (SPC)",prices:[4500,6000,7500,9000,90]},
+  {id:12,name:"ติดตั้งกระเบื้องยาง (SPC) สายก้างปลา",prices:[8000,10000,13000,15000,150]},
+  {id:13,name:"ติดตั้งกระเบื้องยาง (ม้วน) รวมกาว+เชื่อมฯ",prices:[5000,7500,9000,10000,120]},
+  {id:14,name:"ติดตั้งกระเบื้องยาง (ม้วน) เชื่อมฯ ≤25cm",prices:[7000,9500,12000,15000,150]},
+  {id:15,name:"ติดตั้งสันจบ PVC ไม่รวมวัสดุ",prices:[null,null,null,null,80]},
+  {id:16,name:"ติดตั้งบัววาง 4 นิ้ว (รวมวัสดุ)",prices:[null,null,null,null,50]},
+  {id:17,name:"ติดตั้งบ้านก้อง PVC ไม่รวมวัสดุ",prices:[null,null,null,null,80]},
+  {id:18,name:"ติดตั้งสันกันลื่น (พร้อมวัสดุ)",prices:[null,null,null,null,50]},
+  {id:19,name:"ติดตั้งสันเปิดกาวฯ (พร้อมวัสดุ)",prices:[null,null,null,null,85]},
+  {id:20,name:"ติดตั้งสันหนบุบลอยฯ (พร้อมวัสดุ)",prices:[null,null,null,null,85]},
+];
+const RANGES=[
+  {label:"1–25 ตร.ม.",min:1,max:25,col:0},{label:"26–50 ตร.ม.",min:26,max:50,col:1},
+  {label:"51–75 ตร.ม.",min:51,max:75,col:2},{label:"76–99 ตร.ม.",min:76,max:99,col:3},
+  {label:"≥100 ตร.ม.",min:100,max:99999,col:4},
+];
+const WAYPOINT_TYPES=[
+  {val:'park',label:'🅿️ จุดจอดรถ'},{val:'gate',label:'🚪 ทางเข้าอาคาร'},
+  {val:'lift',label:'🛗 ลิฟต์/ทางลาด'},{val:'corridor',label:'🚶 ทางเดิน/โถง'},
+  {val:'stairs',label:'🪜 บันได'},{val:'room',label:'🏠 ห้อง/โซน'},
+  {val:'drop',label:'📦 จุดวางวัสดุ'},{val:'other',label:'📌 อื่นๆ'},
+];
+const GRID_DEFS={
+  'grid-step2':[{icon:'🅿️',name:'จุดจอดรถ'},{icon:'🚪',name:'ทางเข้าอาคาร'},{icon:'🛗',name:'ลิฟต์/บันได'},{icon:'📦',name:'ระหว่างขนวัสดุ'}],
+  'grid-step3':[{icon:'📍',name:'จุดวางวัสดุ'},{icon:'🪨',name:'สภาพวัสดุ'},{icon:'🏗️',name:'หน้าไซต์'},{icon:'📄',name:'ใบส่งของเซ็นแล้ว'}],
+  'spgrid-overview':[{icon:'🏗️',name:'มุมกว้าง 1'},{icon:'🏗️',name:'มุมกว้าง 2'},{icon:'🏗️',name:'มุมกว้าง 3'},{icon:'🏗️',name:'มุมกว้าง 4'}],
+  'spgrid-floor':[{icon:'🪨',name:'สภาพพื้น 1'},{icon:'🪨',name:'สภาพพื้น 2'},{icon:'🪨',name:'สภาพพื้น 3'}],
+  'spgrid-measure':[{icon:'📐',name:'จุดวัด 1'},{icon:'📐',name:'จุดวัด 2'},{icon:'📐',name:'จุดวัด 3'}],
+  'spgrid-issue':[{icon:'⚠️',name:'ปัญหา 1'},{icon:'⚠️',name:'ปัญหา 2'},{icon:'⚠️',name:'ปัญหา 3'}],
+  'spgrid-misc':[{icon:'📌',name:'อื่นๆ 1'},{icon:'📌',name:'อื่นๆ 2'},{icon:'📌',name:'อื่นๆ 3'}],
+};
+
+let currentRangeCol=-1,pRowC=0,prRowC=0,siteRowC=0,wpRowC=0;
+
+// ════════════════════════════════════════════════════
+// IMAGE COMPRESSION
+// ════════════════════════════════════════════════════
+const MAX_PX = 1000, JPEG_Q = 0.75;
+
+function compressImage(file, cb) {
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      let w = img.width, h = img.height;
+      if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+      else if (h > MAX_PX) { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL('image/jpeg', JPEG_Q));
+    };
+    img.onerror = function() { cb(ev.target.result); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ════════════════════════════════════════════════════
+// PHOTO MODAL
+// Strategy: <label for="fileX"> wraps <input type=file>
+// → tap on label = file dialog opens immediately (user gesture intact)
+// → onchange fires → we use _pendingSlot / _pendingGrid to know where to put image
+// ════════════════════════════════════════════════════
+let _pendingSlot = null;   // 'ps-gridX-Y' or null
+let _pendingGrid = null;   // 'grid-step2' etc. or null
+
+function openPhotoModal(slotId, gridId) {
+  _pendingSlot = slotId;
+  _pendingGrid = gridId;
+  document.getElementById('photoModal').classList.add('open');
+}
+function closePhotoModal() {
+  document.getElementById('photoModal').classList.remove('open');
+  // DON'T clear _pendingSlot/_pendingGrid here — onchange fires AFTER closePhotoModal
+}
+
+document.getElementById('photoModal').addEventListener('click', function(e) {
+  if (e.target === this) closePhotoModal();
+});
+
+// Called by onchange on both inputs
+function onFileChosen(inp, isCamera) {
+  closePhotoModal();
+  const files = inp.files;
+  if (!files || !files.length) return;
+
+  const sid = _pendingSlot;
+  const gid = _pendingGrid;
+  _pendingSlot = null;
+  _pendingGrid = null;
+
+  if (gid && !sid) {
+    // free-add slot → add all selected files
+    Array.from(files).forEach(function(f) { addFreePhotoFromFile(f, gid); });
+  } else if (sid) {
+    compressImage(files[0], function(d) { setSlotImage(sid, d); });
+  }
+
+  // Reset input value so same file can be re-selected next time
+  setTimeout(function() { try { inp.value = ''; } catch(e) {} }, 300);
+}
+
+// ════════════════════════════════════════════════════
+// PHOTO GRID BUILDER
+// ════════════════════════════════════════════════════
+function buildPhotoGrids() {
+  Object.entries(GRID_DEFS).forEach(function([gid, slots]) {
+    const grid = document.getElementById(gid);
+    if (!grid) return;
+    slots.forEach(function(s, i) {
+      grid.appendChild(makePhotoSlot(gid + '-' + i, s.icon, s.name));
+    });
+    grid.appendChild(makeFreeSlot(gid));
+  });
+}
+
+function makePhotoSlot(sid, icon, name) {
+  const div = document.createElement('div');
+  div.className = 'photo-slot';
+  div.id = 'ps-' + sid;
+  div.innerHTML =
+    '<div class="slot-label" style="pointer-events:none;">'
+    + '<span class="slot-icon">' + icon + '</span>'
+    + '<span class="slot-name">' + name + '</span>'
+    + '</div>'
+    + '<button class="photo-del no-print" title="ลบ">×</button>';
+
+  div.querySelector('.photo-del').addEventListener('click', function(e) {
+    e.stopPropagation();
+    clearSlot('ps-' + sid);
+  });
+  div.addEventListener('click', function() {
+    openPhotoModal('ps-' + sid, null);
+  });
+  return div;
+}
+
+function makeFreeSlot(gridId) {
+  const div = document.createElement('div');
+  div.className = 'photo-slot add-slot no-print';
+  div.innerHTML = '<div class="slot-label" style="pointer-events:none;">'
+    + '<span class="slot-icon">➕</span>'
+    + '<span class="slot-name">เพิ่มรูป</span></div>';
+  div.addEventListener('click', function() {
+    openPhotoModal(null, gridId);
+  });
+  return div;
+}
+
+function setSlotImage(slotId, dataUrl) {
+  const slot = document.getElementById(slotId);
+  if (!slot) return;
+  let img = slot.querySelector('img');
+  if (!img) {
+    img = document.createElement('img');
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+    slot.insertBefore(img, slot.querySelector('.photo-del'));
+  }
+  img.src = dataUrl;
+  const lbl = slot.querySelector('.slot-label');
+  if (lbl) lbl.style.display = 'none';
+  slot.classList.add('has-img');
+}
+
+function addFreePhotoFromFile(file, gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  const idx = grid.querySelectorAll('.photo-slot:not(.add-slot)').length;
+  const sid = gridId + '-x' + idx;
+  const newSlot = makePhotoSlot(sid, '🖼️', '');
+  grid.insertBefore(newSlot, grid.querySelector('.add-slot'));
+  compressImage(file, function(d) { setSlotImage('ps-' + sid, d); });
+}
+
+function clearSlot(slotId) {
+  const slot = document.getElementById(slotId);
+  if (!slot) return;
+  const img = slot.querySelector('img');
+  if (img) img.remove();
+  const lbl = slot.querySelector('.slot-label');
+  if (lbl) lbl.style.display = '';
+  slot.classList.remove('has-img');
+}
+
+// stubs (unused but kept for safety)
+function handleFileInput(inp) {}
+function handleFileInputMulti(inp) {}
+
+
+// ════════════════════════════════════════════════════
+// WAYPOINTS
+// ════════════════════════════════════════════════════
+function addWaypoint(){
+  wpRowC++;const n=wpRowC;
+  const row=document.createElement('div');row.className='waypoint-row';row.id='wp-'+n;
+  const opts=WAYPOINT_TYPES.map(t=>`<option value="${t.val}">${t.label}</option>`).join('');
+  row.innerHTML=`<div class="waypoint-num">${n}</div>
+    <div class="waypoint-fields">
+      <div class="form-row"><label>ประเภทจุด</label><select class="svc-sel"><option value="">— เลือก —</option>${opts}</select></div>
+      <div class="form-row"><label>รายละเอียด</label><input type="text" placeholder="เช่น จอดหน้าประตู A อาคาร 1"></div>
+      <div class="form-row full"><label>วิธีขน / หมายเหตุ</label><input type="text" placeholder="เช่น รถเข็น 2 ม้วน/เที่ยว ขึ้นลิฟต์ฝั่งขวา"></div>
+    </div>
+    <button class="btn-remove no-print" onclick="this.closest('.waypoint-row').remove()" style="flex-shrink:0;margin-top:20px;">×</button>`;
+  document.getElementById('waypointList').appendChild(row);
+}
+
+// ════════════════════════════════════════════════════
+// PRICE TABLE
+// ════════════════════════════════════════════════════
+function getRange(a){return RANGES.find(r=>a>=r.min&&a<=r.max)||null}
+function updateAreaRange(){
+  const a=parseFloat(document.getElementById('totalArea').value)||0;
+  const r=getRange(a);currentRangeCol=r?r.col:-1;
+  document.getElementById('rangeLabel').textContent=r?r.label:(a>0?'?':'—');
+  document.querySelectorAll('.price-row').forEach(tr=>recalcRow(tr));updateGrandTotal();
+  document.querySelectorAll('.area-chip').forEach(c=>c.classList.remove('active'));
+}
+function setArea(v){document.getElementById('totalArea').value=v;updateAreaRange();document.querySelectorAll('.area-chip').forEach(c=>{c.classList.toggle('active',parseInt(c.textContent)===v||(v>=200&&c.textContent.includes('200')));});}
+function addPriceRow(){
+  prRowC++;const n=prRowC;
+  const tr=document.createElement('tr');tr.className='price-row';
+  const opts=SERVICES.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  tr.innerHTML=`<td style="text-align:center;color:var(--text-light);font-size:12px;">${n}</td>
+    <td><select class="svc-sel" onchange="onSvcChange(this)"><option value="">— เลือก —</option>${opts}</select></td>
+    <td><input type="number" class="num-input" value="" placeholder="0" min="0" oninput="recalcRow(this.closest('tr'));updateGrandTotal();"></td>
+    <td class="no-print" style="text-align:center;"><span class="range-badge" style="background:#f1f5f9;color:#94a3b8;">—</span></td>
+    <td><input type="number" class="num-input" style="color:var(--accent-dark);" value="" placeholder="0" oninput="recalcRow(this.closest('tr'));updateGrandTotal();"></td>
+    <td class="price-display">0</td>
+    <td><input type="text" class="note-input-tbl" placeholder="แก้ราคา/หมายเหตุ"></td>
+    <td class="no-print" style="text-align:center;"><button class="btn-remove" onclick="this.closest('tr').remove();updateGrandTotal();">×</button></td>`;
+  document.getElementById('priceBody').appendChild(tr);
+}
+function onSvcChange(sel){
+  const tr=sel.closest('tr');const svc=SERVICES.find(s=>s.id===parseInt(sel.value));
+  const badge=tr.querySelector('.range-badge');const ui=tr.querySelectorAll('input[type=number]')[1];
+  if(svc&&currentRangeCol>=0){badge.textContent=RANGES[currentRangeCol]?.label||'—';badge.style.background='var(--tag-blue)';badge.style.color='var(--tag-blue-text)';ui.value=svc.prices[currentRangeCol]||'';}
+  else if(svc){badge.textContent='ระบุพื้นที่ก่อน';badge.style.background='#fef3c7';badge.style.color='#92400e';ui.value='';}
+  recalcRow(tr);updateGrandTotal();
+}
+function recalcRow(tr){
+  if(!tr)return;const ins=tr.querySelectorAll('input[type=number]');
+  const tot=(parseFloat(ins[0]?.value)||0)*(parseFloat(ins[1]?.value)||0);
+  const c=tr.querySelector('.price-display');if(c)c.textContent=tot>0?tot.toLocaleString('th-TH'):'0';
+  if(currentRangeCol>=0){const b=tr.querySelector('.range-badge');const s=tr.querySelector('select');if(b&&s&&s.value){b.textContent=RANGES[currentRangeCol]?.label||'—';b.style.background='var(--tag-blue)';b.style.color='var(--tag-blue-text)';}}
+}
+function updateGrandTotal(){let g=0;document.querySelectorAll('#priceBody .price-display').forEach(c=>{g+=parseFloat(c.textContent.replace(/,/g,''))||0;});const e=document.getElementById('grandTotal');if(e)e.textContent=g>0?g.toLocaleString('th-TH'):'0';}
+
+// ════════════════════════════════════════════════════
+// PROBLEM / SITE ROWS
+// ════════════════════════════════════════════════════
+function addProblemRow(){pRowC++;const n=pRowC;const tr=document.createElement('tr');tr.innerHTML=`<td style="text-align:center;color:var(--text-light);font-size:12px;">${n}</td><td><input type="text" placeholder="ระบุลักษณะปัญหา..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;"></td><td><input type="text" placeholder="ข้อเสนอแก้ไข..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;"></td><td class="no-print" style="text-align:center;"><button class="btn-remove" onclick="this.closest('tr').remove()">×</button></td>`;document.getElementById('problemBody').appendChild(tr);}
+function addSiteRow(){siteRowC++;const n=siteRowC;const tr=document.createElement('tr');tr.innerHTML=`<td style="text-align:center;color:var(--text-light);font-size:12px;">${n}</td><td><input type="text" placeholder="รายละเอียดสภาพหน้างาน..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;"></td><td class="no-print" style="text-align:center;"><button class="btn-remove" onclick="this.closest('tr').remove()">×</button></td>`;document.getElementById('siteBody').appendChild(tr);}
+
+// ════════════════════════════════════════════════════
+// TABS & STEPS
+// ════════════════════════════════════════════════════
+function switchTab(id,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');btn.classList.add('active');}
+function switchStep(n,btn){document.querySelectorAll('.step-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active'));document.getElementById('step-'+n).classList.add('active');btn.classList.add('active');}
+
+// ════════════════════════════════════════════════════
+// PRINT ALL
+// ════════════════════════════════════════════════════
+function printAll(){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.add('active'));
+  document.querySelectorAll('.step-pane').forEach(p=>p.classList.add('active'));
+  window.print();
+  setTimeout(()=>{
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.step-pane').forEach(p=>p.classList.remove('active'));
+    const ab=document.querySelector('.tab-btn.active');
+    const id=ab?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'survey';
+    document.getElementById('tab-'+id)?.classList.add('active');
+    document.getElementById('step-2')?.classList.add('active');
+    const asb=document.querySelector('.step-btn.active');
+    if(asb){const sn=asb.getAttribute('onclick')?.match(/\d+/)?.[0];if(sn)document.getElementById('step-'+sn)?.classList.add('active');}
+  },600);
+}
+
+// ════════════════════════════════════════════════════
+// SAVE / LOAD
+// ════════════════════════════════════════════════════
+function saveForm(){
+  const ids=['projectName','companyName','projectCode','contactPerson','installDate','phone','salesPerson','surveyDate','totalArea','remarks','signerName','signDate','svNum'];
+  const d={company:currentCompany};ids.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value;});
+  try{localStorage.setItem('surveyFormV4',JSON.stringify(d));alert('บันทึกแล้ว ✓');}catch(e){}
+}
+function loadForm(){
+  try{
+    const raw=localStorage.getItem('surveyFormV4');if(!raw)return;
+    const d=JSON.parse(raw);
+    Object.keys(d).forEach(k=>{const el=document.getElementById(k);if(el)el.value=d[k];});
+    if(d.totalArea)updateAreaRange();
+    // restore company
+    if(d.company){
+      const btn=document.getElementById('cobtn-'+d.company);
+      if(btn){document.querySelectorAll('.co-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+      currentCompany=d.company;
+      applyCompanyTheme(d.company);
+    }
+  }catch(e){}
+}
+function clearSurvey(){
+  if(!confirm('ล้างข้อมูลใบแจ้งสำรวจ?'))return;
+  ['projectName','companyName','projectCode','contactPerson','installDate','phone','salesPerson','surveyDate','totalArea','remarks','signerName','signDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['problemBody','priceBody','siteBody'].forEach(id=>{document.getElementById(id).innerHTML='';});
+  document.getElementById('grandTotal').textContent='0';document.getElementById('rangeLabel').textContent='—';
+  pRowC=prRowC=siteRowC=0;currentRangeCol=-1;
+  document.querySelectorAll('.area-chip').forEach(c=>c.classList.remove('active'));
+}
+function clearTransport(){
+  if(!confirm('ล้างข้อมูลเช็คลิสขนส่ง?'))return;
+  ['tr-date','tr-docno','tr-plate','tr-trucktype','tr-driver','tr-tel','tr-dest','tr-desttype','tr-receiver','tr-note2','tr-note3'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('waypointList').innerHTML='';wpRowC=0;
+}
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  buildPhotoGrids();
+  loadForm();
+  // Apply default company if no saved state
+  if(!localStorage.getItem('surveyFormV4')) applyCompanyTheme('vispac');
+  const today=new Date().toISOString().split('T')[0];
+  ['surveyDate','tr-date'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=today;});
+  addProblemRow();addPriceRow();addSiteRow();
+  addWaypoint();addWaypoint();addWaypoint();
+});
+</script>
+</body>
+</html>
