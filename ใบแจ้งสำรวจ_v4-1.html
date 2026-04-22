@@ -132,7 +132,7 @@ textarea{resize:vertical;min-height:64px}
 .photo-modal-overlay.open .photo-modal{transform:translateY(0)}
 .photo-modal h3{font-size:14px;font-weight:700;color:var(--text-mid);text-align:center;margin-bottom:16px}
 .photo-modal-btns{display:flex;gap:10px}
-.photo-modal-btn{flex:1;padding:14px 8px;border:2px solid var(--border);border-radius:10px;background:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text);transition:all .15s}
+.photo-modal-btn{flex:1;padding:14px 8px;border:2px solid var(--border);border-radius:10px;background:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text);transition:all .15s;position:relative;overflow:hidden}
 .photo-modal-btn .btn-icon{font-size:28px}
 .photo-modal-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
 .photo-modal-cancel{margin-top:12px;width:100%;padding:11px;border:none;background:#f5f3ee;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-mid)}
@@ -525,20 +525,30 @@ textarea{resize:vertical;min-height:64px}
 
 </div><!-- /wrapper -->
 
-<!-- PHOTO MODAL -->
+<!-- PHOTO PICKER MODAL — inputs live HERE, triggered by user gesture directly -->
 <div class="photo-modal-overlay" id="photoModal">
   <div class="photo-modal">
     <h3>เลือกรูปภาพ</h3>
     <div class="photo-modal-btns">
-      <button class="photo-modal-btn" id="btnCamera"><span class="btn-icon">📷</span><span>ถ่ายจากกล้อง</span></button>
-      <button class="photo-modal-btn" id="btnGallery"><span class="btn-icon">🖼️</span><span>เลือกจากคลัง</span></button>
+      <!-- Camera: label wraps input so tap = file dialog immediately, no JS needed -->
+      <label class="photo-modal-btn" id="lblCamera" for="fileCamera">
+        <span class="btn-icon">📷</span><span>ถ่ายจากกล้อง</span>
+        <input type="file" id="fileCamera" accept="image/*" capture="environment"
+               style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;"
+               onchange="onFileChosen(this,true)">
+      </label>
+      <!-- Gallery: label wraps input, multiple allowed -->
+      <label class="photo-modal-btn" id="lblGallery" for="fileGallery">
+        <span class="btn-icon">🖼️</span><span>เลือกจากคลัง</span>
+        <input type="file" id="fileGallery" accept="image/*" multiple
+               style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;"
+               onchange="onFileChosen(this,false)">
+      </label>
     </div>
     <button class="photo-modal-cancel" onclick="closePhotoModal()">ยกเลิก</button>
   </div>
 </div>
-<!-- Hidden inputs: camera uses capture, gallery does NOT use capture -->
-<input type="file" id="fileCamera"  accept="image/*" capture="environment" style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;">
-<input type="file" id="fileGallery" accept="image/*" multiple style="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;">
+
 
 <script>
 // ════════════════════════════════════════════════════
@@ -655,166 +665,158 @@ let currentRangeCol=-1,pRowC=0,prRowC=0,siteRowC=0,wpRowC=0;
 // ════════════════════════════════════════════════════
 // IMAGE COMPRESSION
 // ════════════════════════════════════════════════════
-const MAX_PX=1000, JPEG_Q=0.75;
-function compressImage(file, cb){
+const MAX_PX = 1000, JPEG_Q = 0.75;
+
+function compressImage(file, cb) {
   const reader = new FileReader();
-  reader.onload = function(ev){
+  reader.onload = function(ev) {
     const img = new Image();
-    img.onload = function(){
+    img.onload = function() {
       let w = img.width, h = img.height;
-      if(w > MAX_PX){ h = Math.round(h*MAX_PX/w); w = MAX_PX; }
-      else if(h > MAX_PX){ w = Math.round(w*MAX_PX/h); h = MAX_PX; }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      cb(canvas.toDataURL('image/jpeg', JPEG_Q));
+      if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+      else if (h > MAX_PX) { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL('image/jpeg', JPEG_Q));
     };
-    img.onerror = function(){ cb(ev.target.result); };
+    img.onerror = function() { cb(ev.target.result); };
     img.src = ev.target.result;
   };
-  reader.onerror = function(){ console.error('FileReader error'); };
   reader.readAsDataURL(file);
 }
 
 // ════════════════════════════════════════════════════
-// PHOTO MODAL & UPLOAD — BULLETPROOF VERSION
+// PHOTO MODAL
+// Strategy: <label for="fileX"> wraps <input type=file>
+// → tap on label = file dialog opens immediately (user gesture intact)
+// → onchange fires → we use _pendingSlot / _pendingGrid to know where to put image
 // ════════════════════════════════════════════════════
-let pendingSlotId = null;
-let pendingGridId = null;
+let _pendingSlot = null;   // 'ps-gridX-Y' or null
+let _pendingGrid = null;   // 'grid-step2' etc. or null
 
-function openPhotoModal(slotId, gridId){
-  pendingSlotId = slotId;
-  pendingGridId = gridId;
+function openPhotoModal(slotId, gridId) {
+  _pendingSlot = slotId;
+  _pendingGrid = gridId;
   document.getElementById('photoModal').classList.add('open');
 }
-function closePhotoModal(){
+function closePhotoModal() {
   document.getElementById('photoModal').classList.remove('open');
+  // DON'T clear _pendingSlot/_pendingGrid here — onchange fires AFTER closePhotoModal
 }
 
-// Close when clicking backdrop
-document.getElementById('photoModal').addEventListener('click', function(e){
-  if(e.target === this) closePhotoModal();
+document.getElementById('photoModal').addEventListener('click', function(e) {
+  if (e.target === this) closePhotoModal();
 });
 
-// Wire camera button
-document.getElementById('btnCamera').addEventListener('click', function(){
-  const sid = pendingSlotId, gid = pendingGridId;
+// Called by onchange on both inputs
+function onFileChosen(inp, isCamera) {
   closePhotoModal();
-  const inp = document.getElementById('fileCamera');
-  // Clone to force re-trigger on same file
-  const clone = inp.cloneNode(true);
-  inp.parentNode.replaceChild(clone, clone); // keep in DOM
-  document.getElementById('fileCamera').addEventListener('change', function onCam(e){
-    document.getElementById('fileCamera').removeEventListener('change', onCam);
-    const f = e.target.files && e.target.files[0];
-    if(!f) return;
-    if(gid && !sid) addFreePhotoFromFile(f, gid);
-    else if(sid) compressImage(f, function(d){ setSlotImage(sid, d); });
-  }, {once:true});
-  setTimeout(function(){ document.getElementById('fileCamera').click(); }, 150);
-});
+  const files = inp.files;
+  if (!files || !files.length) return;
 
-// Wire gallery button
-document.getElementById('btnGallery').addEventListener('click', function(){
-  const sid = pendingSlotId, gid = pendingGridId;
-  closePhotoModal();
-  document.getElementById('fileGallery').addEventListener('change', function onGal(e){
-    document.getElementById('fileGallery').removeEventListener('change', onGal);
-    const files = e.target.files;
-    if(!files || !files.length) return;
-    if(gid && !sid) Array.from(files).forEach(function(f){ addFreePhotoFromFile(f, gid); });
-    else if(sid) compressImage(files[0], function(d){ setSlotImage(sid, d); });
-    // Reset so same file can be chosen again
-    e.target.value = '';
-  }, {once:true});
-  setTimeout(function(){
-    const inp = document.getElementById('fileGallery');
-    inp.value = '';
-    inp.click();
-  }, 150);
-});
+  const sid = _pendingSlot;
+  const gid = _pendingGrid;
+  _pendingSlot = null;
+  _pendingGrid = null;
 
-// Stubs so onchange attrs don't break (not used anymore)
-function handleFileInput(inp){}
-function handleFileInputMulti(inp){}
+  if (gid && !sid) {
+    // free-add slot → add all selected files
+    Array.from(files).forEach(function(f) { addFreePhotoFromFile(f, gid); });
+  } else if (sid) {
+    compressImage(files[0], function(d) { setSlotImage(sid, d); });
+  }
+
+  // Reset input value so same file can be re-selected next time
+  setTimeout(function() { try { inp.value = ''; } catch(e) {} }, 300);
+}
 
 // ════════════════════════════════════════════════════
 // PHOTO GRID BUILDER
 // ════════════════════════════════════════════════════
-function buildPhotoGrids(){
-  Object.entries(GRID_DEFS).forEach(function([gid, slots]){
+function buildPhotoGrids() {
+  Object.entries(GRID_DEFS).forEach(function([gid, slots]) {
     const grid = document.getElementById(gid);
-    if(!grid) return;
-    slots.forEach(function(s, i){ grid.appendChild(makePhotoSlot(gid+'-'+i, s.icon, s.name)); });
+    if (!grid) return;
+    slots.forEach(function(s, i) {
+      grid.appendChild(makePhotoSlot(gid + '-' + i, s.icon, s.name));
+    });
     grid.appendChild(makeFreeSlot(gid));
   });
 }
 
-function makePhotoSlot(sid, icon, name){
+function makePhotoSlot(sid, icon, name) {
   const div = document.createElement('div');
   div.className = 'photo-slot';
   div.id = 'ps-' + sid;
   div.innerHTML =
     '<div class="slot-label" style="pointer-events:none;">'
-    +'<span class="slot-icon">'+icon+'</span>'
-    +'<span class="slot-name">'+name+'</span></div>'
-    +'<button class="photo-del no-print" title="ลบ">×</button>';
-  // Del button
-  div.querySelector('.photo-del').addEventListener('click', function(e){
+    + '<span class="slot-icon">' + icon + '</span>'
+    + '<span class="slot-name">' + name + '</span>'
+    + '</div>'
+    + '<button class="photo-del no-print" title="ลบ">×</button>';
+
+  div.querySelector('.photo-del').addEventListener('click', function(e) {
     e.stopPropagation();
-    clearSlot('ps-'+sid);
+    clearSlot('ps-' + sid);
   });
-  // Slot click → open modal
-  div.addEventListener('click', function(){
-    openPhotoModal('ps-'+sid, null);
+  div.addEventListener('click', function() {
+    openPhotoModal('ps-' + sid, null);
   });
   return div;
 }
 
-function makeFreeSlot(gridId){
+function makeFreeSlot(gridId) {
   const div = document.createElement('div');
   div.className = 'photo-slot add-slot no-print';
-  div.innerHTML = '<div class="slot-label" style="pointer-events:none;"><span class="slot-icon">➕</span><span class="slot-name">เพิ่มรูป</span></div>';
-  div.addEventListener('click', function(){
+  div.innerHTML = '<div class="slot-label" style="pointer-events:none;">'
+    + '<span class="slot-icon">➕</span>'
+    + '<span class="slot-name">เพิ่มรูป</span></div>';
+  div.addEventListener('click', function() {
     openPhotoModal(null, gridId);
   });
   return div;
 }
 
-function setSlotImage(slotId, dataUrl){
+function setSlotImage(slotId, dataUrl) {
   const slot = document.getElementById(slotId);
-  if(!slot) return;
+  if (!slot) return;
   let img = slot.querySelector('img');
-  if(!img){
+  if (!img) {
     img = document.createElement('img');
-    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
     slot.insertBefore(img, slot.querySelector('.photo-del'));
   }
   img.src = dataUrl;
   const lbl = slot.querySelector('.slot-label');
-  if(lbl) lbl.style.display = 'none';
+  if (lbl) lbl.style.display = 'none';
   slot.classList.add('has-img');
 }
 
-function addFreePhotoFromFile(file, gridId){
+function addFreePhotoFromFile(file, gridId) {
   const grid = document.getElementById(gridId);
-  if(!grid) return;
+  if (!grid) return;
   const idx = grid.querySelectorAll('.photo-slot:not(.add-slot)').length;
   const sid = gridId + '-x' + idx;
   const newSlot = makePhotoSlot(sid, '🖼️', '');
   grid.insertBefore(newSlot, grid.querySelector('.add-slot'));
-  compressImage(file, function(d){ setSlotImage('ps-'+sid, d); });
+  compressImage(file, function(d) { setSlotImage('ps-' + sid, d); });
 }
 
-function clearSlot(slotId){
+function clearSlot(slotId) {
   const slot = document.getElementById(slotId);
-  if(!slot) return;
+  if (!slot) return;
   const img = slot.querySelector('img');
-  if(img) img.remove();
+  if (img) img.remove();
   const lbl = slot.querySelector('.slot-label');
-  if(lbl) lbl.style.display = '';
+  if (lbl) lbl.style.display = '';
   slot.classList.remove('has-img');
 }
+
+// stubs (unused but kept for safety)
+function handleFileInput(inp) {}
+function handleFileInputMulti(inp) {}
+
 
 // ════════════════════════════════════════════════════
 // WAYPOINTS
