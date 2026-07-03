@@ -48,7 +48,16 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .prog-fill{transition:width .45s cubic-bezier(.4,0,.2,1)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-.main{display:grid;grid-template-columns:1fr 440px;height:calc(100vh - 54px)}
+.main{display:grid;grid-template-columns:1fr var(--sidew,440px);height:calc(100vh - 54px)}
+body.side-hidden .main{grid-template-columns:1fr 0}
+body.side-hidden .side{display:none}
+.side-grip{position:absolute;left:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:30;touch-action:none}
+.side-grip:hover,.side-grip.dragging{background:linear-gradient(90deg,transparent,rgba(244,167,38,.35),transparent)}
+.side-reopen{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:60;display:none;
+  background:var(--bg3);border:1.5px solid var(--border2);border-right:none;border-radius:10px 0 0 10px;
+  color:var(--accent);padding:14px 8px;cursor:pointer;font-size:15px;box-shadow:-4px 0 14px rgba(0,0,0,.4)}
+.side-reopen:hover{background:var(--bg);border-color:var(--accent)}
+body.side-hidden .side-reopen{display:block}
 .canvas-side{display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0;position:relative}
 .ctools{background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 14px;
   display:flex;gap:7px;align-items:center;flex-wrap:wrap}
@@ -70,7 +79,8 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .toggle input{accent-color:var(--accent);cursor:pointer}
 
 .cwrap{flex:1;background:#0a0c11;position:relative;overflow:auto;display:flex;align-items:center;justify-content:center}
-.cstage{position:relative;margin:auto;flex:none}
+.cstage{position:relative;margin:auto;flex:none;transition:transform .14s cubic-bezier(.25,.1,.25,1);will-change:transform}
+.cstage.no-anim{transition:none}
 #planCanvas{display:block}
 #drawCanvas{position:absolute;left:0;top:0;cursor:crosshair;touch-action:none}
 .ph{text-align:center;color:var(--text2)}
@@ -88,7 +98,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .layer-count{font-size:11px;color:var(--text2);background:var(--bg3);border-radius:9px;padding:1px 7px}
 
 /* SIDEBAR */
-.side{background:var(--bg2);display:flex;flex-direction:column;overflow:hidden}
+.side{background:var(--bg2);display:flex;flex-direction:column;overflow:hidden;position:relative}
 .side-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .side-head h2{font-size:13.5px;font-weight:700}
 .progbox{padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
@@ -255,6 +265,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
       <div class="pnav" style="gap:3px">
         <button id="undoBtn" onclick="doUndo()" title="ย้อนกลับ (Ctrl+Z)" disabled>↶</button>
         <button id="redoBtn" onclick="doRedo()" title="ทำซ้ำ (Ctrl+Y)" disabled>↷</button>
+        <button onclick="toggleSide()" title="ซ่อน/แสดงแถบข้อมูล">⏵ ข้อมูล</button>
       </div>
       <label class="toggle"><input type="checkbox" id="grayToggle" onchange="toggleGray()"> เทาดำ</label>
       <label class="toggle"><input type="checkbox" id="autoColorToggle" checked onchange="toggleAutoColor()" title="ให้แต่ละ markup ได้สีไม่ซ้ำกันโดยอัตโนมัติ">🎨 สีไม่ซ้ำ</label>
@@ -295,6 +306,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
   </div>
 
   <div class="side">
+    <div class="side-grip" id="sideGrip" title="ลากเพื่อปรับความกว้าง"></div>
     <div class="side-head">
       <h2 id="sideTitle">รายการ Markup</h2>
       <span class="mk-no" id="mkCount">0 รายการ</span>
@@ -336,6 +348,8 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 </div>
 
 <input type="file" id="photoIn" accept="image/*" multiple>
+
+<div class="side-reopen" onclick="toggleSide()" title="เปิดแถบข้อมูล">⏴</div>
 
 <!-- DASHBOARD MODAL -->
 <div class="dash-overlay" id="dashOverlay" style="display:none" onclick="if(event.target===this)closeDashboard()">
@@ -470,9 +484,19 @@ async function renderPage(){
 
     const pc=document.getElementById('planCanvas'),dc=document.getElementById('drawCanvas');
     const stage=document.getElementById('cstage');
+    const keepL=wrap.scrollLeft,keepT=wrap.scrollTop;
     pc.width=vp.width; pc.height=vp.height;
     dc.width=vp.width; dc.height=vp.height;
     stage.style.width=vp.width+'px'; stage.style.height=vp.height+'px';
+    stage.style.transform='';
+    renderedZoom=zoom;
+    if(zoomAnchor){
+      wrap.scrollLeft=zoomAnchor.fx*vp.width-zoomAnchor.ox;
+      wrap.scrollTop=zoomAnchor.fy*vp.height-zoomAnchor.oy;
+      zoomAnchor=null;
+    }else{
+      wrap.scrollLeft=keepL;wrap.scrollTop=keepT;
+    }
 
     planCtx=pc.getContext('2d');
     const bmp=await getPageBitmap(pageNum,scale); // instant if cached
@@ -497,16 +521,62 @@ async function renderPage(){
   }
 }
 
-let zoomTimer=null;
-function applyZoom(z){
-  zoom=Math.max(0.5,Math.min(5,z));
+let zoomTimer=null, renderedZoom=1, zoomAnchor=null;
+// Smooth zoom: scale the stage instantly with CSS transform (60fps), then re-render crisp when idle.
+// (cx,cy) = client coords to zoom toward (cursor/pinch center); defaults to viewport center.
+function applyZoom(z,cx,cy){
+  z=Math.max(0.5,Math.min(5,z));
+  if(Math.abs(z-zoom)<0.0001)return;
+  const wrap=document.getElementById('cwrap'), st=document.getElementById('cstage');
+  const r=wrap.getBoundingClientRect();
+  const ox=(cx!=null?cx-r.left:r.width/2), oy=(cy!=null?cy-r.top:r.height/2);
+  const kOld=zoom/renderedZoom;
+  const visW=st.offsetWidth*kOld, visH=st.offsetHeight*kOld;
+  const fx=visW?(wrap.scrollLeft+ox)/visW:0.5, fy=visH?(wrap.scrollTop+oy)/visH:0.5;
+  zoom=z;
+  const k=zoom/renderedZoom;
+  st.style.transformOrigin='0 0';
+  st.style.transform=Math.abs(k-1)<0.0001?'':`scale(${k})`;
+  wrap.scrollLeft=fx*st.offsetWidth*k-ox;
+  wrap.scrollTop=fy*st.offsetHeight*k-oy;
+  zoomAnchor={fx,fy,ox,oy};
   document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
   clearTimeout(zoomTimer);
-  zoomTimer=setTimeout(()=>{if(pdfDoc)renderPage();},100);
+  zoomTimer=setTimeout(()=>{if(pdfDoc)renderPage();},170);
 }
 function zoomIn(){applyZoom(zoom*1.25);}
 function zoomOut(){applyZoom(zoom/1.25);}
 function zoomReset(){applyZoom(1);}
+
+// ── SIDEBAR: hide/show + drag-resize ──
+function toggleSide(){
+  document.body.classList.toggle('side-hidden');
+  setTimeout(()=>{if(pdfDoc)renderPage();},60); // canvas area changed → re-fit
+}
+(function initSideGrip(){
+  const grip=document.getElementById('sideGrip');
+  if(!grip)return;
+  let startX=0,startW=440,draggingGrip=false;
+  const curW=()=>parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidew'))||440;
+  grip.addEventListener('pointerdown',e=>{
+    draggingGrip=true;startX=e.clientX;startW=curW();
+    grip.classList.add('dragging');
+    grip.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove',e=>{
+    if(!draggingGrip)return;
+    const w=Math.max(300,Math.min(650,startW+(startX-e.clientX)));
+    document.documentElement.style.setProperty('--sidew',w+'px');
+  });
+  const stop=e=>{
+    if(!draggingGrip)return;
+    draggingGrip=false;grip.classList.remove('dragging');
+    setTimeout(()=>{if(pdfDoc)renderPage();},50);
+  };
+  grip.addEventListener('pointerup',stop);
+  grip.addEventListener('pointercancel',stop);
+})();
 function prevPage(){if(pdfDoc&&pageNum>1){pageNum--;renderPage();}}
 function nextPage(){if(pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}}
 
@@ -565,15 +635,94 @@ document.addEventListener('keydown',e=>{
 const dc=document.getElementById('drawCanvas');
 let drawing=false,sx,sy,pts=[];
 let polyPts=[],polyHover=null; // polygon-in-progress
-dc.addEventListener('mousedown',e=>start(e));
-dc.addEventListener('mousemove',e=>move(e));
-dc.addEventListener('mouseup',e=>end(e));
-dc.addEventListener('mouseleave',e=>{if(drawing)end(e);});
-dc.addEventListener('click',e=>polyClick(e));
+
+// ── POINTER SYSTEM (mouse + stylus + touch) ──
+// pen = วาดด้วยปากกา (palm rejection: นิ้ว/ฝ่ามือถูกเมินขณะปากกาแตะ)
+// 1 นิ้ว = วาด (หรือเลื่อนใน pan tool) / 2 นิ้ว = pinch zoom + pan
+dc.style.touchAction='none';
+const activePtrs=new Map(); // pointerId -> {x,y,type}
+let penDown=false, primaryPtr=null, pinch=null, suppressClick=false, panning=null;
+function touchList(){return [...activePtrs.values()].filter(p=>p.type==='touch');}
+dc.addEventListener('pointerdown',e=>{
+  activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
+  if(e.pointerType==='pen')penDown=true;
+  if(e.pointerType==='touch'){
+    if(penDown)return; // palm rejection
+    const t=touchList();
+    if(t.length===2){ // start pinch: cancel in-progress drawing
+      if(drawing){drawing=false;redraw();}
+      if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
+      const [a,b]=t;
+      pinch={d0:Math.hypot(a.x-b.x,a.y-b.y),z0:zoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
+      document.getElementById('cstage').classList.add('no-anim');
+      suppressClick=true;
+      if(primaryPtr!=null){try{dc.releasePointerCapture(primaryPtr);}catch(_){}}
+      primaryPtr=null;
+      return;
+    }
+    if(t.length>2)return;
+  }
+  if(pinch)return;
+  primaryPtr=e.pointerId;
+  try{dc.setPointerCapture(e.pointerId);}catch(_){}
+  e.preventDefault();
+  if(tool==='pan'){
+    const wrap=document.getElementById('cwrap');
+    panning={x:e.clientX,y:e.clientY,l:wrap.scrollLeft,t:wrap.scrollTop};
+    dc.style.cursor='grabbing';
+    return;
+  }
+  start(e);
+});
+dc.addEventListener('pointermove',e=>{
+  const rec=activePtrs.get(e.pointerId);
+  if(rec){rec.x=e.clientX;rec.y=e.clientY;}
+  if(pinch){
+    const t=touchList();
+    if(t.length>=2){
+      const [a,b]=t;
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
+      applyZoom(pinch.z0*(d/pinch.d0),cx,cy);
+      // two-finger pan
+      const wrap=document.getElementById('cwrap');
+      wrap.scrollLeft-= (cx-pinch.cx); wrap.scrollTop-=(cy-pinch.cy);
+      pinch.cx=cx;pinch.cy=cy;
+    }
+    return;
+  }
+  if(e.pointerType==='touch'&&penDown)return; // palm
+  if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
+  if(panning){
+    const wrap=document.getElementById('cwrap');
+    wrap.scrollLeft=panning.l-(e.clientX-panning.x);
+    wrap.scrollTop=panning.t-(e.clientY-panning.y);
+    return;
+  }
+  move(e);
+});
+function ptrUp(e){
+  activePtrs.delete(e.pointerId);
+  if(e.pointerType==='pen')penDown=false;
+  if(pinch){
+    if(touchList().length<2){
+      pinch=null;
+      document.getElementById('cstage').classList.remove('no-anim');
+    }
+    return;
+  }
+  if(e.pointerType==='touch'&&penDown)return;
+  if(e.pointerId===primaryPtr||e.pointerType==='mouse'){
+    primaryPtr=null;
+    if(panning){panning=null;dc.style.cursor='grab';return;}
+    end(e);
+  }
+}
+dc.addEventListener('pointerup',ptrUp);
+dc.addEventListener('pointercancel',ptrUp);
+dc.addEventListener('pointerleave',e=>{if(drawing&&e.pointerId===primaryPtr){primaryPtr=null;end(e);}});
+dc.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}polyClick(e);});
 dc.addEventListener('dblclick',e=>{e.preventDefault();finishPolygon();});
-dc.addEventListener('touchstart',e=>{e.preventDefault();start(e.touches[0]);},{passive:false});
-dc.addEventListener('touchmove',e=>{e.preventDefault();move(e.touches[0]);},{passive:false});
-dc.addEventListener('touchend',e=>{e.preventDefault();end(e.changedTouches[0]);},{passive:false});
 
 function pos(e){const r=dc.getBoundingClientRect();return{x:(e.clientX-r.left)*(dc.width/r.width),y:(e.clientY-r.top)*(dc.height/r.height)};}
 
@@ -1559,7 +1708,7 @@ window.addEventListener('resize',()=>{
 });
 document.getElementById('cwrap').addEventListener('wheel',e=>{
   if(!pdfDoc)return;
-  if(e.ctrlKey||e.metaKey){e.preventDefault();applyZoom(zoom*(e.deltaY<0?1.12:0.89));}
+  if(e.ctrlKey||e.metaKey){e.preventDefault();applyZoom(zoom*(e.deltaY<0?1.12:0.89),e.clientX,e.clientY);}
 },{passive:false});
 
 // ══════════════ CALENDAR / TIMELINE ══════════════
@@ -1923,7 +2072,17 @@ figcaption{font-size:9.5px;color:#6b7280;padding:3px 5px;font-family:monospace}
 .cal-bar.be{border-top-right-radius:3px;border-bottom-right-radius:3px;margin-right:1px}
 .cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:10px;color:#4b5563}
 .cal-lg{display:flex;align-items:center}
+.pdfbar{position:fixed;top:0;left:0;right:0;z-index:999;background:#111827;color:#fff;display:flex;align-items:center;gap:14px;padding:10px 18px;box-shadow:0 3px 14px rgba(0,0,0,.35);font-size:13px}
+.pdfbar button{background:#f4a726;border:none;color:#111;font-family:'Sarabun';font-weight:700;font-size:14px;padding:9px 20px;border-radius:8px;cursor:pointer}
+.pdfbar button:hover{background:#e8961a}
+.pdfbar .hint{color:#9ca3af;font-size:11.5px}
+body{padding-top:56px}
+@media print{.pdfbar{display:none}body{padding-top:0}}
 </style></head><body>
+<div class="pdfbar">
+  <button onclick="window.print()">📄 บันทึกเป็น PDF / พิมพ์</button>
+  <span class="hint">ในหน้าต่างพิมพ์ เลือกปลายทาง (Destination) เป็น <b style="color:#f4a726">"Save as PDF"</b> แล้วกด Save จะได้ไฟล์ PDF ส่งต่อได้เลย</span>
+</div>
 <div class="bar"></div>
 <div class="hdr"><div><h1>รายงานความก้าวหน้า — ${pn}</h1><div class="sub">งานติดตั้งกระเบื้องยาง · เปรียบเทียบงานเทปรับพื้น / งานติดตั้ง</div></div>
 <div class="meta"><div>วันที่: ${today}</div><div>จำนวน markup: ${markups.length}</div></div></div>
