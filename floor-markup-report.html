@@ -486,32 +486,37 @@ async function renderPage(){
     const pc=document.getElementById('planCanvas'),dc=document.getElementById('drawCanvas');
     const stage=document.getElementById('cstage');
     const keepL=wrap.scrollLeft,keepT=wrap.scrollTop;
-    // ปิด transition ชั่วคราวขณะรีเซ็ต transform หลัง render คมชัด (กันภาพกระพริบ/ยุบแล้วขยาย)
+    // ปิด transition ชั่วคราวขณะสลับ (กันภาพยุบ/ขยาย)
     stage.classList.add('no-anim');
     pc.width=vp.width; pc.height=vp.height;
     dc.width=vp.width; dc.height=vp.height;
     stage.style.width=vp.width+'px'; stage.style.height=vp.height+'px';
-    stage.style.transform='';
-    renderedZoom=zoom;
-    if(zoomAnchor){
-      wrap.scrollLeft=zoomAnchor.fx*vp.width-zoomAnchor.ox;
-      wrap.scrollTop=zoomAnchor.fy*vp.height-zoomAnchor.oy;
-      zoomAnchor=null;
-    }else{
-      wrap.scrollLeft=keepL;wrap.scrollTop=keepT;
-    }
-    // คืน transition ในเฟรมถัดไป (เมื่อไม่ได้กำลัง pinch อยู่)
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!pinch)stage.classList.remove('no-anim');}));
 
+    // วาดเนื้อหาใหม่ให้เสร็จก่อน (ตอนนี้ stage ยังมี transform เดิมค้างอยู่ ภาพจึงไม่กระพริบ)
     planCtx=pc.getContext('2d');
     const bmp=await getPageBitmap(pageNum,scale); // instant if cached
     planCtx.drawImage(bmp,0,0);
-
-    // grayscale as CSS filter — instant, no pixel manipulation needed
     pc.style.filter=grayscale?'grayscale(1)':'';
-
     drawCtx=dc.getContext('2d');
     redraw();
+
+    renderedZoom=zoom;
+    // สลับ transform → scroll แบบ atomic ใน rAF เดียว (เหมือนไฟล์ตัวอย่าง จึงไม่กระพริบ)
+    const ps=pendingScroll; pendingScroll=null;
+    requestAnimationFrame(()=>{
+      stage.style.transform='';
+      stage.style.transformOrigin='';
+      if(ps&&ps._abs){
+        wrap.scrollLeft=ps._abs.x; wrap.scrollTop=ps._abs.y;
+      }else if(ps){
+        wrap.scrollLeft=ps.fx*stage.offsetWidth-ps.ox;
+        wrap.scrollTop=ps.fy*stage.offsetHeight-ps.oy;
+      }else{
+        wrap.scrollLeft=keepL;wrap.scrollTop=keepT;
+      }
+      requestAnimationFrame(()=>{if(!pinch)stage.classList.remove('no-anim');});
+    });
+
     document.getElementById('pInfo').textContent=`${pageNum} / ${pdfDoc.numPages}`;
     document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
     syncPageAreaInput();
@@ -526,29 +531,25 @@ async function renderPage(){
   }
 }
 
-let zoomTimer=null, renderedZoom=1, zoomAnchor=null;
-// Smooth zoom: scale the stage instantly with CSS transform (60fps), then re-render crisp when idle.
-// (cx,cy) = client coords to zoom toward (cursor/pinch center); defaults to viewport center.
+let zoomTimer=null, renderedZoom=1, pendingScroll=null;
+// Smooth zoom (แนวทางจากไฟล์ตัวอย่าง): สเกล #cstage ทันทีโดยตั้ง transform-origin ที่จุดโฟกัส
+// แล้วค่อย render คมชัดตอนหยุด พร้อมสลับ transform→scroll ใน rAF เดียว (ไม่กระพริบ)
 function applyZoom(z,cx,cy){
   z=Math.max(0.5,Math.min(5,z));
-  if(Math.abs(z-zoom)<0.0001)return;
+  if(Math.abs(z-zoom)<0.0001&&!pinch)return;
   const wrap=document.getElementById('cwrap'), st=document.getElementById('cstage');
   const r=wrap.getBoundingClientRect();
   const ox=(cx!=null?cx-r.left:r.width/2), oy=(cy!=null?cy-r.top:r.height/2);
-  const kOld=zoom/renderedZoom;
-  const visW=st.offsetWidth*kOld, visH=st.offsetHeight*kOld;
-  const fx=visW?(wrap.scrollLeft+ox)/visW:0.5, fy=visH?(wrap.scrollTop+oy)/visH:0.5;
+  const originX=wrap.scrollLeft+ox, originY=wrap.scrollTop+oy; // จุดโฟกัสในพิกัด stage
   zoom=z;
-  const k=zoom/renderedZoom;
-  st.style.transformOrigin='0 0';
-  st.style.transform=Math.abs(k-1)<0.0001?'':`scale(${k})`;
-  wrap.scrollLeft=fx*st.offsetWidth*k-ox;
-  wrap.scrollTop=fy*st.offsetHeight*k-oy;
-  zoomAnchor={fx,fy,ox,oy};
+  const scaleRatio=zoom/renderedZoom;
+  st.style.transformOrigin=`${originX}px ${originY}px`;
+  st.style.transform=Math.abs(scaleRatio-1)<0.0001?'':`scale(${scaleRatio})`;
+  // เก็บสัดส่วนจุดโฟกัส เพื่อคืน scroll หลัง render คมชัด
+  pendingScroll={ox,oy,fx:originX/(st.offsetWidth||1),fy:originY/(st.offsetHeight||1)};
   document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
   clearTimeout(zoomTimer);
-  // ระหว่าง pinch อยู่ ยังไม่ต้อง render คมชัด (รอจนปล่อยนิ้ว) — กันกระพริบระหว่างบีบ/ถ่าง
-  zoomTimer=setTimeout(()=>{if(pdfDoc&&!pinch)renderPage();},pinch?400:170);
+  zoomTimer=setTimeout(()=>{if(pdfDoc&&!pinch)renderPage();},pinch?400:180);
 }
 function zoomIn(){applyZoom(zoom*1.25);}
 function zoomOut(){applyZoom(zoom/1.25);}
@@ -671,8 +672,16 @@ cwrapEl.addEventListener('pointerdown',e=>{
       if(drawing){drawing=false;redraw();}
       if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
       tapStart=null;
+      clearTimeout(zoomTimer);
       const [a,b]=t;
-      pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:zoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
+      const wrapRect=cwrapEl.getBoundingClientRect();
+      const midX=(a.x+b.x)/2-wrapRect.left, midY=(a.y+b.y)/2-wrapRect.top;
+      pinch={
+        d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:zoom,
+        sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,   // scroll ตอนเริ่ม
+        mx:midX, my:midY,                               // จุดกึ่งกลางเทียบ viewport
+        originX:midX+cwrapEl.scrollLeft, originY:midY+cwrapEl.scrollTop // จุดโฟกัสในพิกัด stage (คงที่)
+      };
       document.getElementById('cstage').classList.add('no-anim');
       if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
       primaryPtr=null;
@@ -702,10 +711,15 @@ cwrapEl.addEventListener('pointermove',e=>{
     if(t.length>=2){
       const [a,b]=t;
       const d=Math.hypot(a.x-b.x,a.y-b.y);
-      const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
-      applyZoom(pinch.z0*(d/pinch.d0),cx,cy);
-      cwrapEl.scrollLeft-=(cx-pinch.cx); cwrapEl.scrollTop-=(cy-pinch.cy);
-      pinch.cx=cx;pinch.cy=cy;
+      const target=Math.max(0.5,Math.min(5,pinch.z0*(d/pinch.d0)));
+      const st=document.getElementById('cstage');
+      const scaleRatio=target/pinch.z0; // เทียบ zoom ที่ render ไว้ตอนเริ่ม pinch (=renderedZoom)
+      // ใช้ transform-origin คงที่ที่จุดโฟกัส → ลื่น ไม่กระตุก ไม่กระพริบ (ไม่วาด canvas ใหม่ระหว่างบีบ)
+      st.style.transformOrigin=`${pinch.originX}px ${pinch.originY}px`;
+      st.style.transform=`scale(${scaleRatio})`;
+      pinch.target=target;
+      zoom=Math.round(target/0.05)*0.05;
+      document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
     }
     return;
   }
@@ -723,9 +737,22 @@ function ptrUp(e){
   if(e.pointerType==='pen')penDown=false;
   if(pinch){
     if(touchList().length<2){
-      pinch=null;
-      document.getElementById('cstage').classList.remove('no-anim');
-      if(pdfDoc)renderPage(); // render คมชัดหลังปล่อยนิ้ว
+      const p=pinch; pinch=null;
+      const st=document.getElementById('cstage');
+      const finalZoom=Math.max(0.5,Math.min(5,p.target||zoom));
+      const zoomRatio=finalZoom/p.z0;
+      // scroll ปลายทาง = ให้จุดโฟกัสเดิมอยู่ใต้กึ่งกลางนิ้วเหมือนเดิม (สูตรจากไฟล์ตัวอย่าง)
+      const newScrollX=(p.sL+p.mx)*zoomRatio-p.mx;
+      const newScrollY=(p.sT+p.my)*zoomRatio-p.my;
+      zoom=finalZoom;
+      document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
+      if(Math.abs(finalZoom-p.z0)<0.02){ // แทบไม่เปลี่ยน — แค่ล้าง transform
+        st.style.transform='';st.style.transformOrigin='';
+        st.classList.remove('no-anim');
+      }else{
+        pendingScroll={fx:0,fy:0,ox:0,oy:0,_abs:{x:newScrollX,y:newScrollY}};
+        if(pdfDoc)renderPage();
+      }
     }
     return;
   }
