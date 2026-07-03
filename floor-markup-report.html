@@ -49,8 +49,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .main{display:grid;grid-template-columns:1fr var(--sidew,440px);height:calc(100vh - 54px)}
-body.side-hidden .main{grid-template-columns:1fr 0}
-body.side-hidden .side{display:none}
+body.side-hidden .main{grid-template-columns:1fr !important}
+body.side-hidden .side{display:none !important}
+body.side-hidden .cwrap{height:calc(100vh - 54px) !important}
 .side-grip{position:absolute;left:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:30;touch-action:none}
 .side-grip:hover,.side-grip.dragging{background:linear-gradient(90deg,transparent,rgba(244,167,38,.35),transparent)}
 .side-reopen{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:60;display:none;
@@ -485,6 +486,8 @@ async function renderPage(){
     const pc=document.getElementById('planCanvas'),dc=document.getElementById('drawCanvas');
     const stage=document.getElementById('cstage');
     const keepL=wrap.scrollLeft,keepT=wrap.scrollTop;
+    // ปิด transition ชั่วคราวขณะรีเซ็ต transform หลัง render คมชัด (กันภาพกระพริบ/ยุบแล้วขยาย)
+    stage.classList.add('no-anim');
     pc.width=vp.width; pc.height=vp.height;
     dc.width=vp.width; dc.height=vp.height;
     stage.style.width=vp.width+'px'; stage.style.height=vp.height+'px';
@@ -497,6 +500,8 @@ async function renderPage(){
     }else{
       wrap.scrollLeft=keepL;wrap.scrollTop=keepT;
     }
+    // คืน transition ในเฟรมถัดไป (เมื่อไม่ได้กำลัง pinch อยู่)
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!pinch)stage.classList.remove('no-anim');}));
 
     planCtx=pc.getContext('2d');
     const bmp=await getPageBitmap(pageNum,scale); // instant if cached
@@ -542,7 +547,8 @@ function applyZoom(z,cx,cy){
   zoomAnchor={fx,fy,ox,oy};
   document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
   clearTimeout(zoomTimer);
-  zoomTimer=setTimeout(()=>{if(pdfDoc)renderPage();},170);
+  // ระหว่าง pinch อยู่ ยังไม่ต้อง render คมชัด (รอจนปล่อยนิ้ว) — กันกระพริบระหว่างบีบ/ถ่าง
+  zoomTimer=setTimeout(()=>{if(pdfDoc&&!pinch)renderPage();},pinch?400:170);
 }
 function zoomIn(){applyZoom(zoom*1.25);}
 function zoomOut(){applyZoom(zoom/1.25);}
@@ -551,13 +557,13 @@ function zoomReset(){applyZoom(1);}
 // ── SIDEBAR: hide/show + drag-resize ──
 function toggleSide(){
   const hidden=document.body.classList.toggle('side-hidden');
-  // inline fallback — กันธีม/มีเดียเควอรีทับ
+  // ล้าง inline style เก่าที่อาจค้างจากการลากปรับ/เวอร์ชันก่อน เพื่อให้คลาส CSS คุมได้เต็มที่
   const side=document.querySelector('.side'), main=document.querySelector('.main');
-  if(side)side.style.display=hidden?'none':'';
-  if(main)main.style.gridTemplateColumns=hidden?'1fr 0px':'';
+  if(side)side.style.display='';
+  if(main)main.style.gridTemplateColumns='';
   const btn=document.getElementById('sideToggleBtn');
   if(btn)btn.textContent=hidden?'⏴ ข้อมูล':'⏵ ข้อมูล';
-  setTimeout(()=>{if(pdfDoc)renderPage();},60); // canvas area changed → re-fit
+  setTimeout(()=>{if(pdfDoc)renderPage();},70); // พื้นที่ canvas เปลี่ยน → fit ใหม่
 }
 (function initSideGrip(){
   const grip=document.getElementById('sideGrip');
@@ -719,6 +725,7 @@ function ptrUp(e){
     if(touchList().length<2){
       pinch=null;
       document.getElementById('cstage').classList.remove('no-anim');
+      if(pdfDoc)renderPage(); // render คมชัดหลังปล่อยนิ้ว
     }
     return;
   }
