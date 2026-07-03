@@ -78,7 +78,7 @@ body.side-hidden .side-reopen{display:block}
 .toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;user-select:none}
 .toggle input{accent-color:var(--accent);cursor:pointer}
 
-.cwrap{flex:1;background:#0a0c11;position:relative;overflow:auto;display:flex;align-items:center;justify-content:center}
+.cwrap{flex:1;background:#0a0c11;position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;touch-action:none;overscroll-behavior:none}
 .cstage{position:relative;margin:auto;flex:none;transition:transform .14s cubic-bezier(.25,.1,.25,1);will-change:transform}
 .cstage.no-anim{transition:none}
 #planCanvas{display:block}
@@ -265,7 +265,7 @@ body.side-hidden .side-reopen{display:block}
       <div class="pnav" style="gap:3px">
         <button id="undoBtn" onclick="doUndo()" title="ย้อนกลับ (Ctrl+Z)" disabled>↶</button>
         <button id="redoBtn" onclick="doRedo()" title="ทำซ้ำ (Ctrl+Y)" disabled>↷</button>
-        <button onclick="toggleSide()" title="ซ่อน/แสดงแถบข้อมูล">⏵ ข้อมูล</button>
+        <button id="sideToggleBtn" onclick="toggleSide()" title="ซ่อน/แสดงแถบข้อมูล">⏵ ข้อมูล</button>
       </div>
       <label class="toggle"><input type="checkbox" id="grayToggle" onchange="toggleGray()"> เทาดำ</label>
       <label class="toggle"><input type="checkbox" id="autoColorToggle" checked onchange="toggleAutoColor()" title="ให้แต่ละ markup ได้สีไม่ซ้ำกันโดยอัตโนมัติ">🎨 สีไม่ซ้ำ</label>
@@ -550,7 +550,13 @@ function zoomReset(){applyZoom(1);}
 
 // ── SIDEBAR: hide/show + drag-resize ──
 function toggleSide(){
-  document.body.classList.toggle('side-hidden');
+  const hidden=document.body.classList.toggle('side-hidden');
+  // inline fallback — กันธีม/มีเดียเควอรีทับ
+  const side=document.querySelector('.side'), main=document.querySelector('.main');
+  if(side)side.style.display=hidden?'none':'';
+  if(main)main.style.gridTemplateColumns=hidden?'1fr 0px':'';
+  const btn=document.getElementById('sideToggleBtn');
+  if(btn)btn.textContent=hidden?'⏴ ข้อมูล':'⏵ ข้อมูล';
   setTimeout(()=>{if(pdfDoc)renderPage();},60); // canvas area changed → re-fit
 }
 (function initSideGrip(){
@@ -636,57 +642,63 @@ const dc=document.getElementById('drawCanvas');
 let drawing=false,sx,sy,pts=[];
 let polyPts=[],polyHover=null; // polygon-in-progress
 
-// ── POINTER SYSTEM (mouse + stylus + touch) ──
-// pen = วาดด้วยปากกา (palm rejection: นิ้ว/ฝ่ามือถูกเมินขณะปากกาแตะ)
-// 1 นิ้ว = วาด (หรือเลื่อนใน pan tool) / 2 นิ้ว = pinch zoom + pan
+// ── POINTER SYSTEM v2 (mouse + stylus + touch) ──
+// pen = วาดด้วยปากกา (palm rejection) / 1 นิ้ว = วาดหรือเลื่อน / 2 นิ้ว = pinch zoom + pan
+// การ "แตะ" (tap) ตรวจจับเองในระบบนี้ — ไม่พึ่ง click event ซึ่งเบราว์เซอร์ไม่ยิงให้ pen/touch เมื่อ preventDefault
+const cwrapEl=document.getElementById('cwrap');
 dc.style.touchAction='none';
+cwrapEl.style.touchAction='none';
+document.addEventListener('gesturestart',e=>e.preventDefault()); // กัน iOS Safari pinch หน้าเว็บ
 const activePtrs=new Map(); // pointerId -> {x,y,type}
-let penDown=false, primaryPtr=null, pinch=null, suppressClick=false, panning=null;
+let penDown=false, primaryPtr=null, pinch=null, panning=null;
+let tapStart=null, lastTap=null;
 function touchList(){return [...activePtrs.values()].filter(p=>p.type==='touch');}
-dc.addEventListener('pointerdown',e=>{
+function inCanvas(p){return p.x>=-8&&p.y>=-8&&p.x<=dc.width+8&&p.y<=dc.height+8;}
+
+cwrapEl.addEventListener('pointerdown',e=>{
   activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
   if(e.pointerType==='pen')penDown=true;
   if(e.pointerType==='touch'){
     if(penDown)return; // palm rejection
     const t=touchList();
-    if(t.length===2){ // start pinch: cancel in-progress drawing
+    if(t.length===2){ // เริ่ม pinch: ยกเลิกการวาดที่ค้าง
       if(drawing){drawing=false;redraw();}
       if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
+      tapStart=null;
       const [a,b]=t;
-      pinch={d0:Math.hypot(a.x-b.x,a.y-b.y),z0:zoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
+      pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:zoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
       document.getElementById('cstage').classList.add('no-anim');
-      suppressClick=true;
-      if(primaryPtr!=null){try{dc.releasePointerCapture(primaryPtr);}catch(_){}}
+      if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
       primaryPtr=null;
+      e.preventDefault();
       return;
     }
     if(t.length>2)return;
   }
   if(pinch)return;
   primaryPtr=e.pointerId;
-  try{dc.setPointerCapture(e.pointerId);}catch(_){}
+  try{cwrapEl.setPointerCapture(e.pointerId);}catch(_){}
   e.preventDefault();
+  tapStart={x:e.clientX,y:e.clientY,t:Date.now(),id:e.pointerId};
   if(tool==='pan'){
-    const wrap=document.getElementById('cwrap');
-    panning={x:e.clientX,y:e.clientY,l:wrap.scrollLeft,t:wrap.scrollTop};
+    panning={x:e.clientX,y:e.clientY,l:cwrapEl.scrollLeft,t:cwrapEl.scrollTop};
     dc.style.cursor='grabbing';
     return;
   }
   start(e);
 });
-dc.addEventListener('pointermove',e=>{
+cwrapEl.addEventListener('pointermove',e=>{
   const rec=activePtrs.get(e.pointerId);
   if(rec){rec.x=e.clientX;rec.y=e.clientY;}
   if(pinch){
+    e.preventDefault();
     const t=touchList();
     if(t.length>=2){
       const [a,b]=t;
       const d=Math.hypot(a.x-b.x,a.y-b.y);
       const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
       applyZoom(pinch.z0*(d/pinch.d0),cx,cy);
-      // two-finger pan
-      const wrap=document.getElementById('cwrap');
-      wrap.scrollLeft-= (cx-pinch.cx); wrap.scrollTop-=(cy-pinch.cy);
+      cwrapEl.scrollLeft-=(cx-pinch.cx); cwrapEl.scrollTop-=(cy-pinch.cy);
       pinch.cx=cx;pinch.cy=cy;
     }
     return;
@@ -694,9 +706,8 @@ dc.addEventListener('pointermove',e=>{
   if(e.pointerType==='touch'&&penDown)return; // palm
   if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
   if(panning){
-    const wrap=document.getElementById('cwrap');
-    wrap.scrollLeft=panning.l-(e.clientX-panning.x);
-    wrap.scrollTop=panning.t-(e.clientY-panning.y);
+    cwrapEl.scrollLeft=panning.l-(e.clientX-panning.x);
+    cwrapEl.scrollTop=panning.t-(e.clientY-panning.y);
     return;
   }
   move(e);
@@ -712,17 +723,32 @@ function ptrUp(e){
     return;
   }
   if(e.pointerType==='touch'&&penDown)return;
-  if(e.pointerId===primaryPtr||e.pointerType==='mouse'){
-    primaryPtr=null;
-    if(panning){panning=null;dc.style.cursor='grab';return;}
-    end(e);
+  if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
+  primaryPtr=null;
+  if(panning){panning=null;dc.style.cursor='grab';tapStart=null;return;}
+  // ── tap detection: ทำงานกับทุกอุปกรณ์ (เมาส์/ปากกา/นิ้ว) ──
+  let tapped=false;
+  if(tapStart&&tapStart.id===e.pointerId){
+    const d=Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y);
+    if(d<9&&(Date.now()-tapStart.t)<600)tapped=true;
   }
+  tapStart=null;
+  if(tapped){
+    // แตะสองครั้งติด = ปิด polygon
+    const now=Date.now();
+    if(lastTap&&now-lastTap.t<400&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<28){
+      lastTap=null;
+      if(tool==='poly'&&polyPts.length>=3){finishPolygon();return;}
+    }else{
+      lastTap={x:e.clientX,y:e.clientY,t:now};
+    }
+    const p=pos(e);
+    if(inCanvas(p)&&(calibrating||tool==='poly'||tool==='angle')){polyClick(e);return;}
+  }
+  if(drawing||(measDraft&&measDraft.type==='dist'))end(e);
 }
-dc.addEventListener('pointerup',ptrUp);
-dc.addEventListener('pointercancel',ptrUp);
-dc.addEventListener('pointerleave',e=>{if(drawing&&e.pointerId===primaryPtr){primaryPtr=null;end(e);}});
-dc.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}polyClick(e);});
-dc.addEventListener('dblclick',e=>{e.preventDefault();finishPolygon();});
+cwrapEl.addEventListener('pointerup',ptrUp);
+cwrapEl.addEventListener('pointercancel',ptrUp);
 
 function pos(e){const r=dc.getBoundingClientRect();return{x:(e.clientX-r.left)*(dc.width/r.width),y:(e.clientY-r.top)*(dc.height/r.height)};}
 
