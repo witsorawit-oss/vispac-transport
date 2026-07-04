@@ -686,12 +686,14 @@ cwrapEl.addEventListener('pointerdown',e=>{
       clearTimeout(zoomTimer);
       const [a,b]=t;
       const wrapRect=cwrapEl.getBoundingClientRect();
-      const midX=(a.x+b.x)/2-wrapRect.left, midY=(a.y+b.y)/2-wrapRect.top;
+      const cx0=(a.x+b.x)/2, cy0=(a.y+b.y)/2;
+      const midX=cx0-wrapRect.left, midY=cy0-wrapRect.top;
       pinch={
         d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:zoom,
         sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,   // scroll ตอนเริ่ม
         mx:midX, my:midY,                               // จุดกึ่งกลางเทียบ viewport
-        originX:midX+cwrapEl.scrollLeft, originY:midY+cwrapEl.scrollTop // จุดโฟกัสในพิกัด stage (คงที่)
+        originX:midX+cwrapEl.scrollLeft, originY:midY+cwrapEl.scrollTop, // จุดโฟกัสในพิกัด stage (คงที่)
+        cx0, cy0, tx:0, ty:0                            // จุดกึ่งกลางนิ้วเริ่มต้น + ระยะเลื่อน (pan ระหว่างซูม)
       };
       document.getElementById('cstage').classList.add('no-anim');
       if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
@@ -725,9 +727,12 @@ cwrapEl.addEventListener('pointermove',e=>{
       const target=Math.max(0.5,Math.min(5,pinch.z0*(d/pinch.d0)));
       const st=document.getElementById('cstage');
       const scaleRatio=target/pinch.z0; // เทียบ zoom ที่ render ไว้ตอนเริ่ม pinch (=renderedZoom)
-      // ใช้ transform-origin คงที่ที่จุดโฟกัส → ลื่น ไม่กระตุก ไม่กระพริบ (ไม่วาด canvas ใหม่ระหว่างบีบ)
+      // ระยะที่จุดกึ่งกลางนิ้วขยับ = เลื่อนภาพตามนิ้ว (pan พร้อมซูมได้แบบแท็บเล็ตจริง)
+      const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
+      pinch.tx=cx-pinch.cx0; pinch.ty=cy-pinch.cy0;
+      // translate ก่อน scale → ภาพเลื่อนตามนิ้วเรียลไทม์ + ซูมที่จุดโฟกัสคงที่ (ลื่น ไม่กระพริบ)
       st.style.transformOrigin=`${pinch.originX}px ${pinch.originY}px`;
-      st.style.transform=`scale(${scaleRatio})`;
+      st.style.transform=`translate(${pinch.tx}px, ${pinch.ty}px) scale(${scaleRatio})`;
       pinch.target=target;
       zoom=Math.round(target/0.05)*0.05;
       document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
@@ -752,13 +757,18 @@ function ptrUp(e){
       const st=document.getElementById('cstage');
       const finalZoom=Math.max(0.5,Math.min(5,p.target||zoom));
       const zoomRatio=finalZoom/p.z0;
-      // scroll ปลายทาง = ให้จุดโฟกัสเดิมอยู่ใต้กึ่งกลางนิ้วเหมือนเดิม (สูตรจากไฟล์ตัวอย่าง)
-      const newScrollX=(p.sL+p.mx)*zoomRatio-p.mx;
-      const newScrollY=(p.sT+p.my)*zoomRatio-p.my;
+      // scroll ปลายทาง = จุดโฟกัสเดิมอยู่ใต้กึ่งกลางนิ้ว แล้วหักระยะ pan (tx,ty) ที่นิ้วเลื่อนไป
+      const newScrollX=(p.sL+p.mx)*zoomRatio-p.mx-(p.tx||0);
+      const newScrollY=(p.sT+p.my)*zoomRatio-p.my-(p.ty||0);
       zoom=finalZoom;
       document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
-      if(Math.abs(finalZoom-p.z0)<0.02){ // แทบไม่เปลี่ยน — แค่ล้าง transform
+      const panned=Math.abs(p.tx||0)>1||Math.abs(p.ty||0)>1;
+      if(Math.abs(finalZoom-p.z0)<0.02 && !panned){ // ไม่ซูมไม่เลื่อน — แค่ล้าง transform
         st.style.transform='';st.style.transformOrigin='';
+        st.classList.remove('no-anim');
+      }else if(Math.abs(finalZoom-p.z0)<0.02){ // เลื่อนอย่างเดียว ไม่ต้อง render ใหม่ แค่ตั้ง scroll
+        st.style.transform='';st.style.transformOrigin='';
+        cwrapEl.scrollLeft=newScrollX; cwrapEl.scrollTop=newScrollY;
         st.classList.remove('no-anim');
       }else{
         pendingScroll={fx:0,fy:0,ox:0,oy:0,_abs:{x:newScrollX,y:newScrollY}};
