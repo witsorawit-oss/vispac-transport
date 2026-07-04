@@ -689,7 +689,7 @@ cwrapEl.addEventListener('pointerdown',e=>{
       const cx0=(a.x+b.x)/2, cy0=(a.y+b.y)/2;
       const midX=cx0-wrapRect.left, midY=cy0-wrapRect.top;
       pinch={
-        d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:zoom,
+        d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:renderedZoom,
         sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,   // scroll ตอนเริ่ม
         mx:midX, my:midY,                               // จุดกึ่งกลางเทียบ viewport
         originX:midX+cwrapEl.scrollLeft, originY:midY+cwrapEl.scrollTop, // จุดโฟกัสในพิกัด stage (คงที่)
