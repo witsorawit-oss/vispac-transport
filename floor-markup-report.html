@@ -543,21 +543,22 @@ async function renderPage(){
 }
 
 let zoomTimer=null, renderedZoom=1, pendingScroll=null;
-// Smooth zoom (แนวทางจากไฟล์ตัวอย่าง): สเกล #cstage ทันทีโดยตั้ง transform-origin ที่จุดโฟกัส
-// แล้วค่อย render คมชัดตอนหยุด พร้อมสลับ transform→scroll ใน rAF เดียว (ไม่กระพริบ)
+// ซูม (ลูกกลิ้ง/ปุ่ม): origin 0,0 + คำนวณ translate เอง ให้จุดโฟกัสอยู่นิ่ง แม่นทุกเบราว์เซอร์
 function applyZoom(z,cx,cy){
   z=Math.max(0.5,Math.min(5,z));
   if(Math.abs(z-zoom)<0.0001&&!pinch)return;
   const wrap=document.getElementById('cwrap'), st=document.getElementById('cstage');
   const r=wrap.getBoundingClientRect();
-  const ox=(cx!=null?cx-r.left:r.width/2), oy=(cy!=null?cy-r.top:r.height/2);
-  const originX=wrap.scrollLeft+ox, originY=wrap.scrollTop+oy; // จุดโฟกัสในพิกัด stage
+  const ox=(cx!=null?cx-r.left:r.width/2), oy=(cy!=null?cy-r.top:r.height/2); // จุดชี้เทียบ viewport
+  const fX=wrap.scrollLeft+ox, fY=wrap.scrollTop+oy;   // จุดโฟกัสในพิกัด stage (origin 0,0)
   zoom=z;
-  const scaleRatio=zoom/renderedZoom;
-  st.style.transformOrigin=`${originX}px ${originY}px`;
-  st.style.transform=Math.abs(scaleRatio-1)<0.0001?'':`scale(${scaleRatio})`;
-  // เก็บสัดส่วนจุดโฟกัส เพื่อคืน scroll หลัง render คมชัด
-  pendingScroll={ox,oy,fx:originX/(st.offsetWidth||1),fy:originY/(st.offsetHeight||1)};
+  const ratio=zoom/renderedZoom;
+  // translate ให้จุดโฟกัสอยู่ที่ ox,oy เดิม: fX*ratio - scroll + tr = ox
+  const trX=ox+wrap.scrollLeft-fX*ratio, trY=oy+wrap.scrollTop-fY*ratio;
+  st.style.transformOrigin='0 0';
+  st.style.transform=Math.abs(ratio-1)<0.0001?'':`translate(${trX}px,${trY}px) scale(${ratio})`;
+  // scroll ปลายทางหลัง render คมชัด = fX*ratio - ox
+  pendingScroll={fx:0,fy:0,ox:0,oy:0,_abs:{x:fX*ratio-ox,y:fY*ratio-oy}};
   document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
   clearTimeout(zoomTimer);
   zoomTimer=setTimeout(()=>{if(pdfDoc&&!pinch)renderPage();},pinch?400:180);
@@ -686,16 +687,18 @@ cwrapEl.addEventListener('pointerdown',e=>{
       clearTimeout(zoomTimer);
       const [a,b]=t;
       const wrapRect=cwrapEl.getBoundingClientRect();
-      const cx0=(a.x+b.x)/2, cy0=(a.y+b.y)/2;
-      const midX=cx0-wrapRect.left, midY=cy0-wrapRect.top;
+      const cx0=(a.x+b.x)/2, cy0=(a.y+b.y)/2;              // จุดกึ่งกลางนิ้ว (client px)
+      const m0x=cx0-wrapRect.left, m0y=cy0-wrapRect.top;   // เทียบมุมซ้ายบน viewport
+      const fX=cwrapEl.scrollLeft+m0x, fY=cwrapEl.scrollTop+m0y; // จุดโฟกัสในพิกัด stage (origin 0,0)
       pinch={
         d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:renderedZoom,
-        sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,   // scroll ตอนเริ่ม
-        mx:midX, my:midY,                               // จุดกึ่งกลางเทียบ viewport
-        originX:midX+cwrapEl.scrollLeft, originY:midY+cwrapEl.scrollTop, // จุดโฟกัสในพิกัด stage (คงที่)
-        cx0, cy0, tx:0, ty:0                            // จุดกึ่งกลางนิ้วเริ่มต้น + ระยะเลื่อน (pan ระหว่างซูม)
+        sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,
+        m0x, m0y, fX, fY,
+        cx0, cy0, tx:0, ty:0
       };
-      document.getElementById('cstage').classList.add('no-anim');
+      const st0=document.getElementById('cstage');
+      st0.classList.add('no-anim');
+      st0.style.transformOrigin='0 0'; // มุมซ้ายบนคงที่ → คำนวณ translate เอง แม่นทุกเบราว์เซอร์
       if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
       primaryPtr=null;
       e.preventDefault();
@@ -726,13 +729,17 @@ cwrapEl.addEventListener('pointermove',e=>{
       const d=Math.hypot(a.x-b.x,a.y-b.y);
       const target=Math.max(0.5,Math.min(5,pinch.z0*(d/pinch.d0)));
       const st=document.getElementById('cstage');
-      const scaleRatio=target/pinch.z0; // เทียบ zoom ที่ render ไว้ตอนเริ่ม pinch (=renderedZoom)
-      // ระยะที่จุดกึ่งกลางนิ้วขยับ = เลื่อนภาพตามนิ้ว (pan พร้อมซูมได้แบบแท็บเล็ตจริง)
-      const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
-      pinch.tx=cx-pinch.cx0; pinch.ty=cy-pinch.cy0;
-      // translate ก่อน scale → ภาพเลื่อนตามนิ้วเรียลไทม์ + ซูมที่จุดโฟกัสคงที่ (ลื่น ไม่กระพริบ)
-      st.style.transformOrigin=`${pinch.originX}px ${pinch.originY}px`;
-      st.style.transform=`translate(${pinch.tx}px, ${pinch.ty}px) scale(${scaleRatio})`;
+      const ratio=target/pinch.z0;
+      // จุดกึ่งกลางนิ้วปัจจุบัน (เทียบมุมซ้ายบน viewport)
+      const wrapRect=cwrapEl.getBoundingClientRect();
+      const mcx=(a.x+b.x)/2-wrapRect.left, mcy=(a.y+b.y)/2-wrapRect.top;
+      pinch.tx=mcx-pinch.m0x; pinch.ty=mcy-pinch.m0y;
+      // origin 0,0: ให้จุดโฟกัส fX,fY (พิกัด stage) มาอยู่ใต้กึ่งกลางนิ้วปัจจุบันพอดี
+      // ตำแหน่งบนจอ = fX*ratio - sL + translate  =>  translate = mcx + sL - fX*ratio
+      const trX=mcx+pinch.sL-pinch.fX*ratio;
+      const trY=mcy+pinch.sT-pinch.fY*ratio;
+      st.style.transform=`translate(${trX}px,${trY}px) scale(${ratio})`;
+      pinch.trX=trX; pinch.trY=trY;
       pinch.target=target;
       zoom=Math.round(target/0.05)*0.05;
       document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
@@ -757,16 +764,17 @@ function ptrUp(e){
       const st=document.getElementById('cstage');
       const finalZoom=Math.max(0.5,Math.min(5,p.target||zoom));
       const zoomRatio=finalZoom/p.z0;
-      // scroll ปลายทาง = จุดโฟกัสเดิมอยู่ใต้กึ่งกลางนิ้ว แล้วหักระยะ pan (tx,ty) ที่นิ้วเลื่อนไป
-      const newScrollX=(p.sL+p.mx)*zoomRatio-p.mx-(p.tx||0);
-      const newScrollY=(p.sT+p.my)*zoomRatio-p.my-(p.ty||0);
+      // origin 0,0: จุดโฟกัส fX,fY หลังสเกล = fX*ratio ต้องอยู่ใต้ตำแหน่งนิ้วสุดท้าย (m0+tx)
+      // newScroll = fX*ratio - (m0x + tx)
+      const newScrollX=p.fX*zoomRatio-(p.m0x+(p.tx||0));
+      const newScrollY=p.fY*zoomRatio-(p.m0y+(p.ty||0));
       zoom=finalZoom;
       document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
       const panned=Math.abs(p.tx||0)>1||Math.abs(p.ty||0)>1;
-      if(Math.abs(finalZoom-p.z0)<0.02 && !panned){ // ไม่ซูมไม่เลื่อน — แค่ล้าง transform
+      if(Math.abs(finalZoom-p.z0)<0.02 && !panned){ // ไม่ซูมไม่เลื่อน
         st.style.transform='';st.style.transformOrigin='';
         st.classList.remove('no-anim');
-      }else if(Math.abs(finalZoom-p.z0)<0.02){ // เลื่อนอย่างเดียว ไม่ต้อง render ใหม่ แค่ตั้ง scroll
+      }else if(Math.abs(finalZoom-p.z0)<0.02){ // เลื่อนอย่างเดียว — ตั้ง scroll ไม่ต้อง render
         st.style.transform='';st.style.transformOrigin='';
         cwrapEl.scrollLeft=newScrollX; cwrapEl.scrollTop=newScrollY;
         st.classList.remove('no-anim');
