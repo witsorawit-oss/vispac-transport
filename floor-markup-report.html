@@ -25,9 +25,11 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .hd-fields{display:flex;gap:12px;align-items:center;flex:1}
 .fld{display:flex;align-items:center;gap:5px}
 .fld label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
-.fld input{background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);
-  font-family:'Sarabun';font-size:13px;padding:2px 4px;outline:none;min-width:110px}
-.fld input:focus{border-bottom-color:var(--accent)}
+.fld input{background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);
+  font-family:'Sarabun';font-size:13px;padding:5px 8px;outline:none;min-width:110px;color-scheme:dark}
+.fld input:hover{border-color:#5c6683}
+.fld input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(244,167,38,.18)}
+.fld input::placeholder{color:#6b7488}
 .hd-actions{display:flex;gap:7px}
 .hbtn{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:var(--r);
   padding:7px 12px;font-family:'Sarabun';font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:5px}
@@ -59,7 +61,7 @@ body.side-hidden .cwrap{height:calc(100vh - 54px) !important}
   color:var(--accent);padding:14px 8px;cursor:pointer;font-size:15px;box-shadow:-4px 0 14px rgba(0,0,0,.4)}
 .side-reopen:hover{background:var(--bg);border-color:var(--accent)}
 body.side-hidden .side-reopen{display:block}
-.canvas-side{display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0;position:relative}
+.canvas-side{display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0;min-height:0;position:relative}
 .ctools{background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 14px;
   display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .upl{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1.5px dashed var(--border2);
@@ -76,11 +78,13 @@ body.side-hidden .side-reopen{display:block}
 .pnav button:hover{border-color:var(--accent)}
 .pnav button:disabled{opacity:.35;cursor:default;border-color:var(--border)}
 #pInfo{font-size:12px;color:var(--text2);font-family:'IBM Plex Mono'}
-.toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;user-select:none}
-.toggle input{accent-color:var(--accent);cursor:pointer}
+.toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text);cursor:pointer;user-select:none}
+.toggle input{accent-color:var(--accent);cursor:pointer;width:15px;height:15px}
 
-.cwrap{flex:1;background:#0a0c11;position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;touch-action:none;overscroll-behavior:none}
-.cstage{position:relative;margin:auto;flex:none;transition:transform .14s cubic-bezier(.25,.1,.25,1);will-change:transform}
+.cwrap{flex:1;min-height:0;min-width:0;background:#0a0c11;position:relative;overflow:auto;touch-action:none;overscroll-behavior:none}
+/* แพทเทิร์นเดียวกับ PDF viewer: กึ่งกลางแนวนอน + ชิดบน — เลื่อนถึงขอบได้ทุกด้าน ไม่มีบั๊กตัดขอบ */
+.cpad{display:table;margin:0 auto;padding:24px 60px 60px;box-sizing:border-box}
+.cstage{position:relative;transition:transform .14s cubic-bezier(.25,.1,.25,1);will-change:transform}
 .cstage.no-anim{transition:none}
 #planCanvas{display:block}
 #drawCanvas{position:absolute;left:0;top:0;cursor:crosshair;touch-action:none}
@@ -163,10 +167,16 @@ body.side-hidden .side-reopen{display:block}
 .mk-del:hover{color:var(--red)}
 .mk-fld{margin-bottom:10px}
 .mk-fld>label{font-size:10.5px;color:var(--text2);display:block;margin-bottom:3px;font-weight:600;letter-spacing:.2px}
-.mk-card select,.mk-card input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;
-  color:var(--text);font-family:'Sarabun';font-size:13px;padding:8px 9px;outline:none}
-.mk-card select:focus,.mk-card input:focus{border-color:var(--accent)}
-.mk-card select option{background:var(--bg2)}
+.mk-card select,.mk-card input{width:100%;background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;
+  color:var(--text);font-family:'Sarabun';font-size:13px;padding:8px 9px;outline:none;color-scheme:dark}
+.mk-card select:hover,.mk-card input:hover{border-color:#5c6683}
+.mk-card select:focus,.mk-card input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(244,167,38,.18)}
+.mk-card select option{background:var(--bg2);color:var(--text)}
+/* date picker: ทำให้ไอคอนปฏิทินและตัวเลขเห็นชัดบนพื้นเข้ม */
+.mk-card input[type=date],.fld input[type=date],.fld input[type=number]{color-scheme:dark}
+.mk-card input[type=date]::-webkit-calendar-picker-indicator,
+.fld input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.6);opacity:.9;cursor:pointer}
+.mk-card input[type=date]:hover::-webkit-calendar-picker-indicator{opacity:1}
 .mk-arearow{display:grid;grid-template-columns:1.4fr 1fr;gap:9px;margin-bottom:10px}
 .mk-dates{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
 .mk-dates label,.mk-arearow label{font-size:10.5px;color:var(--text2);display:block;margin-bottom:3px;font-weight:600}
@@ -176,7 +186,7 @@ body.side-hidden .side-reopen{display:block}
 .mk-photo img{width:100%;height:100%;object-fit:cover}
 .mk-photo button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;
   border-radius:50%;width:17px;height:17px;font-size:9px;cursor:pointer;line-height:1}
-.mk-addp{aspect-ratio:1;border:1px dashed var(--border);border-radius:5px;display:flex;align-items:center;
+.mk-addp{aspect-ratio:1;border:1.5px dashed var(--border2);border-radius:5px;display:flex;align-items:center;
   justify-content:center;cursor:pointer;color:var(--text2);font-size:18px}
 .mk-addp:hover{border-color:var(--accent);color:var(--accent)}
 
@@ -184,7 +194,7 @@ body.side-hidden .side-reopen{display:block}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 /* APP CALENDAR (in sidebar) */
 .appcal-wrap{border-top:1px solid var(--border);background:var(--bg2)}
-.appcal-head{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;color:var(--text2)}
+.appcal-head{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;color:var(--text);font-weight:600}
 .appcal-head:hover{color:var(--text)}
 .appcal-body{padding:0 12px 12px;max-height:300px;overflow-y:auto;display:none}
 .appcal-body.open{display:block}
@@ -259,6 +269,7 @@ body.side-hidden .side-reopen{display:block}
       <div class="pill active" data-tool="poly" onclick="setTool('poly',this)">⬡ กรอบหลายจุด</div>
       <div class="pill" data-tool="pen" onclick="setTool('pen',this)">✏️ วาด</div>
       <div class="pill" data-tool="highlight" onclick="setTool('highlight',this)">🖌️ ไฮไลท์</div>
+      <div class="pill" data-tool="pan" onclick="setTool('pan',this)" title="โหมดเลื่อน: ลากนิ้ว/เมาส์เพื่อเลื่อนแบบ (ใช้ตอนซูมเข้า)">✋ เลื่อน</div>
       <div class="pnav" style="gap:3px">
         <button id="undoBtn" onclick="doUndo()" title="ย้อนกลับ (Ctrl+Z)" disabled>↶</button>
         <button id="redoBtn" onclick="doRedo()" title="ทำซ้ำ (Ctrl+Y)" disabled>↷</button>
@@ -286,9 +297,11 @@ body.side-hidden .side-reopen{display:block}
         <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
         <p>อัพโหลดแบบ PDF เพื่อเริ่มทำ markup</p>
       </div>
-      <div class="cstage" id="cstage">
-        <canvas id="planCanvas"></canvas>
-        <canvas id="drawCanvas"></canvas>
+      <div class="cpad" id="cpad">
+        <div class="cstage" id="cstage">
+          <canvas id="planCanvas"></canvas>
+          <canvas id="drawCanvas"></canvas>
+        </div>
       </div>
     </div>
 
@@ -408,12 +421,11 @@ function doUndo(){if(!undoStack.length)return;redoStack.push(snapMarkups());rest
 function doRedo(){if(!redoStack.length)return;undoStack.push(snapMarkups());restoreSnap(redoStack.pop());updHistoryBtns();}
 function updHistoryBtns(){const u=document.getElementById('undoBtn'),r=document.getElementById('redoBtn');if(u)u.disabled=!undoStack.length;if(r)r.disabled=!redoStack.length;}
 
-// ── PDF PAGE CACHE
-// Key: "${page}_${scaleKey}" → ImageBitmap (GPU-ready bitmap, drawImage is instant)
 // ── PAGE → PNG SNAPSHOT: render แต่ละหน้าเป็นภาพความละเอียดสูง "ครั้งเดียว"
 // จากนั้นซูม = ย่อ/ขยายภาพ (ไม่เรียก pdf.js ซ้ำ) → เร็ว ไม่กระพริบ
-const HIRES=3;          // ความละเอียดสำรอง = fit ×3 (ซูมถึง 300% ยังคมกริบ)
-const MAX_SIDE=6000;    // กันภาพใหญ่เกินหน่วยความจำ
+const DPR=Math.min(window.devicePixelRatio||1, 2.5); // คูณตามความละเอียดจอ (คมบนจอ retina/แท็บเล็ต)
+const HIRES=4;          // ความละเอียดสำรอง = fit ×4 (คมขึ้น ซูมได้ลึกก่อนเบลอ)
+const MAX_SIDE=9000;    // เพดานภาพใหญ่สุด (เพิ่มให้แบบละเอียดเก็บเส้นได้ครบ)
 const pageImg=new Map(); // pg -> {bmp, scale}
 let upgrading=false;
 let currentFitScale=1; // fit-to-window scale at zoom=1
@@ -488,8 +500,10 @@ async function renderPage(){
     const keepL=wrap.scrollLeft,keepT=wrap.scrollTop;
     // ปิด transition ชั่วคราวขณะสลับ (กันภาพยุบ/ขยาย)
     stage.classList.add('no-anim');
-    pc.width=vp.width; pc.height=vp.height;
-    dc.width=vp.width; dc.height=vp.height;
+    // backing store คูณ DPR ให้คมบนจอความละเอียดสูง แต่ CSS size ยังเป็นขนาดตรรกะ
+    const bw=Math.round(vp.width*DPR), bh=Math.round(vp.height*DPR);
+    pc.width=bw; pc.height=bh;
+    dc.width=bw; dc.height=bh;
     stage.style.width=vp.width+'px'; stage.style.height=vp.height+'px';
 
     // วาดเนื้อหาใหม่ให้เสร็จก่อน (ตอนนี้ stage ยังมี transform เดิมค้างอยู่ ภาพจึงไม่กระพริบ)
@@ -499,7 +513,7 @@ async function renderPage(){
     if(!rec) rec=await getPageImage(pageNum,currentFitScale*HIRES); // async เฉพาะครั้งแรกของหน้า
     planCtx.imageSmoothingEnabled=true;
     planCtx.imageSmoothingQuality='high';
-    planCtx.drawImage(rec.bmp,0,0,vp.width,vp.height);
+    planCtx.drawImage(rec.bmp,0,0,bw,bh);
     pc.style.filter=grayscale?'grayscale(1)':'';
     drawCtx=dc.getContext('2d');
     redraw();
@@ -517,11 +531,13 @@ async function renderPage(){
     requestAnimationFrame(()=>{
       stage.style.transform='';
       stage.style.transformOrigin='';
-      if(ps&&ps._abs){
+      if(ps&&ps._focal){
+        // จุดโฟกัส fx,fy (พิกัด stage เดิม) หลังสเกล อยู่ที่ offset ใหม่ของ stage + fx*ratio → เลื่อนให้อยู่ที่ ox
+        const f=ps._focal;
+        wrap.scrollLeft=stage.offsetLeft+f.fx*f.ratio-f.ox;
+        wrap.scrollTop =stage.offsetTop +f.fy*f.ratio-f.oy;
+      }else if(ps&&ps._abs){
         wrap.scrollLeft=ps._abs.x; wrap.scrollTop=ps._abs.y;
-      }else if(ps){
-        wrap.scrollLeft=ps.fx*stage.offsetWidth-ps.ox;
-        wrap.scrollTop=ps.fy*stage.offsetHeight-ps.oy;
       }else{
         wrap.scrollLeft=keepL;wrap.scrollTop=keepT;
       }
@@ -550,15 +566,18 @@ function applyZoom(z,cx,cy){
   const wrap=document.getElementById('cwrap'), st=document.getElementById('cstage');
   const r=wrap.getBoundingClientRect();
   const ox=(cx!=null?cx-r.left:r.width/2), oy=(cy!=null?cy-r.top:r.height/2); // จุดชี้เทียบ viewport
-  const fX=wrap.scrollLeft+ox, fY=wrap.scrollTop+oy;   // จุดโฟกัสในพิกัด stage (origin 0,0)
+  // ตำแหน่งมุมซ้ายบนของ stage ใน scroll content (เผื่อ padding/จัดกึ่งกลางของ .cpad)
+  const st0L=st.offsetLeft, st0T=st.offsetTop;
+  // จุดโฟกัสในพิกัด stage (หักตำแหน่ง stage ออก): (scroll + ox) - stageOffset
+  const fX=(wrap.scrollLeft+ox-st0L), fY=(wrap.scrollTop+oy-st0T);
   zoom=z;
   const ratio=zoom/renderedZoom;
-  // translate ให้จุดโฟกัสอยู่ที่ ox,oy เดิม: fX*ratio - scroll + tr = ox
-  const trX=ox+wrap.scrollLeft-fX*ratio, trY=oy+wrap.scrollTop-fY*ratio;
+  // translate ให้จุดโฟกัสอยู่ที่ ox,oy เดิม
+  const trX=ox+wrap.scrollLeft-(st0L+fX*ratio), trY=oy+wrap.scrollTop-(st0T+fY*ratio);
   st.style.transformOrigin='0 0';
   st.style.transform=Math.abs(ratio-1)<0.0001?'':`translate(${trX}px,${trY}px) scale(${ratio})`;
-  // scroll ปลายทางหลัง render คมชัด = fX*ratio - ox
-  pendingScroll={fx:0,fy:0,ox:0,oy:0,_abs:{x:fX*ratio-ox,y:fY*ratio-oy}};
+  // scroll ปลายทางหลัง render คมชัด (stage จะกลับไปอยู่ที่ offset เดิมของมัน)
+  pendingScroll={_focal:{fx:fX,fy:fY,ratio,ox,oy}};
   document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
   clearTimeout(zoomTimer);
   zoomTimer=setTimeout(()=>{if(pdfDoc&&!pinch)renderPage();},pinch?400:180);
@@ -686,17 +705,18 @@ cwrapEl.addEventListener('pointerdown',e=>{
       tapStart=null;
       clearTimeout(zoomTimer);
       const [a,b]=t;
+      const st0=document.getElementById('cstage');
       const wrapRect=cwrapEl.getBoundingClientRect();
       const cx0=(a.x+b.x)/2, cy0=(a.y+b.y)/2;              // จุดกึ่งกลางนิ้ว (client px)
       const m0x=cx0-wrapRect.left, m0y=cy0-wrapRect.top;   // เทียบมุมซ้ายบน viewport
-      const fX=cwrapEl.scrollLeft+m0x, fY=cwrapEl.scrollTop+m0y; // จุดโฟกัสในพิกัด stage (origin 0,0)
+      const s0L=st0.offsetLeft, s0T=st0.offsetTop;         // ตำแหน่ง stage ใน scroll content
+      const fX=cwrapEl.scrollLeft+m0x-s0L, fY=cwrapEl.scrollTop+m0y-s0T; // จุดโฟกัสในพิกัด stage
       pinch={
         d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:renderedZoom,
         sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,
-        m0x, m0y, fX, fY,
+        s0L, s0T, m0x, m0y, fX, fY,
         cx0, cy0, tx:0, ty:0
       };
-      const st0=document.getElementById('cstage');
       st0.classList.add('no-anim');
       st0.style.transformOrigin='0 0'; // มุมซ้ายบนคงที่ → คำนวณ translate เอง แม่นทุกเบราว์เซอร์
       if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
@@ -734,10 +754,9 @@ cwrapEl.addEventListener('pointermove',e=>{
       const wrapRect=cwrapEl.getBoundingClientRect();
       const mcx=(a.x+b.x)/2-wrapRect.left, mcy=(a.y+b.y)/2-wrapRect.top;
       pinch.tx=mcx-pinch.m0x; pinch.ty=mcy-pinch.m0y;
-      // origin 0,0: ให้จุดโฟกัส fX,fY (พิกัด stage) มาอยู่ใต้กึ่งกลางนิ้วปัจจุบันพอดี
-      // ตำแหน่งบนจอ = fX*ratio - sL + translate  =>  translate = mcx + sL - fX*ratio
-      const trX=mcx+pinch.sL-pinch.fX*ratio;
-      const trY=mcy+pinch.sT-pinch.fY*ratio;
+      // ตำแหน่งบนจอ = s0L + fX*ratio - scroll + tr  =>  tr = mcx + scroll - s0L - fX*ratio
+      const trX=mcx+pinch.sL-pinch.s0L-pinch.fX*ratio;
+      const trY=mcy+pinch.sT-pinch.s0T-pinch.fY*ratio;
       st.style.transform=`translate(${trX}px,${trY}px) scale(${ratio})`;
       pinch.trX=trX; pinch.trY=trY;
       pinch.target=target;
@@ -749,8 +768,15 @@ cwrapEl.addEventListener('pointermove',e=>{
   if(e.pointerType==='touch'&&penDown)return; // palm
   if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
   if(panning){
-    cwrapEl.scrollLeft=panning.l-(e.clientX-panning.x);
-    cwrapEl.scrollTop=panning.t-(e.clientY-panning.y);
+    panning.curX=e.clientX; panning.curY=e.clientY;
+    if(!panning.req){
+      panning.req=requestAnimationFrame(()=>{
+        if(!panning){return;}
+        cwrapEl.scrollLeft=panning.l-(panning.curX-panning.x);
+        cwrapEl.scrollTop=panning.t-(panning.curY-panning.y);
+        panning.req=null;
+      });
+    }
     return;
   }
   move(e);
@@ -763,11 +789,7 @@ function ptrUp(e){
       const p=pinch; pinch=null;
       const st=document.getElementById('cstage');
       const finalZoom=Math.max(0.5,Math.min(5,p.target||zoom));
-      const zoomRatio=finalZoom/p.z0;
-      // origin 0,0: จุดโฟกัส fX,fY หลังสเกล = fX*ratio ต้องอยู่ใต้ตำแหน่งนิ้วสุดท้าย (m0+tx)
-      // newScroll = fX*ratio - (m0x + tx)
-      const newScrollX=p.fX*zoomRatio-(p.m0x+(p.tx||0));
-      const newScrollY=p.fY*zoomRatio-(p.m0y+(p.ty||0));
+      const finalMx=p.m0x+(p.tx||0), finalMy=p.m0y+(p.ty||0); // ตำแหน่งนิ้วสุดท้าย
       zoom=finalZoom;
       document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
       const panned=Math.abs(p.tx||0)>1||Math.abs(p.ty||0)>1;
@@ -776,10 +798,11 @@ function ptrUp(e){
         st.classList.remove('no-anim');
       }else if(Math.abs(finalZoom-p.z0)<0.02){ // เลื่อนอย่างเดียว — ตั้ง scroll ไม่ต้อง render
         st.style.transform='';st.style.transformOrigin='';
-        cwrapEl.scrollLeft=newScrollX; cwrapEl.scrollTop=newScrollY;
+        cwrapEl.scrollLeft=p.s0L+p.fX*finalZoom/p.z0-finalMx;
+        cwrapEl.scrollTop =p.s0T+p.fY*finalZoom/p.z0-finalMy;
         st.classList.remove('no-anim');
-      }else{
-        pendingScroll={fx:0,fy:0,ox:0,oy:0,_abs:{x:newScrollX,y:newScrollY}};
+      }else{ // มีการซูม — ส่ง focal ให้ renderPage คำนวณ scroll หลัง stage เปลี่ยนขนาด
+        pendingScroll={_focal:{fx:p.fX,fy:p.fY,ratio:finalZoom/p.z0,ox:finalMx,oy:finalMy}};
         if(pdfDoc)renderPage();
       }
     }
@@ -788,7 +811,7 @@ function ptrUp(e){
   if(e.pointerType==='touch'&&penDown)return;
   if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
   primaryPtr=null;
-  if(panning){panning=null;dc.style.cursor='grab';tapStart=null;return;}
+  if(panning){if(panning.req)cancelAnimationFrame(panning.req);panning=null;dc.style.cursor='grab';tapStart=null;return;}
   // ── tap detection: ทำงานกับทุกอุปกรณ์ (เมาส์/ปากกา/นิ้ว) ──
   let tapped=false;
   if(tapStart&&tapStart.id===e.pointerId){
