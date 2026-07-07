@@ -16,7 +16,7 @@
   --green:#3dd68c;--red:#f56565;--blue:#60a5fa;--r:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 
 .hd{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 18px;height:54px;
   display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
@@ -50,10 +50,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .prog-fill{transition:width .45s cubic-bezier(.4,0,.2,1)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-.main{display:grid;grid-template-columns:1fr var(--sidew,440px);height:calc(100vh - 54px)}
+.main{display:grid;grid-template-columns:1fr var(--sidew,440px);flex:1;min-height:0}
 body.side-hidden .main{grid-template-columns:1fr !important}
 body.side-hidden .side{display:none !important}
-body.side-hidden .cwrap{height:calc(100vh - 54px) !important}
 .side-grip{position:absolute;left:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:30;touch-action:none}
 .side-grip:hover,.side-grip.dragging{background:linear-gradient(90deg,transparent,rgba(244,167,38,.35),transparent)}
 .side-reopen{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:60;display:none;
@@ -233,7 +232,18 @@ body.side-hidden .side-reopen{display:block}
 .dash-card h3{font-size:13px;color:var(--text);margin-bottom:14px;font-weight:700}
 .dash-card.full{grid-column:1/-1}
 @media(max-width:760px){.dash-grid{grid-template-columns:1fr}}
-@media(max-width:880px){.main{grid-template-columns:1fr;height:auto}.cwrap{height:48vh}.hd-fields{display:none}}
+/* ── แท็บเล็ต: header พับแถว ปุ่ม/ช่องกรอกกระชับ ไม่ล้นขอบ ── */
+@media(max-width:1420px){
+  .hd{height:auto;min-height:54px;flex-wrap:wrap;padding:8px 12px;gap:8px;row-gap:8px}
+  .hd-fields{flex-wrap:wrap;gap:8px;row-gap:6px;min-width:0}
+  .fld input{min-width:70px;max-width:150px;font-size:12.5px;padding:5px 7px}
+  .fld label{font-size:9px;white-space:nowrap}
+  .hd-actions{margin-left:auto;flex-wrap:wrap;row-gap:6px}
+  .hbtn{padding:6px 9px;font-size:11.5px}
+  .ctools{padding:7px 10px;gap:6px}
+  .pill{padding:6px 9px;font-size:11.5px}
+}
+@media(max-width:880px){.main{grid-template-columns:1fr;overflow:auto}.cwrap{height:48vh}.hd-fields{display:none}}
 </style>
 </head>
 <body>
@@ -515,7 +525,7 @@ async function renderPage(){
     planCtx.imageSmoothingQuality='high';
     planCtx.drawImage(rec.bmp,0,0,bw,bh);
     pc.style.filter=grayscale?'grayscale(1)':'';
-    drawCtx=dc.getContext('2d');
+    drawCtx=dc.getContext('2d',{desynchronized:true})||dc.getContext('2d');
     redraw();
     // ถ้าซูมเกินความละเอียดที่เก็บไว้ ค่อยอัปเกรดเบื้องหลัง (ภาพเดิมยังโชว์อยู่ ไม่กระพริบ)
     if(scale>rec.scale*1.02 && !upgrading){
@@ -931,8 +941,13 @@ function move(e){
   const lc=LAYERS.find(x=>x.key===activeLayer).color;
   drawCtx.strokeStyle=lc;drawCtx.lineWidth=tool==='highlight'?14:2.5;drawCtx.lineCap='round';drawCtx.lineJoin='round';
   if(tool==='rect'){drawCtx.fillStyle=lc+'22';drawCtx.fillRect(sx,sy,p.x-sx,p.y-sy);drawCtx.strokeRect(sx,sy,p.x-sx,p.y-sy);}
-  else if(tool==='pen'){pts.push(p);stroke(pts);}
-  else if(tool==='highlight'){pts.push(p);drawCtx.globalAlpha=.35;stroke(pts);drawCtx.globalAlpha=1;}
+  else if(tool==='pen'||tool==='highlight'){
+    // เก็บจุดระหว่างเฟรมจาก coalesced events → เส้นปากกาเนียนไม่เป็นเหลี่ยม
+    const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
+    for(const ce of evs)pts.push(pos(ce));
+    if(tool==='highlight'){drawCtx.globalAlpha=.35;stroke(pts);drawCtx.globalAlpha=1;}
+    else stroke(pts);
+  }
 }
 function stroke(pp){drawCtx.beginPath();drawCtx.moveTo(pp[0].x,pp[0].y);for(let i=1;i<pp.length;i++)drawCtx.lineTo(pp[i].x,pp[i].y);drawCtx.stroke();}
 function end(e){
@@ -2273,7 +2288,17 @@ ${buildCalendarHTML(true)}
 ${sheetSection}`}
 <div class="sign-wrap"><div class="sign"><div class="ln nm">${au||'.............................'}</div><div class="ro">ผู้จัดทำ</div></div></div>
 <div class="ft"><span>ผู้จัดทำ: ${au||'-'}</span><span>${pn} · ${today}</span></div>
-<script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script>
+<script>
+// auto-print เฉพาะเดสก์ท็อป — บนแท็บเล็ต/มือถือ การสั่ง print โดยไม่มีการแตะจะทำให้ Chrome หมุนค้าง
+// จึงให้ผู้ใช้กดปุ่ม 📄 เอง (มี gesture แล้วเปิดติดทันที)
+window.onload=function(){
+  var touch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(touch)return;
+  var imgs=[].slice.call(document.images);
+  Promise.all(imgs.map(function(im){return im.complete?1:new Promise(function(r){im.onload=im.onerror=r;});}))
+    .then(function(){setTimeout(function(){window.print();},250);});
+};
+<\/script>
 </body></html>`;
 
   updatePrintProgress('กำลังจัดหน้ารายงาน...');
