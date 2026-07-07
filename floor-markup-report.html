@@ -81,7 +81,7 @@ body.side-hidden .side-reopen{display:block}
 .toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text);cursor:pointer;user-select:none}
 .toggle input{accent-color:var(--accent);cursor:pointer;width:15px;height:15px}
 
-.cwrap{flex:1;min-height:0;min-width:0;background:#0a0c11;position:relative;overflow:auto;touch-action:none;overscroll-behavior:none}
+.cwrap{flex:1;min-height:0;min-width:0;background:#0a0c11;position:relative;overflow:auto;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* แพทเทิร์นเดียวกับ PDF viewer: กึ่งกลางแนวนอน + ชิดบน — เลื่อนถึงขอบได้ทุกด้าน ไม่มีบั๊กตัดขอบ */
 .cpad{display:table;margin:0 auto;padding:24px 60px 60px;box-sizing:border-box}
 .cstage{position:relative;transition:transform .14s cubic-bezier(.25,.1,.25,1);will-change:transform}
@@ -695,7 +695,23 @@ function inCanvas(p){return p.x>=-8&&p.y>=-8&&p.x<=dc.width+8&&p.y<=dc.height+8;
 
 cwrapEl.addEventListener('pointerdown',e=>{
   activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
-  if(e.pointerType==='pen')penDown=true;
+  if(e.pointerType==='pen'){
+    penDown=true;
+    // ปากกามีสิทธิ์เหนือกว่าเสมอ: ถ้าฝ่ามือ/นิ้วแตะค้างและยึดการวาดอยู่ ให้ยกเลิก (ถือว่าเป็นฝ่ามือ)
+    if(primaryPtr!=null){
+      const prev=activePtrs.get(primaryPtr);
+      if(prev&&prev.type==='touch'){
+        try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}
+        primaryPtr=null;
+        if(drawing){drawing=false;redraw();}
+        if(panning){if(panning.req)cancelAnimationFrame(panning.req);panning=null;dc.style.cursor='crosshair';}
+        if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
+        tapStart=null;
+      }
+    }
+    // ถ้ากำลัง pinch ด้วยนิ้วอยู่ ให้จบ pinch แล้วยกให้ปากกา
+    if(pinch){pinch=null;document.getElementById('cstage').classList.remove('no-anim');if(pdfDoc)renderPage();}
+  }
   if(e.pointerType==='touch'){
     if(penDown)return; // palm rejection
     const t=touchList();
@@ -816,7 +832,8 @@ function ptrUp(e){
   let tapped=false;
   if(tapStart&&tapStart.id===e.pointerId){
     const d=Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y);
-    if(d<9&&(Date.now()-tapStart.t)<600)tapped=true;
+    const lim=e.pointerType==='pen'?14:9, tlim=e.pointerType==='pen'?750:600; // ปากกาลื่นบนกระจก ให้อะลุ่มอล่วยกว่านิ้ว
+    if(d<lim&&(Date.now()-tapStart.t)<tlim)tapped=true;
   }
   tapStart=null;
   if(tapped){
