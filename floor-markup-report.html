@@ -2333,13 +2333,14 @@ async function printReport(mode){
     });
     if(!imgs&&bare)imgs=`<div class="plan-l"><img src="${bare}"></div>`;
     // ตารางย่อ markup ของแผ่นนี้ (ไม่มีรูป)
+    const sheetName=getPageName(pg)||('แผ่นที่ '+pg); // ตรงกับช่อง "ชื่อแผ่นนี้" ในแอพ
     const rows=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg).map(({m,gi})=>{
       const ln=LAYERS.find(l=>l.key===m.layer);
       const p=areaPct(m.area,m.page);
       return `<tr>
         <td style="text-align:center"><span class="mk-n" style="background:${m.stroke}">${gi}</span></td>
-        <td style="color:${ln?ln.color:'#333'};font-weight:600">${ln?ln.name:''}</td>
-        <td>${m.zone}</td><td style="text-align:left">${m.note||'-'}</td>
+        <td style="font-weight:600">${sheetName}</td>
+        <td style="color:${ln?ln.color:'#333'};font-weight:600">${m.zone}</td><td style="text-align:left">${m.note||'-'}</td>
         <td>${m.area?parseFloat(m.area).toLocaleString():'-'}</td>
         <td>${p!=null?fmtPct(p):'-'}</td>
         <td>${m.start||'-'}</td><td>${m.end||'-'}</td>
@@ -2348,7 +2349,7 @@ async function printReport(mode){
     planBody+=`<div class="plan-page${pi>0?' pb':''}">
       <div class="cmp-page-h" style="font-size:13px">${getPageLabel(pg)}${pa?` · ${pa.toLocaleString()} ตร.ม.`:''}${headExtra}</div>
       ${imgs}
-      <table style="margin-top:7px"><thead><tr><th>#</th><th style="text-align:left">ชั้นงาน</th><th style="text-align:left">ประเภทงาน</th><th style="text-align:left">ตำแหน่ง</th><th>ตร.ม.</th><th>% ของแบบ</th><th>เริ่ม</th><th>เสร็จ</th></tr></thead><tbody>${rows}</tbody></table>
+      <table style="margin-top:7px"><thead><tr><th>#</th><th style="text-align:left">ชั้น</th><th style="text-align:left">ประเภทงาน</th><th style="text-align:left">ตำแหน่ง</th><th>ตร.ม.</th><th>% ของแบบ</th><th>เริ่ม</th><th>เสร็จ</th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
   });
 
