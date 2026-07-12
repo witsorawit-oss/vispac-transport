@@ -915,14 +915,14 @@ const cwrapEl=document.getElementById('cwrap');
 dc.style.touchAction='none';
 cwrapEl.style.touchAction='none';
 document.addEventListener('gesturestart',e=>e.preventDefault()); // กัน iOS Safari pinch หน้าเว็บ
-const activePtrs=new Map(); // pointerId -> {x,y,type}
+const activePtrs=new Map(); // pointerId -> {x,y,type,t0,palm}
 let penDown=false, primaryPtr=null, pinch=null, panning=null;
 let tapStart=null, lastTap=null;
-function touchList(){return [...activePtrs.values()].filter(p=>p.type==='touch');}
+function touchList(){return [...activePtrs.values()].filter(p=>p.type==='touch'&&!p.palm);} // ไม่นับฝ่ามือ
 function inCanvas(p){return p.x>=-8&&p.y>=-8&&p.x<=dc.width+8&&p.y<=dc.height+8;}
 
 cwrapEl.addEventListener('pointerdown',e=>{
-  activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
+  activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType,t0:Date.now(),palm:false});
   if(e.pointerType==='pen'){
     penDown=true;
     // ปากกามีสิทธิ์เหนือกว่าเสมอ: ถ้าฝ่ามือ/นิ้วแตะค้างและยึดการวาดอยู่ ให้ยกเลิก (ถือว่าเป็นฝ่ามือ)
@@ -941,9 +941,32 @@ cwrapEl.addEventListener('pointerdown',e=>{
     if(pinch){pinch=null;document.getElementById('cstage').classList.remove('no-anim');if(pdfDoc)renderPage();}
   }
   if(e.pointerType==='touch'){
-    if(penDown)return; // palm rejection
-    const t=touchList();
-    if(t.length===2){ // เริ่ม pinch: ยกเลิกการวาดที่ค้าง
+    if(penDown)return; // palm rejection (โหมดปากกา)
+    // ── palm rejection โหมดนิ้ว ──
+    // (1) จุดสัมผัสใหญ่ผิดปกติ = ฝ่ามือ/สันมือ → ตัดทิ้งตั้งแต่แตะ (เครื่องที่รายงานขนาดสัมผัสได้)
+    if((e.width&&e.width>40)||(e.height&&e.height>40)){
+      activePtrs.get(e.pointerId).palm=true;
+      e.preventDefault();
+      return;
+    }
+    let t=touchList();
+    if(t.length===2){
+      // (2) pinch จริง = สองนิ้ววางเกือบพร้อมกัน — ถ้านิ้วเก่าวางค้างนานแล้ว (>0.28วิ) แสดงว่าเป็นฝ่ามือที่วางพัก
+      //     → ตัดนิ้วเก่าทิ้ง แล้วให้นิ้วใหม่นี้เป็นนิ้ววาดแทน (ไม่เข้าโหมด pinch)
+      const otherEntry=[...activePtrs.entries()].find(([id,p])=>p.type==='touch'&&!p.palm&&id!==e.pointerId);
+      if(otherEntry&&Date.now()-otherEntry[1].t0>280){
+        otherEntry[1].palm=true;
+        const oid=otherEntry[0];
+        if(primaryPtr===oid){ // ฝ่ามือเคยยึดการวาด/แพนอยู่ → เคลียร์ทิ้งให้หมด
+          try{cwrapEl.releasePointerCapture(oid);}catch(_){}
+          primaryPtr=null;
+          if(drawing){drawing=false;redraw();}
+          if(panning){if(panning.req)cancelAnimationFrame(panning.req);panning=null;dc.style.cursor='crosshair';}
+          if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
+          tapStart=null;
+        }
+        t=touchList(); // เหลือนิ้วเดียว → ไหลลงไปทำงานแบบนิ้ววาดปกติข้างล่าง
+      }else{
       if(drawing){drawing=false;redraw();}
       if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
       tapStart=null;
@@ -967,6 +990,7 @@ cwrapEl.addEventListener('pointerdown',e=>{
       primaryPtr=null;
       e.preventDefault();
       return;
+      }
     }
     if(t.length>2)return;
   }
@@ -1060,7 +1084,7 @@ function ptrUp(e){
   let tapped=false;
   if(tapStart&&tapStart.id===e.pointerId){
     const d=Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y);
-    const lim=e.pointerType==='pen'?14:9, tlim=e.pointerType==='pen'?750:600; // ปากกาลื่นบนกระจก ให้อะลุ่มอล่วยกว่านิ้ว
+    const lim=e.pointerType==='pen'?14:(e.pointerType==='touch'?12:9), tlim=e.pointerType==='pen'?750:600; // ปากกาลื่นบนกระจก/นิ้วสั่นกว่าเมาส์ ให้อะลุ่มอล่วยตามชนิด
     if(d<lim&&(Date.now()-tapStart.t)<tlim)tapped=true;
   }
   tapStart=null;
