@@ -542,7 +542,7 @@ button,input,select,textarea,label{touch-action:manipulation}
 </div>
 
 <!-- MARKUP QUICK-ENTRY POPUP -->
-<div class="mkpop-overlay" id="mkPopOverlay" style="display:none" onclick="if(event.target===this)saveMkPopup()">
+<div class="mkpop-overlay" id="mkPopOverlay" style="display:none">
   <div class="mkpop">
     <div class="mkpop-head">
       <span id="mkPopTitle">ข้อมูล Markup</span>
@@ -1487,7 +1487,7 @@ function poApplyParsed(){
 }
 
 // ══════════════ MARKUP QUICK-ENTRY POPUP ══════════════
-let popId=null;
+let popId=null, mkPopOpenT=0;
 function openMkPopup(id){
   const m=markups.find(x=>x.id===id); if(!m)return;
   popId=id;
@@ -1526,6 +1526,7 @@ function openMkPopup(id){
   document.getElementById('mkPopStart').value=m.start||'';
   document.getElementById('mkPopEnd').value=m.end||'';
   mkPopUpdateRemains(); // คำนวณยอดคงเหลือ BOQ + พื้นที่แผ่นคงเหลือ ตอนเปิดป๊อปอัพ
+  mkPopOpenT=Date.now();
   document.getElementById('mkPopOverlay').style.display='flex';
   setTimeout(()=>{try{document.getElementById('mkPopNote').focus();}catch(_){}},80);
 }
@@ -1627,12 +1628,22 @@ function mkPopUpdateRemains(){ // อัพเดตบรรทัด "BOQ · �
   el.innerHTML=`แผ่นนี้เหลือ <b>${fmtQ(rem)}</b> / ${fmtQ(pa)} ตร.ม.${rem<0?' ⚠เกินพื้นที่แผ่น':''}`;
 }
 function saveMkPopup(){
+  if(Date.now()-mkPopOpenT<450)return; // กัน ghost click ที่ตามหลังการแตะปิดโพลิกอน
   collectMkPopup();
   document.getElementById('mkPopOverlay').style.display='none';
   popId=null;
   redraw(); renderList(); renderLayerBar();
 }
+// ปิดป๊อปอัพด้วย "การกดลงใหม่" บนฉากหลังเท่านั้น — ghost click ที่เบราว์เซอร์ยิงตามหลังการแตะปิดโพลิกอน
+// และ click จากการยกฝ่ามือที่วางค้าง จะไม่มี pointerdown ใหม่ จึงปิดป๊อปอัพไม่ได้อีก
+document.getElementById('mkPopOverlay').addEventListener('pointerdown',e=>{
+  if(e.target!==e.currentTarget)return;                    // ต้องกดที่ฉากหลังจริงๆ ไม่ใช่ในกล่อง
+  if(Date.now()-mkPopOpenT<450)return;                     // ช่วงกันสั้นๆ หลังเพิ่งเปิด
+  if((e.width&&e.width>40)||(e.height&&e.height>40))return; // ฝ่ามือวางแตะฉากหลัง ไม่นับ
+  saveMkPopup();
+});
 function mkPopAddArea(){
+  if(Date.now()-mkPopOpenT<450)return;
   const m=collectMkPopup(); if(!m)return;
   setMulti(popId); popId=null;
   document.getElementById('mkPopOverlay').style.display='none';
@@ -1641,11 +1652,13 @@ function mkPopAddArea(){
   setToolSilent('poly');
 }
 function mkPopAddPhoto(){
+  if(Date.now()-mkPopOpenT<450)return;
   collectMkPopup();
   photoTargetId=popId;
   document.getElementById('photoIn').click();
 }
 function mkPopDelete(){
+  if(Date.now()-mkPopOpenT<450)return;
   if(!confirm('ลบ markup นี้ทั้งหมด (รวมทุกพื้นที่)?'))return;
   const id=popId; popId=null;
   document.getElementById('mkPopOverlay').style.display='none';
