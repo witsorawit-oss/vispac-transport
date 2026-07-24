@@ -16,13 +16,19 @@
   --green:#3dd68c;--red:#f56565;--blue:#60a5fa;--r:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* ล็อกความกว้างหน้าจอ: ห้ามให้เนื้อหาดันหน้าเว็บกว้างเกินจอ (ต้นเหตุที่ iPad/Chrome เลื่อนซ้าย-ขวาแล้วดูเหมือนซูมเพี้ยน) */
+html,body{width:100%;max-width:100%;overflow-x:hidden;overscroll-behavior:none}
 body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 
 .hd{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 18px;height:54px;
-  display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
-.logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--accent);font-size:14px}
+  display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;overflow:hidden;max-width:100%}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--accent);font-size:14px;flex-shrink:0}
 .logo svg{width:22px;height:22px}
-.hd-fields{display:flex;gap:12px;align-items:center;flex:1}
+/* ช่องกรอกเลื่อนในตัวเอง — ปุ่มคำสั่งทางขวาจึงไม่โดนดันตกจอ */
+.hd-fields{display:flex;gap:12px;align-items:center;flex:1 1 auto;min-width:0;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.hd-fields::-webkit-scrollbar{display:none}
+.hd-fields>*{flex-shrink:0}
 .fld{display:flex;align-items:center;gap:5px}
 .fld label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
 .fld input{background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);
@@ -30,7 +36,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .fld input:hover{border-color:#5c6683}
 .fld input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(244,167,38,.18)}
 .fld input::placeholder{color:#6b7488}
-.hd-actions{display:flex;gap:7px}
+.hd-actions{display:flex;gap:7px;flex-shrink:0}
 .hbtn{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:var(--r);
   padding:7px 12px;font-family:'Sarabun';font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .hbtn:hover{border-color:var(--accent);color:var(--accent)}
@@ -50,8 +56,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .prog-fill{transition:width .45s cubic-bezier(.4,0,.2,1)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-.main{display:grid;grid-template-columns:1fr var(--sidew,440px);height:calc(100vh - 54px);height:calc(100dvh - 54px)}
-body.side-hidden .main{grid-template-columns:1fr !important}
+.main{display:grid;grid-template-columns:minmax(0,1fr) var(--sidew,440px);height:calc(100vh - 54px);height:calc(100dvh - 54px);
+  width:100%;max-width:100%;overflow:hidden}
+body.side-hidden .main{grid-template-columns:minmax(0,1fr) !important}
 body.side-hidden .side{display:none !important}
 body.side-hidden .cwrap{height:calc(100vh - 54px) !important;height:calc(100dvh - 54px) !important}
 .side-grip{position:absolute;left:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:30;touch-action:none}
@@ -307,7 +314,9 @@ body.side-hidden .side-reopen{display:block}
 .mkpop-body{padding:14px 18px 4px;overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
 .mkpop-body select,.mkpop-body input{width:100%;background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;
   color:var(--text);font-family:'Sarabun';font-size:14px;padding:9px 10px;outline:none;color-scheme:dark;box-sizing:border-box}
-.mkpop-body select:focus,.mkpop-body input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(244,167,38,.18)}
+.mkpop-body textarea{width:100%;background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;resize:vertical;
+  color:var(--text);font-family:'Sarabun';font-size:14px;padding:9px 10px;outline:none;color-scheme:dark;box-sizing:border-box;line-height:1.5}
+.mkpop-body select:focus,.mkpop-body input:focus,.mkpop-body textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(244,167,38,.18)}
 .mkpop-body input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.6);opacity:.9;cursor:pointer}
 .mkpop-row{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
 .mkpop-row .mk-fld{min-width:0}
@@ -345,7 +354,7 @@ body.side-hidden .side-reopen{display:block}
 button,input,select,textarea,label{touch-action:manipulation}
 @media (pointer:coarse){
   .mkpop{max-width:520px}
-  .mkpop-body select,.mkpop-body input{font-size:16px;padding:11px 12px}
+  .mkpop-body select,.mkpop-body input,.mkpop-body textarea{font-size:16px;padding:11px 12px}
   .mkpop-btns button{font-size:15px;padding:13px 14px}
   .po-check{max-height:300px}
   .po-row{grid-template-columns:26px minmax(0,1fr) 110px 42px;gap:8px}
@@ -370,7 +379,22 @@ button,input,select,textarea,label{touch-action:manipulation}
 }
 /* จอแท็บเล็ตแนวนอน (≈1180-1320px): ลดความกว้างแถบข้างเริ่มต้น ให้พื้นที่แบบแปลนมากขึ้น (ลากปรับเองได้เหมือนเดิม) */
 @media (min-width:881px) and (max-width:1320px){
-  .main{grid-template-columns:1fr var(--sidew,360px)}
+  .main{grid-template-columns:minmax(0,1fr) var(--sidew,360px)}
+  /* บีบหัวเรื่องให้พอดีจอแท็บเล็ต: ซ่อนข้อความโลโก้ (เหลือไอคอน) + ปุ่มกระชับขึ้น */
+  .hd{padding:0 10px;gap:9px}
+  .logo{font-size:0;gap:0}
+  .logo svg{width:24px;height:24px}
+  .hd-fields{gap:8px}
+  .fld{gap:3px}
+  .fld label{font-size:9px;letter-spacing:0}
+  .fld input{min-width:70px;padding:5px 6px}
+  .hbtn{padding:6px 8px;font-size:11.5px;gap:4px}
+}
+/* iOS จะซูมหน้าจอเข้าเองเมื่อจิ้มช่องกรอกที่ตัวหนังสือเล็กกว่า 16px แล้วไม่ซูมกลับ (meta viewport กันไม่ได้)
+   → บังคับทุกช่องกรอกบนจอทัชเป็น 16px ต้นเหตุการซูมเพี้ยนบน iPad จึงหมดไป */
+@media (pointer:coarse){
+  input,textarea,select{font-size:16px}
+  .fld input,.po-row .po-qty,.po-it input,.mkpop-body input,.mkpop-body select,.mkpop-body textarea{font-size:16px}
 }
 </style>
 </head>
@@ -393,6 +417,7 @@ button,input,select,textarea,label{touch-action:manipulation}
     <label class="hbtn" for="loadIn">📂 โหลด</label>
     <input type="file" id="loadIn" accept=".json" onchange="loadProject(this)">
     <button class="hbtn" onclick="openPoManager()">📋 PO</button>
+    <button class="hbtn" onclick="openMeeting()">📝 ประชุม</button>
     <button class="hbtn" onclick="openDashboard()">📊 Dashboard</button>
     <button class="hbtn" onclick="exportExcel()">📊 Excel</button>
     <button class="hbtn" onclick="printReport('plan')" title="พิมพ์เฉพาะแบบที่ markup ไม่มีรูปถ่าย — ใช้เป็นแผนงาน">🗺 แผนงาน</button>
@@ -542,6 +567,25 @@ button,input,select,textarea,label{touch-action:manipulation}
 </div>
 
 <!-- MARKUP QUICK-ENTRY POPUP -->
+<!-- ══════ MEETING REPORT (รายงานการประชุม) ══════ -->
+<div class="mkpop-overlay" id="meetOverlay" style="display:none" onclick="if(event.target===this)saveMeeting()">
+  <div class="mkpop" style="max-width:620px">
+    <div class="mkpop-head"><span>📝 รายงานการประชุม</span><span class="mkpop-areas">แนบท้ายรายงานพิมพ์อัตโนมัติ</span></div>
+    <div class="mkpop-body">
+      <div class="mkpop-row">
+        <div class="mk-fld"><label>วันที่ประชุม</label><input id="meetDate" type="date"></div>
+        <div class="mk-fld"><label>ผู้เข้าร่วมประชุม</label><input id="meetPeople" placeholder="เช่น ผจก.โครงการ, โฟร์แมน, ผรม."></div>
+      </div>
+      <div class="mk-fld"><label>1. ความคืบหน้างาน</label><textarea id="meetProgress" rows="3" placeholder="งานที่ทำเสร็จ/กำลังทำ ณ ปัจจุบัน..."></textarea></div>
+      <div class="mk-fld"><label>2. แผนงาน</label><textarea id="meetPlan" rows="3" placeholder="แผนงานช่วงถัดไป กำหนดการเข้างาน..."></textarea></div>
+      <div class="mk-fld"><label>3. ปัญหาอุปสรรค</label><textarea id="meetIssue" rows="3" placeholder="ปัญหาหน้างาน สิ่งที่รอการแก้ไข ผู้รับผิดชอบ..."></textarea></div>
+      <div class="mk-fld"><label>4. ด้านความปลอดภัย</label><textarea id="meetSafety" rows="3" placeholder="ประเด็นความปลอดภัย อุบัติเหตุ/เหตุเกือบเกิด มาตรการ..."></textarea></div>
+    </div>
+    <div class="mkpop-btns">
+      <button class="mkpop-save" onclick="saveMeeting()">✓ บันทึก</button>
+    </div>
+  </div>
+</div>
 <div class="mkpop-overlay" id="mkPopOverlay" style="display:none">
   <div class="mkpop">
     <div class="mkpop-head">
@@ -582,6 +626,19 @@ button,input,select,textarea,label{touch-action:manipulation}
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── กันซูมค้าง/หน้าเลื่อนออกนอกจอ (iPad) ──
+// iOS ไม่สนใจ user-scalable=no ถ้าซูมค้างไปแล้วจะไม่ดีดกลับเอง → รีเซ็ต meta viewport ให้หลังออกจากช่องกรอก/หมุนจอ
+const VP_BASE='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+function resetViewportZoom(){
+  const vp=document.querySelector('meta[name=viewport]'); if(!vp)return;
+  vp.setAttribute('content',VP_BASE+', minimum-scale=1.0'); // ต้องเปลี่ยนค่าจริงถึงจะ trigger ให้เบราว์เซอร์คำนวณใหม่
+  setTimeout(()=>{vp.setAttribute('content',VP_BASE);window.scrollTo(0,0);},60);
+}
+document.addEventListener('focusout',e=>{
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))setTimeout(resetViewportZoom,80);
+});
+window.addEventListener('orientationchange',()=>setTimeout(resetViewportZoom,180));
 
 // ── LAYERS
 const LAYERS=[
@@ -2267,6 +2324,29 @@ document.getElementById('photoIn').addEventListener('change',async function(){
 });
 function delPhoto(id,pi){const m=markups.find(x=>x.id===id);if(m){pushHistory();m.photos.splice(pi,1);renderList();}}
 
+// ── MEETING REPORT (รายงานการประชุม)
+let meeting={date:'',people:'',progress:'',plan:'',issue:'',safety:''};
+function openMeeting(){
+  document.getElementById('meetDate').value=meeting.date||new Date().toISOString().slice(0,10);
+  document.getElementById('meetPeople').value=meeting.people||'';
+  document.getElementById('meetProgress').value=meeting.progress||'';
+  document.getElementById('meetPlan').value=meeting.plan||'';
+  document.getElementById('meetIssue').value=meeting.issue||'';
+  document.getElementById('meetSafety').value=meeting.safety||'';
+  document.getElementById('meetOverlay').style.display='flex';
+}
+function saveMeeting(){
+  meeting={
+    date:document.getElementById('meetDate').value,
+    people:document.getElementById('meetPeople').value,
+    progress:document.getElementById('meetProgress').value,
+    plan:document.getElementById('meetPlan').value,
+    issue:document.getElementById('meetIssue').value,
+    safety:document.getElementById('meetSafety').value
+  };
+  document.getElementById('meetOverlay').style.display='none';
+}
+
 // ── SAVE / LOAD
 function ab2b64(buf){let bin='';const b=new Uint8Array(buf);const chunk=0x8000;for(let i=0;i<b.length;i+=chunk)bin+=String.fromCharCode.apply(null,b.subarray(i,i+chunk));return btoa(bin);}
 function b642ab(b64){const bin=atob(b64);const b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);return b.buffer;}
@@ -2279,6 +2359,7 @@ function saveProject(){
     pageAreas:pageAreas,
     pageNames:pageNames,
     poItems:poItems,
+    meeting:meeting,
     pageScale:pageScale,
     measures:measures,
     grayscale, layers:LAYERS, markups, pageNum,
@@ -2559,6 +2640,7 @@ function loadProject(input){
       pageAreas=d.pageAreas||{};
       pageNames=d.pageNames||{};
       poItems=d.poItems||[];
+      meeting=d.meeting||{date:'',people:'',progress:'',plan:'',issue:'',safety:''};
       pageScale=d.pageScale||{};
       measures=d.measures||[];
       if(d.totalArea&&!d.pageAreas){pageAreas={1:d.totalArea};} // backward compat
@@ -2729,6 +2811,18 @@ async function printReport(mode){
   const planOnly = (mode==='plan'); // โหมดแผนงาน: แบบที่มี markup อย่างเดียว ไม่เอารูปถ่าย
   const pn=document.getElementById('projName').value||'โครงการ';
   const au=document.getElementById('authorName').value||'';
+
+  // ── ส่วนรายงานการประชุม (แสดงเฉพาะรายงานความก้าวหน้า และเฉพาะเมื่อมีเนื้อหา) ──
+  const meetEsc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  const hasMeet=!planOnly&&['progress','plan','issue','safety'].some(k=>(meeting[k]||'').trim());
+  const meetDateTh=meeting.date?(()=>{const[y,mo,d]=meeting.date.split('-');return `${+d}/${+mo}/${+y+543}`;})():'';
+  const meetSection=hasMeet?`<h2><span class="n">1</span> รายงานการประชุม (Meeting Report)</h2>
+<div class="meet-meta">${meetDateTh?`วันที่ประชุม: ${meetDateTh}`:''}${meetDateTh&&meeting.people.trim()?' · ':''}${meeting.people.trim()?`ผู้เข้าร่วม: ${meetEsc(meeting.people)}`:''}</div>
+<div class="meet-grid">
+${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แผนงาน',meeting.plan],['1.3 ปัญหาอุปสรรค',meeting.issue],['1.4 ด้านความปลอดภัย',meeting.safety]]
+  .map(([t,v])=>`<div class="meet-box"><h3>${t}</h3><div class="meet-txt">${(v||'').trim()?meetEsc(v):'<span style="color:#9ca3af">— ไม่มี —</span>'}</div></div>`).join('')}
+</div>`:'';
+  const sOff=hasMeet?1:0; // เลื่อนเลขหัวข้อถัดไปเมื่อมีส่วนประชุม
   const today=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
   if(!markups.length){alert('ยังไม่มี markup ให้พิมพ์');return;}
 
@@ -2975,6 +3069,11 @@ body{font-family:'Sarabun',sans-serif;color:#1f2937;font-size:12.5px;line-height
 .summ .c{border:1px solid #e5e7eb;border-radius:5px;padding:8px 12px}
 .summ .l{font-size:9.5px;color:#9ca3af;text-transform:uppercase}.summ .v{font-size:16px;font-weight:700;color:#111827;margin-top:1px}
 h2{font-size:13px;font-weight:700;color:#111827;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid #111827;display:flex;align-items:center;gap:7px;break-after:avoid}
+.meet-meta{font-size:10.5px;color:#6b7280;margin:-2px 0 8px}
+.meet-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px}
+.meet-box{border:1px solid #e5e7eb;border-radius:6px;padding:9px 12px;page-break-inside:avoid;break-inside:avoid}
+.meet-box h3{font-size:11px;font-weight:700;color:#e8761a;margin:0 0 5px;padding-bottom:4px;border-bottom:1px solid #f3f4f6}
+.meet-box .meet-txt{font-size:11px;color:#111827;line-height:1.65;word-break:break-word}
 h2 .n{width:20px;height:20px;background:#111827;color:#f4a726;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px}
 table{width:100%;border-collapse:collapse;font-size:11px}
 th{background:#f9fafb;padding:6px;border:1px solid #e5e7eb;font-weight:600}
@@ -3044,13 +3143,13 @@ body{padding-top:56px}
   ${planOnly?'':`<div class="c"><div class="l">รูปภาพแนบ</div><div class="v">${markups.reduce((s,m)=>s+m.photos.length,0)} รูป</div></div>`}
 </div>
 ${poTable}
-${planOnly?planBody:`<h2><span class="n">1</span> ความคืบหน้าตามแผ่นแบบ (Progress by Sheet)</h2>
+${planOnly?planBody:`${meetSection}<h2><span class="n">${1+sOff}</span> ความคืบหน้าตามแผ่นแบบ (Progress by Sheet)</h2>
 ${sheetTable}
-<h2><span class="n">2</span> ปฏิทินระยะเวลางาน (Timeline)</h2>
+<h2><span class="n">${2+sOff}</span> ปฏิทินระยะเวลางาน (Timeline)</h2>
 ${buildCalendarHTML(true)}
-<h2><span class="n">3</span> ภาพรวม Markup</h2>
+<h2><span class="n">${3+sOff}</span> ภาพรวม Markup</h2>
 <table><thead><tr><th>#</th><th style="text-align:left">ชั้นงาน</th><th style="text-align:left">โซน/ตำแหน่ง</th><th>ตร.ม.</th><th>% ของแบบ</th><th>เริ่ม</th><th>เสร็จ</th><th>วัน</th><th>รูป</th></tr></thead><tbody>${overviewRows}</tbody>${overviewFoot}</table>
-<h2><span class="n">4</span> เปรียบเทียบแบบแปลนและรูปภาพ (แยกตามแผ่น)</h2>
+<h2><span class="n">${4+sOff}</span> เปรียบเทียบแบบแปลนและรูปภาพ (แยกตามแผ่น)</h2>
 ${sheetSection}`}
 <div class="sign-wrap"><div class="sign"><div class="ln nm">${au||'.............................'}</div><div class="ro">ผู้จัดทำ</div></div></div>
 <div class="ft"><span>ผู้จัดทำ: ${au||'-'}</span><span>${pn} · ${today}</span></div>
