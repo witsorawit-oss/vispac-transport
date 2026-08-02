@@ -36,7 +36,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text)}
 .fld input:hover{border-color:#5c6683}
 .fld input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(244,167,38,.18)}
 .fld input::placeholder{color:#6b7488}
-.hd-actions{display:flex;gap:7px;flex-shrink:0}
+.hd-actions{display:flex;gap:7px;flex-shrink:0;align-items:center}
+.hgrp{display:flex;gap:5px;align-items:center;padding-right:7px;border-right:1px solid var(--border)}
+.hgrp:last-child{border-right:none;padding-right:0}
 .hbtn{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:var(--r);
   padding:7px 12px;font-family:'Sarabun';font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .hbtn:hover{border-color:var(--accent);color:var(--accent)}
@@ -325,6 +327,95 @@ body.side-hidden .side-reopen{display:block}
 .mkpop-add{background:var(--bg3);color:var(--blue);border-color:var(--blue)!important;flex:1}
 .mkpop-photo{background:var(--bg3);color:var(--text)}
 .mkpop-del{background:var(--bg3);color:var(--red)}
+/* แถบเลือกครั้งประชุม (ประวัติรายเดือน) */
+.meet-tabs{display:flex;gap:6px;padding:9px 18px 0;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.meet-tabs::-webkit-scrollbar{display:none}
+/* ปุ่มเล็กบนหัวข้อ (ดึงข้อมูล / จัดการแผน / เพิ่มรูป) */
+.lbl-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mini-btn{background:var(--bg3);border:1.5px solid var(--border2);color:var(--accent);border-radius:6px;
+  font-family:'Sarabun';font-size:11px;font-weight:600;padding:4px 9px;cursor:pointer;white-space:nowrap;text-transform:none;letter-spacing:0}
+.mini-btn:hover{border-color:var(--accent);background:rgba(244,167,38,.12)}
+/* รูปแนบปัญหาอุปสรรค */
+.meet-photos{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.meet-photos:empty{display:none}
+.meet-photo{position:relative;border-radius:6px;overflow:hidden;border:1px solid var(--border2);aspect-ratio:4/3}
+.meet-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.meet-photo button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.65);border:none;color:#fff;
+  border-radius:5px;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;padding:0}
+/* ตารางรายการงานในแผน */
+.plan-rows{display:flex;flex-direction:column;gap:5px;max-height:230px;overflow-y:auto;background:var(--bg3);
+  border:1.5px solid var(--border2);border-radius:8px;padding:8px}
+.plan-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 74px 96px 96px 26px;gap:5px;align-items:center}
+.plan-row input{background:var(--bg2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);
+  font-family:'Sarabun';font-size:12px;padding:6px 7px;outline:none;color-scheme:dark;min-width:0;width:100%}
+.plan-row input:focus{border-color:var(--accent)}
+.plan-row .rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0}
+.plan-head{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 74px 96px 96px 26px;gap:5px;
+  font-size:9.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;padding:0 2px 3px}
+.plan-empty{color:var(--text2);font-size:11.5px;text-align:center;padding:14px 6px}
+.meet-tab{flex-shrink:0;background:var(--bg3);border:1.5px solid var(--border2);border-radius:7px;color:var(--text2);
+  font-family:'Sarabun';font-size:12px;padding:7px 11px;cursor:pointer;white-space:nowrap;line-height:1.25}
+.meet-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(244,167,38,.14);font-weight:700}
+.meet-tab.new{border-style:dashed;color:var(--accent)}
+.meet-tab.replaced{opacity:.6}
+.meet-tab.replaced small{color:var(--red)}
+.plan-status-banner{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);border-radius:7px;padding:8px 11px;font-size:12px;margin-bottom:10px}
+/* แผงขนาดไฟล์เซฟ (ใน Dashboard) */
+.st-total{font-size:13px;color:var(--text2);margin-bottom:8px}
+.st-total b{color:var(--accent);font-size:16px;font-family:'IBM Plex Mono','Sarabun'}
+.st-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--bg3);margin-bottom:9px}
+.st-bar>div{height:100%}
+.st-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:5px 14px;font-size:12px;color:var(--text2)}
+.st-rows>div{display:flex;align-items:center;gap:6px}
+.st-rows b{margin-left:auto;color:var(--text);font-family:'IBM Plex Mono','Sarabun'}
+.st-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.st-note{font-size:11.5px;color:var(--text2);margin-top:8px}
+.st-btn{margin-top:10px;background:var(--accent);border:none;border-radius:8px;color:#111;font-family:'Sarabun';font-weight:700;font-size:13px;padding:10px 16px;cursor:pointer}
+/* ผลสแกนแบบ */
+.sc-sec{margin-bottom:13px}
+.sc-sec>b{display:block;font-size:12.5px;color:var(--accent);margin-bottom:6px}
+.sc-types{display:flex;gap:6px;flex-wrap:wrap}
+.sc-chip{font-size:11.5px;padding:5px 10px;border-radius:6px;background:var(--bg3);border:1.5px solid var(--border2);color:var(--text2)}
+.sc-chip.room,.sc-chip.both{border-color:#3dd68c;color:#3dd68c}
+.sc-chip.roll{border-color:var(--accent);color:var(--accent)}
+.sc-chip.scanned{border-color:var(--red);color:#f87171}
+.sc-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:7px}
+.sc-kpi>div{background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px}
+.sc-kpi span{display:block;font-size:10.5px;color:var(--text2)}
+.sc-kpi b{font-size:14px;color:var(--text);font-family:'IBM Plex Mono','Sarabun'}
+.sc-t{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:4px}
+.sc-t th{background:var(--bg3);border:1px solid var(--border2);padding:5px 6px;color:var(--text2);font-weight:600;text-align:center}
+.sc-t td{border:1px solid var(--border);padding:5px 6px;color:var(--text);text-align:center;word-break:break-word}
+.sc-t td.n{text-align:right;font-family:'IBM Plex Mono','Sarabun'}
+.sc-t td.n.bad{color:var(--red);font-weight:700}
+.sc-t input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+.sc-note{font-size:11px;color:var(--text2);margin-top:6px;line-height:1.5}
+.sc-x{font-size:11.5px;padding:5px 9px;border-radius:6px;margin-top:4px;font-family:'IBM Plex Mono','Sarabun'}
+.sc-x.ok{background:rgba(61,214,140,.12);color:#3dd68c}
+.sc-x.warn{background:rgba(239,68,68,.12);color:#f87171}
+/* ปักหมุดจากแบบ */
+.pin-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pin-chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;padding:5px 9px;font-size:12px;color:var(--text);cursor:pointer}
+.pin-chip input{accent-color:var(--accent);width:14px;height:14px;margin:0;cursor:pointer}
+.pin-chip span{color:var(--text2);font-family:'IBM Plex Mono','Sarabun';font-size:11px}
+.pin-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.pin-sel{background:var(--bg3);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Sarabun';font-size:13px;padding:9px 10px}
+.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer;font-size:22px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));transition:transform .1s}
+.pin:hover{transform:translate(-50%,-100%) scale(1.2)}
+.pin span{font-size:9px;background:var(--accent);color:#111;font-weight:700;padding:1px 4px;border-radius:4px;margin-top:-4px;font-family:'IBM Plex Mono','Sarabun';white-space:nowrap}
+.plan-review{background:var(--bg3);border:1.5px solid var(--border2);border-radius:8px;padding:9px;max-height:230px;overflow-y:auto}
+.plan-review .pr-head{font-size:11px;color:var(--accent);margin-bottom:7px;font-weight:600}
+.pr-row{padding:7px 0;border-bottom:1px dashed var(--border)}
+.pr-row:last-child{border-bottom:none}
+.pr-task{font-size:12px;color:var(--text);margin-bottom:5px;line-height:1.35}
+.pr-btns{display:flex;gap:5px;margin-bottom:5px;flex-wrap:wrap}
+.pr-s{background:var(--bg2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'Sarabun';font-size:11px;padding:5px 9px;cursor:pointer;white-space:nowrap}
+.pr-s.on.done{background:rgba(22,163,74,.18);border-color:#16a34a;color:#4ade80}
+.pr-s.on.partial{background:rgba(244,167,38,.18);border-color:var(--accent);color:var(--accent)}
+.pr-s.on.miss{background:rgba(239,68,68,.18);border-color:var(--red);color:#f87171}
+.pr-note{width:100%;background:var(--bg2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Sarabun';font-size:12px;padding:6px 8px;outline:none;box-sizing:border-box}
+.pr-note:focus{border-color:var(--accent)}
+.meet-tab small{display:block;font-size:9.5px;opacity:.75;font-weight:400}
 .mkpop-save{background:var(--accent);color:#111;border-color:var(--accent)!important;flex:1}
 .mkpop-save:active{background:var(--accent2)}
 
@@ -413,15 +504,24 @@ button,input,select,textarea,label{touch-action:manipulation}
     <div class="fld"><label>พื้นที่แผ่นนี้</label><input id="pageArea" type="number" placeholder="ตร.ม." value="" style="min-width:70px" oninput="onPageAreaChange()"><span style="font-size:11px;color:var(--text2)">ตร.ม.</span></div>
   </div>
   <div class="hd-actions">
-    <button class="hbtn" onclick="saveProject()">💾 เซฟ</button>
-    <label class="hbtn" for="loadIn">📂 โหลด</label>
-    <input type="file" id="loadIn" accept=".json" onchange="loadProject(this)">
-    <button class="hbtn" onclick="openPoManager()">📋 PO</button>
-    <button class="hbtn" onclick="openMeeting()">📝 ประชุม</button>
-    <button class="hbtn" onclick="openDashboard()">📊 Dashboard</button>
-    <button class="hbtn" onclick="exportExcel()">📊 Excel</button>
-    <button class="hbtn" onclick="printReport('plan')" title="พิมพ์เฉพาะแบบที่ markup ไม่มีรูปถ่าย — ใช้เป็นแผนงาน">🗺 แผนงาน</button>
-    <button class="hbtn pri" onclick="printReport()">🖨 พิมพ์</button>
+    <span class="hgrp" title="ไฟล์งาน">
+      <button class="hbtn" onclick="saveProject()">💾 เซฟ</button>
+      <label class="hbtn" for="loadIn">📂 โหลด</label>
+      <input type="file" id="loadIn" accept=".json" onchange="loadProject(this)">
+    </span>
+    <span class="hgrp" title="ข้อมูลงาน">
+      <button class="hbtn" onclick="openScan()" title="สแกนแบบ/BOQ ที่โหลดอยู่ — ดึงรายการวัสดุ, ตาราง BOQ, รายการตัดม้วน, ปักหมุดห้อง">🔍 สแกน</button>
+      <button class="hbtn" onclick="openPoManager()" title="รายการ PO / BOQ">📋 PO</button>
+    </span>
+    <span class="hgrp" title="เอกสาร">
+      <button class="hbtn" onclick="openPlans()" title="สร้าง/แก้ไขแผนงาน 1,2,3... เก็บไว้ในโครงการ">🗓 แผนงาน</button>
+      <button class="hbtn" onclick="openMeeting()" title="บันทึกการประชุม">📝 ประชุม</button>
+    </span>
+    <span class="hgrp" title="ผลลัพธ์">
+      <button class="hbtn" onclick="openDashboard()" title="สรุปภาพรวม กราฟ ขนาดไฟล์">📊 สรุป</button>
+      <button class="hbtn" onclick="exportExcel()" title="ส่งออกเป็นไฟล์ Excel">📗 Excel</button>
+      <button class="hbtn pri" onclick="printReport()" title="พิมพ์รายงานเต็ม (ประชุม + แผนงาน + ความคืบหน้า)">🖨 พิมพ์</button>
+    </span>
   </div>
 </header>
 
@@ -541,24 +641,25 @@ button,input,select,textarea,label{touch-action:manipulation}
     <div class="po-body">
       <div class="po-pane">
         <div class="po-pane-h">
-          <span>📄 เอกสาร PO <span style="color:var(--text2);font-weight:400">(สแกนอัตโนมัติ หรือจิ้มบรรทัดเอง)</span></span>
+          <span>📄 ดึงรายการจากเอกสาร</span>
           <div class="po-pane-tools">
-            <button onclick="document.getElementById('poPdfIn').click()">อัพโหลด PDF</button>
-            <button onclick="poAutoParse()" id="poScanBtn" style="display:none">🔍 สแกนรายการ</button>
+            <button onclick="closePoManager();openScan()">🔍 สแกนแบบ/BOQ</button>
+            <button onclick="document.getElementById('poPdfIn').click()" title="เปิดไฟล์ BOQ แยกต่างหาก แล้วจิ้มบรรทัดเอง (ทางสำรอง)">📄 เปิดไฟล์อื่น</button>
             <span id="poPgNav" style="display:none">
               <button onclick="poPage(-1)">◀</button>
               <span id="poPgInfo">1/1</span>
               <button onclick="poPage(1)">▶</button>
             </span>
+            <button onclick="poAutoParse()" id="poScanBtn" style="display:none">สแกนไฟล์นี้</button>
           </div>
         </div>
         <div class="po-parsed" id="poParsedBox" style="display:none"></div>
-        <div class="po-lines" id="poLines"><div class="po-empty">อัพโหลดไฟล์ PO (PDF) เพื่อดึงรายการ<br><small>รองรับ PDF ที่มีตัวหนังสือ (ไม่ใช่สแกนเป็นรูป)</small></div></div>
+        <div class="po-lines" id="poLines"><div class="po-empty">ดึงรายการเข้าที่นี่ได้จาก <b style="color:var(--accent)">🔍 สแกนแบบ/BOQ</b><br><small>ใช้ไฟล์แบบที่โหลดอยู่ · อ่านทั้งตารางวัสดุในแบบและใบ BOQ<br>หรือกด "เปิดไฟล์อื่น" ถ้าต้องการดึงจากไฟล์แยก แล้วจิ้มบรรทัดเอง</small></div></div>
       </div>
       <div class="po-pane">
         <div class="po-pane-h">
           <span>🧾 ตาราง Items</span>
-          <div class="po-pane-tools"><button onclick="addPoItem()">➕ เพิ่มเอง</button></div>
+          <div class="po-pane-tools"><button onclick="syncPoToMarkups()" title="จับคู่รายการ PO กับ markup ที่ทำไว้แล้วโดยอัตโนมัติ">🔗 จับคู่กับ markup</button><button onclick="addPoItem()">➕ เพิ่มเอง</button></div>
         </div>
         <div class="po-items" id="poItemsList"></div>
       </div>
@@ -567,22 +668,92 @@ button,input,select,textarea,label{touch-action:manipulation}
 </div>
 
 <!-- MARKUP QUICK-ENTRY POPUP -->
-<!-- ══════ MEETING REPORT (รายงานการประชุม) ══════ -->
-<div class="mkpop-overlay" id="meetOverlay" style="display:none" onclick="if(event.target===this)saveMeeting()">
-  <div class="mkpop" style="max-width:620px">
-    <div class="mkpop-head"><span>📝 รายงานการประชุม</span><span class="mkpop-areas">แนบท้ายรายงานพิมพ์อัตโนมัติ</span></div>
-    <div class="mkpop-body">
+<input type="file" id="meetPhotoIn" accept="image/*" multiple style="display:none">
+<!-- ══════ PLANS (แผนงาน 1,2,3...) ══════ -->
+<div class="mkpop-overlay" id="planOverlay" style="display:none" onclick="if(event.target===this)closePlans()">
+  <div class="mkpop" style="max-width:780px">
+    <div class="mkpop-head"><span>🗓 แผนงาน</span><span class="mkpop-areas" id="planCount"></span></div>
+    <div class="meet-tabs" id="planTabs"></div>
+    <div class="mkpop-body" id="planForm">
+      <div id="planStatusBanner" class="plan-status-banner" style="display:none"></div>
       <div class="mkpop-row">
-        <div class="mk-fld"><label>วันที่ประชุม</label><input id="meetDate" type="date"></div>
-        <div class="mk-fld"><label>ผู้เข้าร่วมประชุม</label><input id="meetPeople" placeholder="เช่น ผจก.โครงการ, โฟร์แมน, ผรม."></div>
+        <div class="mk-fld"><label>ชื่อแผน</label><input id="planName" placeholder="เช่น แผนงานเดือน ส.ค. / แผนเร่งรัดชั้น 5-6"></div>
+        <div class="mk-fld"><label>ผู้รับผิดชอบ</label><input id="planOwner" placeholder="เช่น โฟร์แมน / ผรม."></div>
       </div>
-      <div class="mk-fld"><label>1. ความคืบหน้างาน</label><textarea id="meetProgress" rows="3" placeholder="งานที่ทำเสร็จ/กำลังทำ ณ ปัจจุบัน..."></textarea></div>
-      <div class="mk-fld"><label>2. แผนงาน</label><textarea id="meetPlan" rows="3" placeholder="แผนงานช่วงถัดไป กำหนดการเข้างาน..."></textarea></div>
-      <div class="mk-fld"><label>3. ปัญหาอุปสรรค</label><textarea id="meetIssue" rows="3" placeholder="ปัญหาหน้างาน สิ่งที่รอการแก้ไข ผู้รับผิดชอบ..."></textarea></div>
+      <div class="mkpop-row">
+        <div class="mk-fld"><label>เริ่ม</label><input id="planStart" type="date"></div>
+        <div class="mk-fld"><label>สิ้นสุด</label><input id="planEnd" type="date"></div>
+      </div>
+      <div class="mk-fld">
+        <label class="lbl-row">รายการงานตามแผน
+          <span style="display:flex;gap:5px">
+            <button type="button" class="mini-btn" onclick="planPullMarkups()">⬇ ดึงจาก markup ที่ยังไม่เสร็จ</button>
+            <button type="button" class="mini-btn" onclick="planAddRow()">➕ เพิ่มแถว</button>
+          </span>
+        </label>
+        <div class="plan-head"><span>งาน</span><span>ตำแหน่ง/โซน</span><span>ปริมาณ</span><span>เริ่ม</span><span>เสร็จ</span><span></span></div>
+        <div class="plan-rows" id="planRows"></div>
+      </div>
+      <div class="mk-fld"><label>หมายเหตุ / เงื่อนไขการเข้างาน</label><textarea id="planNote" rows="2" placeholder="เช่น เข้างานต่อเนื่อง 10 วัน/ครั้ง, พื้นที่ขั้นต่ำ 1,000 ตร.ม./ครั้ง"></textarea></div>
+    </div>
+    <div class="mkpop-btns">
+      <button class="mkpop-save" onclick="savePlans()">✓ บันทึก</button>
+      <button onclick="planToMeeting()" title="ใส่แผนนี้ลงในบันทึกการประชุมครั้งที่กำลังแก้">📋 ใส่ในบันทึกประชุม</button>
+      <button onclick="savePlans();printReport('plan')" title="พิมพ์เฉพาะแบบที่ markup ไม่มีรูปถ่าย — ใช้สั่งงานหน้างาน">🗺 พิมพ์แบบสั่งงาน</button>
+      <button class="mkpop-del" onclick="delPlan()" title="ลบแผนนี้">🗑</button>
+    </div>
+  </div>
+</div>
+<!-- ══════ SCAN PLAN (สแกนแบบจาก PDF) ══════ -->
+<div class="mkpop-overlay" id="scanOverlay" style="display:none" onclick="if(event.target===this)closeScan()">
+  <div class="mkpop" style="max-width:760px">
+    <div class="mkpop-head"><span>🔍 สแกนแบบ</span><span class="mkpop-areas" id="scanCount"></span></div>
+    <div class="mkpop-body" id="scanBody"></div>
+    <div class="mkpop-btns">
+      <button class="mkpop-save" onclick="closeScan()">ปิด</button>
+      <button onclick="scanPlan(true)" title="สแกนใหม่อีกครั้ง">↻ สแกนใหม่</button>
+    </div>
+  </div>
+</div>
+<!-- ══════ MEETING MINUTES (บันทึกการประชุมติดตามความคืบหน้างานโครงการ) ══════ -->
+<div class="mkpop-overlay" id="meetOverlay" style="display:none" onclick="if(event.target===this)closeMeeting()">
+  <div class="mkpop" style="max-width:680px">
+    <div class="mkpop-head"><span>📝 บันทึกการประชุมติดตามความคืบหน้างานโครงการ</span><span class="mkpop-areas" id="meetCount"></span></div>
+    <div class="meet-tabs" id="meetTabs"></div>
+    <div class="mkpop-body" id="meetForm">
+      <div class="mkpop-row">
+        <div class="mk-fld"><label>ครั้งที่</label><input id="meetNo" type="number" inputmode="numeric" placeholder="1"></div>
+        <div class="mk-fld"><label>ประเภท</label><select id="meetType">
+          <option value="monthly">ประชุมประจำเดือน</option>
+          <option value="onsite">หารือหน้างาน (โครงการ ≤ 1 เดือน)</option>
+        </select></div>
+      </div>
+      <div class="mkpop-row">
+        <div class="mk-fld"><label>ประจำเดือน</label><input id="meetMonth" type="month"></div>
+        <div class="mk-fld"><label>วันที่ประชุม</label><input id="meetDate" type="date"></div>
+      </div>
+      <div class="mk-fld"><label>สถานที่ประชุม</label><input id="meetPlace" placeholder="เช่น สำนักงานสนาม / หน้างานชั้น 5"></div>
+      <div class="mk-fld"><label>ผู้รับเหมาช่วง (ผรม.) <span style="font-weight:400;color:var(--text2)">· ระเบียบกำหนดให้ร่วมประชุม</span></label><input id="meetSub" placeholder="ชื่อบริษัท / ผู้แทน ผรม."></div>
+      <div class="mk-fld"><label>ผู้เข้าร่วมอื่น</label><input id="meetPeople" placeholder="เช่น ผจก.โครงการ, โฟร์แมน, จป., ผู้ควบคุมงาน"></div>
+      <div class="mk-fld"><label class="lbl-row">1. ความคืบหน้างาน <button type="button" class="mini-btn" onclick="meetFillProgress()">⚡ ดึงข้อมูลปัจจุบัน</button></label><textarea id="meetProgress" rows="3" placeholder="งานที่ทำเสร็จ/กำลังทำ ณ ปัจจุบัน... (กด ⚡ เพื่อดึงยอดจาก markup/BOQ อัตโนมัติ)"></textarea></div>
+      <div class="mk-fld" id="planReviewFld" style="display:none">
+        <label class="lbl-row">ทบทวนแผนครั้งก่อน <button type="button" class="mini-btn" onclick="meetAutoReview()">⚡ ประเมินจากงานจริง</button></label>
+        <div class="plan-review" id="planReviewBox"></div>
+      </div>
+      <div class="mk-fld"><label class="lbl-row">2. แผนงาน (ครั้งถัดไป) <button type="button" class="mini-btn" onclick="openPlans()">🗓 จัดการแผน 1,2,3...</button></label><textarea id="meetPlan" rows="3" placeholder="แผนงานช่วงถัดไป... (กด 🗓 เพื่อสร้าง/เลือกแผน แล้วดึงมาใส่)"></textarea></div>
+      <div class="mk-fld"><label class="lbl-row">3. ปัญหาอุปสรรค <button type="button" class="mini-btn" onclick="document.getElementById('meetPhotoIn').click()">📷 เพิ่มรูป</button></label><textarea id="meetIssue" rows="3" placeholder="ปัญหาหน้างาน สิ่งที่รอการแก้ไข ผู้รับผิดชอบ..."></textarea><div class="meet-photos" id="meetIssuePhotos"></div></div>
       <div class="mk-fld"><label>4. ด้านความปลอดภัย</label><textarea id="meetSafety" rows="3" placeholder="ประเด็นความปลอดภัย อุบัติเหตุ/เหตุเกือบเกิด มาตรการ..."></textarea></div>
+      <div class="mk-fld"><label style="color:var(--accent)">ผู้ลงนามรับรอง</label></div>
+      <div class="mkpop-row">
+        <div class="mk-fld"><label>โฟร์แมน</label><input id="meetSignFore" placeholder="ชื่อ-สกุล"></div>
+        <div class="mk-fld"><label>หัวหน้าทีม / ผู้ช่วย ผจก.ฝ่ายติดตั้ง</label><input id="meetSignLead" placeholder="ชื่อ-สกุล"></div>
+      </div>
+      <div class="mk-fld"><label>เสนอ ผู้ช่วยกรรมการผู้จัดการสายงานก่อสร้าง (รับทราบ)</label><input id="meetSignExec" placeholder="ชื่อ-สกุล"></div>
     </div>
     <div class="mkpop-btns">
       <button class="mkpop-save" onclick="saveMeeting()">✓ บันทึก</button>
+      <button onclick="printMeeting()" title="พิมพ์เฉพาะบันทึกประชุมครั้งนี้เป็น PDF สำหรับ EPR-Mango">🖨 PDF</button>
+      <button class="mkpop-del" onclick="delMeeting()" title="ลบครั้งนี้">🗑</button>
     </div>
   </div>
 </div>
@@ -645,6 +816,12 @@ const LAYERS=[
   {key:'screed', name:'งานเทปรับพื้น', color:'#fbbf24', visible:true},
   {key:'install', name:'งานติดตั้งกระเบื้องยาง', color:'#3dd68c', visible:true},
 ];
+// ชั้น "แผนงาน" = พื้นที่ที่คาดการณ์ล่วงหน้า แยกจากงานจริงเด็ดขาด — ไม่ถูกนับเป็นความคืบหน้า/BOQ ที่ทำแล้ว
+const PLAN_LAYER={key:'plan', name:'แผนงาน (คาดการณ์)', color:'#60a5fa', visible:true, planning:true};
+const ALL_LAYERS=[...LAYERS,PLAN_LAYER];   // ใช้ตอนวาด/แสดงผลเท่านั้น
+const isPlanMk=m=>m.layer==='plan';
+const wmk=()=>markups.filter(m=>!isPlanMk(m));                                   // งานจริง (ใช้คิดความคืบหน้าทุกที่)
+const pmk=pid=>markups.filter(m=>isPlanMk(m)&&(pid==null||m.planId===pid));      // markup ของแผนงาน
 let activeLayer='screed';
 
 const PALETTE=['#f56565','#f4a726','#fbbf24','#3dd68c','#60a5fa','#a78bfa','#ffffff','#111827'];
@@ -662,7 +839,7 @@ function nextMarkupColor(){
 }
 const ZONES={
   'งานรื้อถอน':'#f56565','งานขัดพื้น':'#f4a726','งานเทปรับพื้น':'#fbbf24',
-  'งานติดตั้งกระเบื้องยาง':'#3dd68c','งานตรวจสอบ/QC':'#60a5fa','งานเก็บงาน':'#a78bfa'
+  'งานติดตั้งกระเบื้องยาง':'#3dd68c','งานตรวจสอบ/QC':'#60a5fa','งานเก็บงาน':'#a78bfa','แผนงาน (คาดการณ์)':'#60a5fa'
 };
 
 // ── STATE
@@ -694,7 +871,7 @@ function setMulti(v){
 }
 function cancelMulti(){setMulti(null);}
 // ประเภทงานล็อกตามชั้นงานที่ markup — เปลี่ยนไม่ได้
-function layerZone(layerKey){return layerKey==='screed'?'งานเทปรับพื้น':'งานติดตั้งกระเบื้องยาง';}
+function layerZone(layerKey){return layerKey==='plan'?'แผนงาน (คาดการณ์)':(layerKey==='screed'?'งานเทปรับพื้น':'งานติดตั้งกระเบื้องยาง');}
 // ── UNDO/REDO history (snapshots of markups)
 let undoStack=[], redoStack=[];
 function snapMarkups(){return JSON.stringify(markups);}
@@ -832,6 +1009,7 @@ async function renderPage(){
     syncPageAreaInput();
     renderProgress();
     renderMeasList();
+    if(typeof pinMarks!=='undefined'&&pinMarks.length)renderPinOverlay(); // หมุดต้องเลื่อนตามซูม/หน้า
 
     // pre-fetch neighbors in background (don't await — fire and forget)
     setTimeout(()=>prefetchAdjacent(pageNum),50);
@@ -918,21 +1096,26 @@ function applyGray(){} // kept for compatibility (no-op, handled via CSS now)
 // ── LAYER UI
 function renderLayerBar(){
   const bar=document.getElementById('layerBar');
-  bar.innerHTML=LAYERS.map(l=>{
-    const cnt=markups.filter(m=>m.layer===l.key).length;
+  bar.innerHTML=ALL_LAYERS.map(l=>{
+    const isPlan=l.key==='plan';
+    const cnt=isPlan?pmk(planSel).length:markups.filter(m=>m.layer===l.key).length;
+    const cur=isPlan?(plans.find(p=>p.id===planSel)||{}):null;
+    const nm=isPlan?`แผนงาน${cur&&cur.name?': '+cur.name:''}`:l.name;
     return `<div class="layer-tab ${l.key===activeLayer?'active':''}" style="--lyr-color:${l.color}" onclick="setLayer('${l.key}')">
       <span class="layer-dot" style="background:${l.color}"></span>
-      ${l.name}
+      ${nm}
       <span class="layer-count">${cnt}</span>
+      ${isPlan?`<button class="layer-eye" style="right:30px" onclick="event.stopPropagation();openPlans()" title="สร้าง/สลับแผน">🗓</button>`:''}
       <button class="layer-eye" onclick="event.stopPropagation();toggleLayerVis('${l.key}')" title="ซ่อน/แสดง">${l.visible?'👁':'🙈'}</button>
     </div>`;
   }).join('');
 }
 function setLayer(key){ activeLayer=key; selId=null; renderLayerBar(); redraw(); renderList(); updateSideTitle(); }
-function toggleLayerVis(key){ const l=LAYERS.find(x=>x.key===key); l.visible=!l.visible; renderLayerBar(); redraw(); }
+function toggleLayerVis(key){ const l=ALL_LAYERS.find(x=>x.key===key); l.visible=!l.visible; renderLayerBar(); redraw(); }
 function updateSideTitle(){
-  const l=LAYERS.find(x=>x.key===activeLayer);
-  document.getElementById('sideTitle').textContent='Markup: '+l.name;
+  const l=ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0];
+  const cur=plans.find(p=>p.id===planSel);
+  document.getElementById('sideTitle').textContent='Markup: '+(l.key==='plan'?('แผนงาน'+(cur&&cur.name?' — '+cur.name:'')):l.name);
 }
 
 // ── TOOLS
@@ -1195,7 +1378,7 @@ function cancelPolygon(){polyPts=[];polyHover=null;redraw();}
 function drawPolyPreview(){
   redraw();
   if(!polyPts.length)return;
-  const lc=LAYERS.find(x=>x.key===activeLayer).color;
+  const lc=(ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0]).color;
   // build the full point list including hover
   const all=polyHover?[...polyPts,polyHover]:[...polyPts];
   // filled closed preview (so the highlight inside is visible immediately)
@@ -1237,7 +1420,7 @@ function move(e){
   if(tool==='poly'){if(polyPts.length){polyHover=p;drawPolyPreview();}return;}
   if(measDraft){measMove(p);return;}
   if(!drawing)return;redraw();
-  const lc=LAYERS.find(x=>x.key===activeLayer).color;
+  const lc=(ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0]).color;
   drawCtx.strokeStyle=lc;drawCtx.lineWidth=tool==='highlight'?14:2.5;drawCtx.lineCap='round';drawCtx.lineJoin='round';
   if(tool==='rect'){drawCtx.fillStyle=lc+'22';drawCtx.fillRect(sx,sy,p.x-sx,p.y-sy);drawCtx.strokeRect(sx,sy,p.x-sx,p.y-sy);}
   else if(tool==='pen'){pts.push(p);stroke(pts);}
@@ -1271,13 +1454,18 @@ function commitShape(shape){
     }
     setMulti(null);
   }
-  const lc=LAYERS.find(x=>x.key===activeLayer).color;
+  const lc=(ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0]).color;
   const col=autoColor?nextMarkupColor():lc;
-  const defZone=activeLayer==='screed'?'งานเทปรับพื้น':'งานติดตั้งกระเบื้องยาง';
+  const defZone=layerZone(activeLayer);
+  if(activeLayer==='plan'){ // วาดบนชั้นแผนงาน → ผูกกับแผนที่ใช้อยู่ (ไม่ผูกกับแผนที่แทนที่แล้ว)
+    if(!plans.length)plans.push(newPlan());
+    const sel=plans.find(p=>p.id===planSel);
+    if(!sel||sel.status==='replaced')planSel=(activePlan()||plans[plans.length-1]).id;
+  }
   const id=Date.now()+Math.random();
   const defOpacity=(shape.type==='rect'||shape.type==='poly')?28:13;
   const defWidth=shape.type==='highlight'?14:2.6;
-  markups.push({id,layer:activeLayer,zone:defZone,page:pageNum,shape,
+  markups.push({id,layer:activeLayer,zone:defZone,page:pageNum,shape,planId:activeLayer==='plan'?planSel:null,
     stroke:col,fill:col,opacity:defOpacity,width:defWidth,note:'',start:'',end:'',area:'',photos:[],
     canvasW:dc.width,canvasH:dc.height});
   selId=id; redraw(); renderList(); renderLayerBar();
@@ -1292,16 +1480,16 @@ function mkItems(m){ // รายการ item ของ markup → [{id,qty,lo
   if(m.item)return [{id:String(m.item),qty:m.area,locked:true}];
   return [];
 }
-function doneItem(itemId){ // ยอดทำแล้วของ item = ผลรวม "ปริมาณของ item นั้น" จากทุก markup
+function doneItem(itemId){ // ยอดทำแล้วของ item = ผลรวม "ปริมาณของ item นั้น" จาก markup งานจริง (ไม่รวมแผนงาน)
   itemId=String(itemId);
-  return markups.reduce((s,m)=>{
+  return wmk().reduce((s,m)=>{
     const it=mkItems(m).find(x=>x.id===itemId);
     return s+(it?(parseFloat(it.qty)||0):0);
   },0);
 }
 function doneItemEx(itemId,exceptId,pg){ // ยอดทำแล้วของ item แบบ "ไม่รวม markup ที่กำลังแก้" + กรองเฉพาะแผ่น pg ได้
   itemId=String(itemId);
-  return markups.reduce((s,m)=>{
+  return wmk().reduce((s,m)=>{
     if(m.id===exceptId)return s;
     if(pg!==undefined&&m.page!==pg)return s;
     const it=mkItems(m).find(x=>x.id===itemId);
@@ -1309,7 +1497,7 @@ function doneItemEx(itemId,exceptId,pg){ // ยอดทำแล้วของ
   },0);
 }
 function donePageEx(pg,exceptId){ // พื้นที่ที่ markup ไปแล้วบนแผ่นนี้ ไม่รวม markup ที่กำลังแก้
-  return markups.filter(m=>m.page===pg&&m.id!==exceptId).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+  return wmk().filter(m=>m.page===pg&&m.id!==exceptId).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
 }
 function fmtQ(v){v=+v||0;return (Math.round(v*100)/100).toLocaleString('en-US');}
 function updMkItems(id,itemId,on){ // ติ๊ก/เอาออก item ของ markup จากการ์ด
@@ -1462,6 +1650,48 @@ async function poPageLines(pg){ // ดึงบรรทัดข้อควา
     .map(y=>rows[y].sort((a,b)=>a.x-b.x).map(o=>o.s).join(' ').replace(/\s+/g,' ').trim())
     .filter(t=>t.length>0);
 }
+// ── ตัวอ่านตาราง BOQ กลาง: บรรทัดข้อความ → [{name,qty,unit}] (ใช้ทั้งใน 🔍 สแกนแบบ และการเปิดไฟล์ BOQ แยก) ──
+function parseBoqLines(lines){
+  const found=[];
+  let expect=1,cur=null,stopped=false;
+  const finish=()=>{ if(cur&&cur.qty)found.push(cur); cur=null; }; // ต้องเจอ qty+หน่วย ถึงนับว่าเป็นรายการจริง
+  for(const ln of lines){
+    if(stopped)break;
+    if(PO_STOP_RE.test(ln)){finish();stopped=true;break;} // ถึงส่วนสรุปเงิน → จบตาราง
+    const st=ln.match(/^(\d{1,3})\s+(\S.*)$/); // บรรทัดขึ้นต้นด้วยเลขลำดับ
+    if(st&&(parseInt(st[1])===expect||parseInt(st[1])===1&&expect===1)){
+      finish();
+      cur={name:'',qty:'',unit:''};
+      expect=parseInt(st[1])+1;
+      const body=st[2];
+      const ms=[...body.matchAll(PO_UNIT_RE)];
+      if(ms.length){ // จำนวน = ตัวเลข+หน่วย "ตัวสุดท้าย" ของบรรทัด (กันชนกับขนาดในชื่อ เช่น "ขนาด 4 นิ้ว")
+        const mm=ms[ms.length-1];
+        cur.qty=mm[1].replace(/,/g,'');
+        cur.unit=mm[2].replace(/\s+/g,'');
+        cur.name=body.slice(0,mm.index).replace(/\s+/g,' ').trim();
+      }else cur.name=body.trim(); // จำนวนอาจอยู่บรรทัดถัดไป
+      continue;
+    }
+    if(!cur)continue;
+    if(PO_SKIP_RE.test(ln))continue; // บรรทัดหมายเหตุ/เงื่อนไข ไม่ใช่ชื่อรายการ
+    if(!cur.qty){
+      const ms=[...ln.matchAll(PO_UNIT_RE)];
+      if(ms.length){
+        const mm=ms[ms.length-1];
+        cur.qty=mm[1].replace(/,/g,'');
+        cur.unit=mm[2].replace(/\s+/g,'');
+        const before=ln.slice(0,mm.index).replace(/\s+/g,' ').trim();
+        if(before&&!/^[\d,.\s-]+$/.test(before))cur.name=(cur.name+' '+before).trim();
+        continue;
+      }
+    }
+    // บรรทัดตกท้ายของชื่อ (ไม่มีเลขจำนวน+หน่วย, ไม่ใช่เลขเงินล้วน) → ต่อท้ายชื่อ
+    if(!/^[\d,.\s%-]+$/.test(ln)&&!/\d[\d,]*\.\d{2}\s*$/.test(ln))cur.name=(cur.name+' '+ln).replace(/\s+/g,' ').trim();
+  }
+  finish();
+  return found;
+}
 async function poAutoParse(){
   if(!poDoc){alert('อัพโหลดไฟล์ PDF ก่อน');return;}
   const box=document.getElementById('poParsedBox');
@@ -1470,47 +1700,7 @@ async function poAutoParse(){
   try{
     let lines=[];
     for(let pg=1;pg<=poDoc.numPages;pg++)lines=lines.concat(await poPageLines(pg));
-    const found=[];
-    let expect=1,cur=null,stopped=false;
-    const finish=()=>{ // ปิด item ปัจจุบัน: ต้องเจอ qty+หน่วย ถึงนับว่าเป็นรายการจริง
-      if(cur&&cur.qty)found.push(cur);
-      cur=null;
-    };
-    for(const ln of lines){
-      if(stopped)break;
-      if(PO_STOP_RE.test(ln)){finish();stopped=true;break;} // ถึงส่วนสรุปเงิน → จบตาราง
-      const st=ln.match(/^(\d{1,3})\s+(\S.*)$/); // บรรทัดขึ้นต้นด้วยเลขลำดับ
-      if(st&&(parseInt(st[1])===expect||parseInt(st[1])===1&&expect===1)){
-        finish();
-        cur={name:'',qty:'',unit:''};
-        expect=parseInt(st[1])+1;
-        const body=st[2];
-        const ms=[...body.matchAll(PO_UNIT_RE)];
-        if(ms.length){ // จำนวน = ตัวเลข+หน่วย "ตัวสุดท้าย" ของบรรทัด (กันชนกับขนาดในชื่อ เช่น "ขนาด 4 นิ้ว")
-          const mm=ms[ms.length-1];
-          cur.qty=mm[1].replace(/,/g,'');
-          cur.unit=mm[2].replace(/\s+/g,'');
-          cur.name=body.slice(0,mm.index).replace(/\s+/g,' ').trim();
-        }else cur.name=body.trim(); // จำนวนอาจอยู่บรรทัดถัดไป
-        continue;
-      }
-      if(!cur)continue;
-      if(PO_SKIP_RE.test(ln))continue; // บรรทัดหมายเหตุ/เงื่อนไข ไม่ใช่ชื่อรายการ
-      if(!cur.qty){ // ยังไม่เจอจำนวน → ลองหาในบรรทัดนี้
-        const ms=[...ln.matchAll(PO_UNIT_RE)];
-        if(ms.length){
-          const mm=ms[ms.length-1];
-          cur.qty=mm[1].replace(/,/g,'');
-          cur.unit=mm[2].replace(/\s+/g,'');
-          const before=ln.slice(0,mm.index).replace(/\s+/g,' ').trim();
-          if(before&&!/^[\d,.\s-]+$/.test(before))cur.name=(cur.name+' '+before).trim();
-          continue;
-        }
-      }
-      // บรรทัดตกท้ายของชื่อ (ไม่มีเลขจำนวน+หน่วย, ไม่ใช่เลขเงินล้วน) → ต่อท้ายชื่อ
-      if(!/^[\d,.\s%-]+$/.test(ln)&&!/\d[\d,]*\.\d{2}\s*$/.test(ln))cur.name=(cur.name+' '+ln).replace(/\s+/g,' ').trim();
-    }
-    finish();
+    const found=parseBoqLines(lines);   // ใช้ตัวอ่านตาราง BOQ กลาง (ตัวเดียวกับที่ 🔍 สแกนแบบ ใช้)
     poParsed=found.map(it=>({...it,dup:poItems.some(p=>(p.name||'').replace(/\s+/g,'')===it.name.replace(/\s+/g,''))}));
     renderPoParsed();
   }catch(err){box.innerHTML='<div class="po-empty">สแกนไม่ได้: '+err.message+'</div>';}
@@ -1540,16 +1730,408 @@ function poApplyParsed(){
   if(n){
     document.getElementById('poParsedBox').style.display='none';
     poParsed=[];
+    if(wmk().some(m=>!mkItems(m).length))syncPoToMarkups(); // มี markup ที่ยังไม่ผูก PO → จับคู่ให้เลย
   }else alert('ยังไม่ได้ติ๊กรายการ');
 }
 
-// ══════════════ MARKUP QUICK-ENTRY POPUP ══════════════
+// ══════ ตัวจับคู่ PO กลาง — ใช้ร่วมกันทุกทาง (ปุ่มจับคู่, ปักหมุด, นำเข้าจากสแกน) ══════
+// คำสำคัญของแต่ละชั้นงาน — ใช้เดาว่ารายการ PO นั้นเป็นงานของชั้นไหน
+const PO_LAYER_KW={
+  screed:['ปรับพื้น','ปรับระดับ','ปูนปรับ','เทปรับ','selfleveling','selflevel','screed','ขัดพื้น','ฉาบ'],
+  install:['ไวนิล','กระเบื้องยาง','ชนิดม้วน','vinyl','ปูพื้น','ปูกระเบื้อง','บัวยาง','เส้นกันสะดุด']
+};
+function poMatchLayer(name){ // คืนคีย์ชั้นงานที่ตรงที่สุด, null = ไม่ตรง/กำกวม
+  const n=String(name||'').toLowerCase().replace(/\s+/g,'');
+  let bestKey=null,bestHit=0,tie=false;
+  for(const k in PO_LAYER_KW){
+    const hit=PO_LAYER_KW[k].filter(wd=>n.includes(wd.toLowerCase().replace(/\s+/g,''))).length;
+    if(hit>bestHit){bestKey=k;bestHit=hit;tie=false;}
+    else if(hit>0&&hit===bestHit&&k!==bestKey)tie=true;
+  }
+  return (bestHit>0&&!tie)?bestKey:null;
+}
+// หา PO ที่เข้ากับ markup ตัวหนึ่งที่สุด → {item, reason} หรือ {item:null, reason:'ambiguous'|'none'}
+// ให้คะแนน: รหัสวัสดุในชื่อ (เช่น F7, VN-01) > คำสำคัญตรงชั้นงาน
+function poMatchFor(opt){
+  const code=(opt.code||'').toUpperCase();
+  const layer=opt.layer;
+  // 1) มีรหัสวัสดุ → หาชื่อ PO ที่มีรหัสนั้น (แม่นสุด)
+  if(code){
+    const hit=poItems.filter(it=>String(it.name||'').toUpperCase().includes(code));
+    if(hit.length===1)return {item:hit[0],reason:'code'};
+    if(hit.length>1) return {item:null,reason:'ambiguous'};
+  }
+  // 2) ไม่มีรหัส → เดาจากชั้นงานด้วยคำสำคัญ
+  if(layer){
+    const cand=poItems.filter(it=>poMatchLayer(it.name)===layer);
+    if(cand.length===1)return {item:cand[0],reason:'layer'};
+    if(cand.length>1) return {item:null,reason:'ambiguous'};
+  }
+  return {item:null,reason:'none'};
+}
+function syncPoToMarkups(){
+  if(!poItems.length){alert('ยังไม่มีรายการ PO ให้จับคู่');return;}
+  const targets=wmk().filter(m=>!mkItems(m).length); // เฉพาะงานจริงที่ยังไม่ผูกรายการ (ไม่แตะที่ติ๊กไว้แล้ว/ไม่แตะแผนงาน)
+  if(!targets.length){alert('markup ทุกจุดผูกรายการ PO ไว้แล้ว ✓');return;}
+  let linked=0; const ambig={}, nomatch={};
+  pushHistory();
+  targets.forEach(m=>{
+    const lname=(LAYERS.find(l=>l.key===m.layer)||{}).name||m.layer;
+    const r=poMatchFor({layer:m.layer,code:m.roomCode||''});   // ใช้ตัวจับคู่กลางตัวเดียวกับปักหมุด
+    if(r.item){ m.items=[{id:String(r.item.id),qty:m.area||'',locked:true}]; m.item=''; linked++; }
+    else if(r.reason==='ambiguous')ambig[lname]=(ambig[lname]||0)+1;
+    else nomatch[lname]=(nomatch[lname]||0)+1;
+  });
+  redraw(); renderList(); renderPoItems();
+  const L=[`จับคู่อัตโนมัติสำเร็จ ${linked} จุด`];
+  const fmtGrp=o=>Object.keys(o).map(k=>`${k} ${o[k]} จุด`).join(', ');
+  if(Object.keys(ambig).length)L.push(`\nยังไม่จับคู่ (มีรายการ PO เข้าเกณฑ์หลายรายการ ต้องเลือกเอง):\n${fmtGrp(ambig)}`);
+  if(Object.keys(nomatch).length)L.push(`\nยังไม่จับคู่ (ไม่พบรายการ PO ที่ตรงกับชั้นงาน):\n${fmtGrp(nomatch)}`);
+  if(linked)L.push('\nปริมาณตั้งต้น = พื้นที่บนแบบของแต่ละจุด (ล็อก 🔒 ไว้ แก้ได้)');
+  alert(L.join('\n'));
+}
+
+// ══════════════ สแกนแบบจาก PDF (ปริ้นจาก CAD = มี text layer ให้ดึง) ══════════════
+// รองรับ 3 ชนิดแบบที่เจอจริง: (A) แบบมีชื่อห้อง+รหัสวัสดุ (B) แบบ layout ม้วน (C) แบบสแกนเป็นรูป
+let scanResult=null;
+const RE_AREA=/(?:total\s+)?area\s*[:=]?\s*([\d,]+\.?\d*)\s*(?:sq\.?\s?m|ตร\.?\s?ม)/i;
+const RE_QTY =/=\s*([\d,]+)\s*(roll|carton|ม้วน|กล่อง)/i;
+const RE_SKIRT=/edge\s?skirting\s*[:=]?\s*([\d,]+\.?\d*)\s*m/i;
+const RE_TRIM =/edge\s?trim\s*[:=]?\s*([\d,]+\.?\d*)\s*m/i;
+const RE_WELD =/weld\s?rod\s*[:=]?\s*([\d,]+\.?\d*)\s*m/i;
+const RE_MATCODE=/\b([A-Z]{1,3}[-.]?\d{1,3}[A-Z]?)\b/;   // VN-01, F7, 9A
+const num=s=>parseFloat(String(s).replace(/,/g,''))||0;
+
+function pdfTextLines(items,tol){ // รวม text item เป็นบรรทัดตามพิกัด y (บน→ล่าง)
+  tol=tol||4; const rows={};
+  items.forEach(i=>{const y=Math.round(i.y/tol)*tol;(rows[y]=rows[y]||[]).push(i);});
+  return Object.keys(rows).map(Number).sort((a,b)=>b-a)
+    .map(y=>({y,text:rows[y].sort((a,b)=>a.x-b.x).map(o=>o.s).join(' ').replace(/\s+/g,' ').trim()}))
+    .filter(r=>r.text);
+}
+function scanPageType(items){
+  if(!items.length)return 'scanned';                       // ไม่มีข้อความเลย = สแกนเป็นรูป
+  const rolls=items.filter(i=>i.s==='→').length;
+  const codes=items.filter(i=>/^[A-Z]{1,3}\d{1,3}[A-Z]?$/.test(i.s)).length;
+  const thai =items.filter(i=>/[ก-๙]{2,}/.test(i.s)).length;
+  const hasRoom=codes>=10&&thai>=10, hasRoll=rolls>=8;
+  if(hasRoom&&hasRoll)return 'both';                       // หน้าเดียวมีทั้งผังห้องและรายการตัด
+  if(hasRoom)return 'room';
+  if(hasRoll)return 'roll';
+  return 'other';
+}
+function scanRolls(items){ // รายการตัดม้วน: [เลขม้วน] → [ระยะ]m.
+  const out=[];
+  for(let i=1;i<items.length-1;i++){
+    if(items[i].s!=='→')continue;
+    const a=items[i-1], b=items[i+1];
+    if(/^\d+(\.\d+)?$/.test(a.s)&&/^(\d+(\.\d+)?)\s*m\.?$/i.test(b.s))
+      out.push({roll:a.s,len:parseFloat(b.s),x:items[i].x,y:items[i].y});
+  }
+  return out;
+}
+function scanRooms(items){ // จับคู่ชื่อห้องไทยกับรหัสวัสดุที่อยู่ใกล้ที่สุด
+  // ให้แบบสอนเราเองว่ารหัสไหนคือ "วัสดุ": รหัสวัสดุจะซ้ำหลายครั้ง (F7 x62)
+  // ส่วนป้ายเส้นกริด (H5, H6, H7) โผล่ครั้งเดียว → กรองออกด้วยความถี่
+  const all=items.filter(i=>/^[A-Z]{1,3}\d{1,3}[A-Z]?$/.test(i.s));
+  const freq={}; all.forEach(i=>freq[i.s]=(freq[i.s]||0)+1);
+  const codes=all.filter(i=>freq[i.s]>=4);
+  const thai =items.filter(i=>/[ก-๙]{2,}/.test(i.s)&&i.s.length>1);
+  return codes.map(c=>{
+    let best=null,bd=1e9;
+    thai.forEach(t=>{const d=Math.hypot(t.x-c.x,t.y-c.y);if(d<bd){bd=d;best=t;}});
+    return {code:c.s,name:(bd<40&&best)?best.s:'',x:c.x,y:c.y};
+  });
+}
+function scanLegend(lines){ // ตารางวัสดุ: ชื่อสินค้า + พื้นที่ + จำนวนม้วน/กล่อง (รองรับหลายรายการในบรรทัดเดียว)
+  const RE_G=/(?:total\s+)?area\s*[:=]?\s*([\d,]+\.?\d*)\s*(?:sq\.?\s?m|ตร\.?\s?ม)\.?/gi;
+  const out=[];
+  lines.forEach(r=>{
+    const t=r.text; let m, prevEnd=0; const hits=[];
+    RE_G.lastIndex=0;
+    while((m=RE_G.exec(t))!==null)hits.push({area:num(m[1]),start:m.index,end:RE_G.lastIndex});
+    hits.forEach((h,idx)=>{
+      const before=t.slice(prevEnd,h.start);                       // ข้อความก่อนคำว่า area = ชื่อสินค้า
+      const after =t.slice(h.end,idx+1<hits.length?hits[idx+1].start:t.length);
+      prevEnd=h.end;
+      const mq=after.match(/^\s*=\s*([\d,]+)\s*(roll|carton|ม้วน|กล่อง)/i);
+      // รหัสวัสดุ: "VN-01 NO.xxx" / "9A.NO.xxx" / "7.NO.xxx" — ถ้าไม่มีข้างหน้า ใช้รหัสที่ตามหลัง NO.
+      let prod=before
+        .replace(/^\s*=\s*[\d,]+\s*(roll|carton|ม้วน|กล่อง)\s*/i,'')   // ตัดปริมาณของรายการก่อนหน้าที่ปนมา
+        .replace(/^[\s.·•\-–]+/,'').replace(/\s+/g,' ').trim();
+      const mc=prod.match(/([A-Z]{1,3}-\d{1,3}[A-Z]?|\d{1,2}[A-Z]?)\s*[.．]?\s*NO\.?/i)
+             ||prod.match(/NO\.?\s*([A-Za-z0-9-]{4,})/i);
+      if(prod.length>70)prod=prod.slice(-70).replace(/^\S*\s/,''); // ตัดหัวที่ปนมาจากรายการก่อนหน้า
+      out.push({code:mc?mc[1].toUpperCase():'',product:prod,area:h.area,
+        qty:mq?num(mq[1]):0,unit:mq?mq[2].toLowerCase():''});
+    });
+  });
+  // รวมรายการซ้ำ: ของเดียวกันมักโผล่หลายบรรทัด/หลายหน้า — ยึดพื้นที่เป็นตัวระบุ เก็บอันที่ข้อมูลครบสุด
+  const best={};
+  const score=x=>(x.code?4:0)+(x.qty?2:0)+(x.product&&x.product.length>6?1:0);
+  out.filter(o=>o.area>0).forEach(o=>{
+    const k=o.area.toFixed(2);
+    const cur=best[k];
+    if(!cur){best[k]=o;return;}
+    best[k]=score(o)>score(cur)
+      ? Object.assign({},cur,o,{code:o.code||cur.code,qty:o.qty||cur.qty,unit:o.unit||cur.unit})
+      : Object.assign({},o,cur,{code:cur.code||o.code,qty:cur.qty||o.qty,unit:cur.unit||o.unit});
+  });
+  return Object.values(best).filter(o=>o.code||o.qty||(o.product&&o.product.length>6));
+}
+function scanTotals(lines){
+  const t={area:0,skirting:0,trim:0,weld:0};
+  lines.forEach(r=>{
+    let m;
+    if(/total\s+area/i.test(r.text)&&(m=r.text.match(RE_AREA)))t.area+=num(m[1]);
+    if(m=r.text.match(RE_SKIRT))t.skirting+=num(m[1]);
+    if(m=r.text.match(RE_TRIM))t.trim+=num(m[1]);
+    if(m=r.text.match(RE_WELD))t.weld+=num(m[1]);
+  });
+  return t;
+}
+async function scanPlan(rescan){
+  if(!pdfDoc){alert('อัพโหลดแบบ PDF ก่อน');return;}
+  const body=document.getElementById('scanBody');
+  body.innerHTML='<div class="po-empty">🔍 กำลังสแกน...</div>';
+  const pages=[];
+  for(let p=1;p<=pdfDoc.numPages;p++){
+    body.innerHTML=`<div class="po-empty">🔍 กำลังสแกนหน้า ${p}/${pdfDoc.numPages}...</div>`;
+    const pg=await pdfDoc.getPage(p);
+    const vp1=pg.getViewport({scale:1});                  // ขนาดหน้า PDF (pt) — ใช้แปลงพิกัดป้าย→canvas ตอนปักหมุด
+    const tc=await pg.getTextContent();
+    const items=tc.items.filter(i=>i.str&&i.str.trim())
+      .map(i=>({s:i.str.trim(),x:i.transform[4],y:i.transform[5]}));
+    const lines=pdfTextLines(items);
+    const type=scanPageType(items);
+    pages.push({n:p,type,textCount:items.length,pdfW:vp1.width,pdfH:vp1.height,
+      rolls:(type==='roll'||type==='both')?scanRolls(items):[],
+      rooms:(type==='room'||type==='both')?scanRooms(items):[],
+      legend:scanLegend(lines),
+      boq:parseBoqLines(lines.map(l=>l.text)),   // เผื่อหน้านั้นเป็นตาราง BOQ/ใบเสนอราคา
+      totals:scanTotals(lines)});
+  }
+  const legend=[]; const seen=new Set();
+  pages.forEach(pg=>pg.legend.forEach(l=>{const k=l.code+'|'+l.area;if(!seen.has(k)){seen.add(k);legend.push(Object.assign({page:pg.n},l));}}));
+  // รายการแบบตาราง BOQ (ใบเสนอราคา/สัญญา) — รวมทุกหน้า กันซ้ำด้วยชื่อ
+  const boq=[]; const bseen=new Set();
+  pages.forEach(pg=>pg.boq.forEach(b=>{
+    const k=(b.name||'').replace(/\s+/g,'');
+    if(k&&!bseen.has(k)){bseen.add(k);boq.push(Object.assign({page:pg.n},b));}
+  }));
+  const T={area:0,skirting:0,trim:0,weld:0,rollLen:0,rollSeg:0};
+  pages.forEach(pg=>{T.area+=pg.totals.area;T.skirting+=pg.totals.skirting;T.trim+=pg.totals.trim;T.weld+=pg.totals.weld;
+    T.rollLen+=pg.rolls.reduce((s,r)=>s+r.len,0);T.rollSeg+=pg.rolls.length;});
+  scanResult={pages,legend,boq,totals:T};
+  renderScan();
+}
+function openScan(){
+  document.getElementById('scanOverlay').style.display='flex';
+  if(scanResult)renderScan(); else scanPlan();
+}
+function closeScan(){document.getElementById('scanOverlay').style.display='none';}
+function renderScan(){
+  const R=scanResult; if(!R)return;
+  const TY={scanned:'สแกนเป็นรูป — ดึงข้อความไม่ได้',roll:'แบบ layout ม้วน',room:'แบบมีชื่อห้อง+รหัสวัสดุ',both:'มีทั้งผังห้องและรายการตัดม้วน',other:'อื่นๆ'};
+  const nScan=R.pages.filter(p=>p.type==='scanned').length;
+  document.getElementById('scanCount').textContent=`${R.pages.length} หน้า`;
+  // จับคู่หน้าแปลน↔หน้ารายการตัด (ระยะรวมควรตรงกัน) เพื่อไขว้ตรวจ
+  let cross='';
+  for(let i=0;i<R.pages.length-1;i++){
+    const a=R.pages[i],b=R.pages[i+1];
+    if(a.type==='roll'&&b.type==='roll'&&a.rolls.length&&a.rolls.length===b.rolls.length){
+      const la=a.rolls.reduce((s,r)=>s+r.len,0), lb=b.rolls.reduce((s,r)=>s+r.len,0);
+      const diff=la?Math.abs(la-lb)/la*100:0;
+      cross+=`<div class="sc-x ${diff<1?'ok':'warn'}">หน้า ${a.n} ↔ ${b.n}: ${a.rolls.length} ท่อน · ${la.toFixed(1)} / ${lb.toFixed(1)} ม. — ต่างกัน ${diff.toFixed(2)}% ${diff<1?'✓ ตรงกัน':'⚠ ไม่ตรง ควรตรวจ'}</div>`;
+      i++;
+    }
+  }
+  // ไขว้ตรวจกับ BOQ
+  let boq='';
+  if(poItems.length&&(R.totals.area>0||R.totals.skirting>0)){
+    const rows=[];
+    const cmp=(label,fromPlan,kw)=>{
+      if(!fromPlan)return;
+      const it=poItems.find(x=>kw.some(k=>String(x.name||'').includes(k)));
+      const q=it?parseFloat(it.qty)||0:0;
+      const d=q?((fromPlan-q)/q*100):null;
+      rows.push(`<tr><td style="text-align:left">${label}</td><td class="n">${fmtQ(fromPlan)}</td><td class="n">${q?fmtQ(q):'-'}</td><td class="n ${d!==null&&Math.abs(d)>5?'bad':''}">${d===null?'-':(d>0?'+':'')+d.toFixed(1)+'%'}</td></tr>`);
+    };
+    cmp('พื้นที่ปูพื้น (ตร.ม.)',R.totals.area,['ไวนิล','กระเบื้องยาง','ปูพื้น','ปรับพื้น']);
+    cmp('บัวยาง / edgeskirting (ม.)',R.totals.skirting,['บัวยาง','บัว']);
+    cmp('เส้นกันสะดุด / edgetrim (ม.)',R.totals.trim,['กันสะดุด','เส้นกัน']);
+    if(rows.length)boq=`<div class="sc-sec"><b>ไขว้ตรวจกับรายการ PO</b>
+      <table class="sc-t"><thead><tr><th style="text-align:left">รายการ</th><th>จากแบบ</th><th>ตาม PO</th><th>ต่าง</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+      <div class="sc-note">ต่างเกิน 5% จะขึ้นสีแดง — ควรตรวจก่อนเริ่มงาน</div></div>`;
+  }
+  const legRows=R.legend.map((l,i)=>`<tr>
+      <td><input type="checkbox" id="scL${i}" checked></td>
+      <td>${l.code||'-'}</td>
+      <td style="text-align:left">${(l.product||'-').replace(/</g,'&lt;')}</td>
+      <td class="n">${fmtQ(l.area)}</td>
+      <td class="n">${l.qty?l.qty+' '+l.unit:'-'}</td>
+      <td>${l.page}</td></tr>`).join('');
+  document.getElementById('scanBody').innerHTML=`
+    <div class="sc-sec"><b>ชนิดแบบที่พบ</b>
+      <div class="sc-types">${['both','room','roll','other','scanned'].map(t=>{
+        const n=R.pages.filter(p=>p.type===t).length;
+        return n?`<span class="sc-chip ${t}">${TY[t]}: ${n} หน้า</span>`:'';}).join('')}</div>
+      ${nScan?`<div class="sc-note">⚠ ${nScan} หน้าเป็นรูปสแกน (ไม่มีตัวหนังสือในไฟล์) — หน้าพวกนี้ต้องวาด markup เองหรือกรอกยอดจากแบบ</div>`:''}
+    </div>
+    ${R.totals.rollSeg?`<div class="sc-sec"><b>รายการตัดม้วน</b>
+      <div class="sc-kpi"><div><span>ท่อนทั้งหมด</span><b>${R.totals.rollSeg}</b></div>
+        <div><span>ระยะรวม</span><b>${fmtQ(R.totals.rollLen)} ม.</b></div>
+        <div><span>ที่หน้ากว้าง 2.00 ม.</span><b>${fmtQ(R.totals.rollLen*2)} ตร.ม.</b></div>
+        <div><span>คิดเป็นม้วน (20 ม.)</span><b>${Math.ceil(R.totals.rollLen/20)} ม้วน</b></div></div>
+      ${cross?`<div class="sc-note" style="margin-top:6px"><b>ไขว้ตรวจหน้าแปลน ↔ หน้ารายการตัด</b></div>${cross}`:''}
+    </div>`:''}
+    ${(R.totals.area||R.totals.skirting||R.totals.trim||R.totals.weld)?`<div class="sc-sec"><b>ยอดรวมที่ระบุในแบบ</b>
+      <div class="sc-kpi">
+        ${R.totals.area?`<div><span>พื้นที่รวม</span><b>${fmtQ(R.totals.area)} ตร.ม.</b></div>`:''}
+        ${R.totals.skirting?`<div><span>edgeskirting</span><b>${fmtQ(R.totals.skirting)} ม.</b></div>`:''}
+        ${R.totals.trim?`<div><span>edgetrim</span><b>${fmtQ(R.totals.trim)} ม.</b></div>`:''}
+        ${R.totals.weld?`<div><span>weld rod</span><b>${fmtQ(R.totals.weld)} ม.</b></div>`:''}
+      </div></div>`:''}
+    ${boq}
+    ${(R.boq&&R.boq.length)?`<div class="sc-sec"><b>รายการแบบตาราง BOQ ที่พบ (${R.boq.length})</b>
+      <table class="sc-t"><thead><tr><th></th><th style="text-align:left">รายการ</th><th>จำนวน</th><th>หน่วย</th><th>หน้า</th></tr></thead><tbody>${
+        R.boq.map((b,i)=>`<tr><td><input type="checkbox" id="scB${i}" checked></td><td style="text-align:left">${(b.name||'').replace(/</g,'&lt;')}</td><td class="n">${b.qty?fmtQ(b.qty):'-'}</td><td>${b.unit||'-'}</td><td>${b.page}</td></tr>`).join('')
+      }</tbody></table>
+      <button class="st-btn" style="margin-top:8px" onclick="scanImportBoq()">➕ เพิ่มรายการที่ติ๊กเข้า PO</button>
+    </div>`:''}
+    ${R.legend.length?`<div class="sc-sec"><b>รายการวัสดุที่พบ (${R.legend.length})</b>
+      <table class="sc-t"><thead><tr><th></th><th>รหัส</th><th style="text-align:left">สินค้า</th><th>พื้นที่</th><th>ปริมาณ</th><th>หน้า</th></tr></thead><tbody>${legRows}</tbody></table>
+      <button class="st-btn" style="margin-top:8px" onclick="scanImportLegend()">➕ เพิ่มรายการที่ติ๊กเข้า PO</button>
+    </div>`:'<div class="sc-sec"><div class="sc-note">ไม่พบตารางวัสดุในแบบชุดนี้</div></div>'}
+    ${scanPinSection(R)}
+    <div class="sc-sec"><b>รายหน้า</b>
+      <table class="sc-t"><thead><tr><th>หน้า</th><th style="text-align:left">ชนิด</th><th>ข้อความ</th><th>ท่อนม้วน</th><th>ห้อง</th></tr></thead><tbody>
+      ${R.pages.map(p=>`<tr><td>${p.n}</td><td style="text-align:left">${TY[p.type]}</td><td class="n">${p.textCount.toLocaleString()}</td><td class="n">${p.rolls.length||'-'}</td><td class="n">${p.rooms.length||'-'}</td></tr>`).join('')}
+      </tbody></table></div>`;
+}
+// ── ปักหมุดจากแบบ (แบบ B: จิ้มหมุด → วาดกรอบเริ่มต้นให้ ลากปรับเอง) ──
+function scanPinSection(R){
+  // รวมรหัสห้องที่ตรวจได้ ต่อหน้า + ต่อรหัส
+  const byPage={};
+  R.pages.forEach(p=>{ if(!p.rooms||!p.rooms.length)return;
+    const codes={}; p.rooms.forEach(r=>codes[r.code]=(codes[r.code]||0)+1);
+    byPage[p.n]=codes;
+  });
+  const pagesWithRooms=Object.keys(byPage);
+  if(!pagesWithRooms.length)return '';
+  // ตัวเลือกรหัส (จากหน้าที่กำลังดูอยู่ ถ้ามี ไม่งั้นหน้าแรกที่มีห้อง)
+  const pg=byPage[pageNum]?pageNum:parseInt(pagesWithRooms[0]);
+  const codes=byPage[pg]||{};
+  const list=Object.entries(codes).sort((a,b)=>b[1]-a[1]);
+  const chips=list.map(([c,n])=>`<label class="pin-chip"><input type="checkbox" value="${c}" ${pinPickedCodes.has(c)?'checked':''} onchange="scanTogglePinCode('${c}')">${c} <span>${n}</span></label>`).join('');
+  return `<div class="sc-sec"><b>ปักหมุดจากแบบ — หน้า ${pg}</b>
+    <div class="sc-note">เลือกรหัสที่เป็นงานของคุณ แล้วกดปักหมุด · จิ้มหมุดบนแบบ = วาดกรอบเริ่มต้นให้ ลากปรับขนาดเอง</div>
+    <div class="pin-chips">${chips}</div>
+    <div class="pin-actions">
+      <select id="pinLayerSel" class="pin-sel">${LAYERS.map(l=>`<option value="${l.key}">${l.name}</option>`).join('')}</select>
+      <button class="st-btn" style="margin:0" onclick="scanStartPins(${pg})">📍 ปักหมุดที่เลือก (${[...pinPickedCodes].length? 'อัพเดต':'ทั้งหมด'})</button>
+      ${pinMarks.length?`<button class="st-btn" style="margin:0;background:var(--bg3);color:var(--text)" onclick="scanClearPins()">✕ ล้างหมุด</button>`:''}
+    </div>
+    ${pinMarks.length?`<div class="sc-note" style="color:var(--accent)">📍 ปักหมุดแล้ว ${pinMarks.length} จุดบนแบบ — ปิดหน้านี้แล้วจิ้มหมุดเพื่อสร้าง markup</div>`:''}
+  </div>`;
+}
+let pinPickedCodes=new Set();   // รหัสที่เลือกจะปัก
+let pinMarks=[];                // [{code,name,cx,cy,page,layer}] — cx,cy = พิกัด canvas ปัจจุบัน
+function scanTogglePinCode(c){ if(pinPickedCodes.has(c))pinPickedCodes.delete(c); else pinPickedCodes.add(c); }
+function scanStartPins(pg){
+  const R=scanResult; if(!R)return;
+  const page=R.pages.find(p=>p.n===pg); if(!page||!page.rooms.length){alert('หน้านี้ไม่มีข้อมูลห้อง');return;}
+  const codes=pinPickedCodes.size?pinPickedCodes:new Set(page.rooms.map(r=>r.code));
+  const layer=document.getElementById('pinLayerSel').value||activeLayer;
+  // เก็บพิกัดดิบไว้ (pdf space) แปลงเป็น canvas ตอนวาดจริง เพราะ canvas เปลี่ยนตามซูม
+  pinMarks=page.rooms.filter(r=>codes.has(r.code)).map(r=>({
+    code:r.code,name:r.name||'',px:r.x,py:r.y,pdfW:page.pdfW,pdfH:page.pdfH,page:pg,layer
+  }));
+  // ถ้ากำลังดูคนละหน้า เด้งไปหน้าที่ปัก
+  if(pageNum!==pg){ pageNum=pg; renderPage(); }
+  renderPinOverlay();
+  closeScan();
+  alert(`ปักหมุด ${pinMarks.length} จุด บนหน้า ${pg} แล้ว ✓\n\nจิ้มหมุดสีฟ้าบนแบบ = สร้างกรอบ markup ตรงนั้น แล้วลากปรับขนาดให้พอดีห้อง`);
+}
+function scanClearPins(){ pinMarks=[]; renderPinOverlay(); if(scanResult)renderScan(); }
+// วาดหมุดเป็น DOM overlay ซ้อนบน canvas (คลิกได้ ไม่รบกวนการวาด)
+function renderPinOverlay(){
+  let ov=document.getElementById('pinOverlay');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='pinOverlay';
+    ov.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:6';
+    document.getElementById('cstage').appendChild(ov);
+  }
+  const dc=document.getElementById('drawCanvas');
+  const here=pinMarks.filter(m=>m.page===pageNum);
+  ov.innerHTML=here.map((m,i)=>{
+    // pdf(y ขึ้นบน) → canvas(y ลงล่าง) → CSS px (หาร DPR เพราะ canvas backing store ใหญ่กว่า)
+    const cx=(m.px/m.pdfW)*dc.width/DPR;
+    const cy=((m.pdfH-m.py)/m.pdfH)*dc.height/DPR;
+    return `<div class="pin" style="left:${cx}px;top:${cy}px;pointer-events:auto" onclick="scanPlacePin(${pinMarks.indexOf(m)})" title="${m.code}${m.name?' · '+m.name:''}">📍<span>${m.code}</span></div>`;
+  }).join('');
+}
+function scanPlacePin(idx){
+  const m=pinMarks[idx]; if(!m)return;
+  const dc=document.getElementById('drawCanvas');
+  // จุดกลางหมุดในพิกัด canvas backing store
+  const cx=(m.px/m.pdfW)*dc.width;
+  const cy=((m.pdfH-m.py)/m.pdfH)*dc.height;
+  // กรอบเริ่มต้น ~ 12% ของความกว้างแบบ (ผู้ใช้ลากปรับต่อ)
+  const w=dc.width*0.12, h=w*0.7;
+  activeLayer=m.layer;
+  const id=Date.now()+Math.random();
+  const r=poMatchFor({layer:m.layer,code:m.code});   // ตัวจับคู่กลางตัวเดียวกับปุ่ม 🔗
+  pushHistory();
+  markups.push({id,layer:m.layer,zone:layerZone(m.layer),page:pageNum,
+    shape:{type:'rect',x:cx-w/2,y:cy-h/2,w,h},
+    stroke:(LAYERS.find(l=>l.key===m.layer)||{}).color||'#f4a726',
+    fill:(LAYERS.find(l=>l.key===m.layer)||{}).color||'#f4a726',
+    opacity:28,width:2.6,note:m.name||'',start:'',end:'',area:'',photos:[],planId:null,
+    roomCode:m.code,                                  // จำรหัสจากแบบ ไว้จับคู่ PO ทีหลังได้แม่นขึ้น
+    items:r.item?[{id:String(r.item.id),qty:'',locked:false}]:[],
+    canvasW:dc.width,canvasH:dc.height});
+  selId=id;
+  // เอาหมุดนี้ออก (สร้างแล้ว) เหลือหมุดที่ยังไม่ได้ทำ
+  pinMarks.splice(idx,1);
+  renderPinOverlay(); redraw(); renderList(); renderLayerBar();
+  // เข้าโหมดแก้กรอบทันที ให้ลากปรับได้เลย
+  selectMk(id);
+}
+function scanImportBoq(){ // นำเข้าจากตาราง BOQ ที่สแกนได้
+  if(!scanResult||!scanResult.boq)return;
+  let n=0;
+  scanResult.boq.forEach((b,i)=>{
+    const cb=document.getElementById('scB'+i);
+    if(!cb||!cb.checked)return;
+    const nm=(b.name||'').trim(); if(!nm)return;
+    if(poItems.some(p=>String(p.name||'').replace(/\s+/g,'')===nm.replace(/\s+/g,'')))return;
+    addPoItem(nm,String(b.qty||''),b.unit||''); n++;
+  });
+  if(!n){alert('ไม่มีรายการใหม่ให้เพิ่ม (อาจเพิ่มไปแล้ว)');return;}
+  alert(`เพิ่มเข้ารายการ PO แล้ว ${n} รายการ ✓`);
+  if(wmk().some(m=>!mkItems(m).length))syncPoToMarkups();
+}
+function scanImportLegend(){
+  if(!scanResult)return;
+  let n=0;
+  scanResult.legend.forEach((l,i)=>{
+    const cb=document.getElementById('scL'+i);
+    if(!cb||!cb.checked)return;
+    const nm=[l.code,l.product].filter(Boolean).join(' ').trim()||('วัสดุจากแบบ หน้า '+l.page);
+    if(poItems.some(p=>String(p.name||'').trim()===nm))return; // กันซ้ำ
+    addPoItem(nm,String(l.area),'ตร.ม.'); n++;
+  });
+  if(!n){alert('ไม่มีรายการใหม่ให้เพิ่ม (อาจเพิ่มไปแล้ว)');return;}
+  alert(`เพิ่มเข้ารายการ PO แล้ว ${n} รายการ ✓\n\nเปิดหน้า 📋 PO เพื่อตรวจ/แก้ไข`);
+  if(wmk().some(m=>!mkItems(m).length))syncPoToMarkups();
+}
 let popId=null, mkPopOpenT=0;
 function openMkPopup(id){
   const m=markups.find(x=>x.id===id); if(!m)return;
   popId=id;
   const idx=markups.indexOf(m)+1;
-  document.getElementById('mkPopTitle').textContent=`#${idx} ข้อมูล Markup`;
+  document.getElementById('mkPopTitle').textContent=isPlanMk(m)?`#${idx} พื้นที่ตามแผน (คาดการณ์)`:`#${idx} ข้อมูล Markup`;
   const nAreas=1+(m.extraShapes?m.extraShapes.length:0);
   document.getElementById('mkPopAreas').textContent=nAreas>1?`${nAreas} พื้นที่`:'';
   const zoneSel=document.getElementById('mkPopZone');
@@ -1661,7 +2243,18 @@ function mkPopUpdateRemains(){ // อัพเดตบรรทัด "BOQ · �
     const doneP=parseFloat(row.dataset.donep)||0; // ทำแล้วทั้งโปรเจกต์ ไม่รวม markup นี้
     const doneS=parseFloat(row.dataset.dones)||0; // ทำแล้วแผ่นนี้ ไม่รวม markup นี้
     const cb=row.querySelector('input[type=checkbox]');
-    const typed=cb.checked?(parseFloat(row.querySelector('.po-qty').value)||0):0;
+    const val=cb.checked?(parseFloat(row.querySelector('.po-qty').value)||0):0;
+    const curMk=markups.find(x=>x.id===popId);
+    const isPlan=curMk&&isPlanMk(curMk);
+    const typed=isPlan?0:val; // แผนงานเป็นงานคาดการณ์ ไม่นับเป็นทำแล้ว
+    if(isPlan){ // แสดงเทียบกับ BOQ ในมุม "วางแผนไว้เท่าไร เทียบของที่เหลือ"
+      const remNow=boq-doneP;
+      info.classList.toggle('over',boq>0&&val>remNow);
+      info.innerHTML=boq>0
+        ? `BOQ ${fmtQ(boq)}${row.dataset.unit?' '+row.dataset.unit:''} · ทำจริงแล้ว ${fmtQ(doneP)} · <span class="po-rem-s">คงเหลือ</span> <b>${fmtQ(remNow)}</b> · วางแผนไว้ ${fmtQ(val)}${val>remNow?' ⚠แผนเกินของที่เหลือ':''}`
+        : `<span class="po-rem-s">วางแผนไว้ ${fmtQ(val)} (ไม่ได้ตั้งปริมาณ BOQ)</span>`;
+      return;
+    }
     if(boq>0){
       const rem=boq-doneP-typed;
       const u=row.dataset.unit||'';
@@ -1886,7 +2479,7 @@ function redraw(){
   if(!drawCtx)return;
   drawCtx.clearRect(0,0,dc.width,dc.height);
   // draw visible layers; active layer last (on top)
-  const order=[...LAYERS.filter(l=>l.key!==activeLayer),...LAYERS.filter(l=>l.key===activeLayer)];
+  const order=[...ALL_LAYERS.filter(l=>l.key!==activeLayer),...ALL_LAYERS.filter(l=>l.key===activeLayer)];
   order.forEach(l=>{
     if(!l.visible)return;
     markups.filter(m=>m.layer===l.key&&m.page===pageNum).forEach(m=>{
@@ -1977,10 +2570,10 @@ function getSheetsSum(){let t=0;Object.keys(pageAreas).forEach(pg=>{const v=pars
 // project area used for project-level %: prefer PO, else fall back to sheets sum
 function getProjectArea(){return getPoArea()||getSheetsSum();}
 // "done" area = sum of markup areas on a page / whole project
-function donePage(pg){return markups.filter(m=>m.page===pg).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
-function doneProject(){return markups.reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
-function donePageLayer(pg,layer){return markups.filter(m=>m.page===pg&&m.layer===layer).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
-function doneLayer(layer){return markups.filter(m=>m.layer===layer).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function donePage(pg){return wmk().filter(m=>m.page===pg).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function doneProject(){return wmk().reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function donePageLayer(pg,layer){return wmk().filter(m=>m.page===pg&&m.layer===layer).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function doneLayer(layer){return wmk().filter(m=>m.layer===layer).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
 // percent of a single markup vs the area of the page it sits on
 function areaPct(area,pg){const t=getPageArea(pg);const a=parseFloat(area);if(!t||!a)return null;return a/t*100;}
 function fmtPct(p){return p==null?'':(p>=10?p.toFixed(1):p.toFixed(2))+'%';}
@@ -2179,13 +2772,13 @@ function renderInsights(){
   const wrap=document.getElementById('insightWrap');
   const body=document.getElementById('insightBody');
   if(!wrap||!body)return;
-  if(!markups.length){wrap.style.display='none';return;}
+  if(!wmk().length){wrap.style.display='none';return;}
   wrap.style.display='block';
   const cards=[];
   const po=getProjectArea();
 
   // 1) PACE & ETA — based on dated markups
-  const dated=markups.filter(m=>m.start&&m.end&&parseFloat(m.area)>0);
+  const dated=wmk().filter(m=>m.start&&m.end&&parseFloat(m.area)>0);
   if(dated.length>=1 && po){
     let minStart=null,maxEnd=null,doneArea=0;
     dated.forEach(m=>{
@@ -2244,9 +2837,9 @@ function renderInsights(){
   }
 
   // 4) MISSING DATA — markups lacking area/photo/date
-  const noArea=markups.filter(m=>!(parseFloat(m.area)>0));
-  const noPhoto=markups.filter(m=>!m.photos.length);
-  const noDate=markups.filter(m=>!m.start||!m.end);
+  const noArea=wmk().filter(m=>!(parseFloat(m.area)>0));
+  const noPhoto=wmk().filter(m=>!m.photos.length);
+  const noDate=wmk().filter(m=>!m.start||!m.end);
   const issues=[];
   if(noArea.length)issues.push(`${noArea.length} จุดยังไม่ใส่พื้นที่ (ตร.ม.)`);
   if(noDate.length)issues.push(`${noDate.length} จุดยังไม่ครบวันเริ่ม-เสร็จ`);
@@ -2264,7 +2857,7 @@ function renderInsights(){
     const parts=LAYERS.map(l=>`${l.name} ${fmtPct(doneLayer(l.key)/po*100)}`).join(' · ');
     cards.push(`<div class="ins-card ok">
       <div class="ins-t">📊 สรุปภาพรวม</div>
-      <div>โครงการมี ${markups.length} จุด, ${sheetsWithArea.length||'-'} แผ่นแบบ</div>
+      <div>โครงการมี ${wmk().length} จุด, ${sheetsWithArea.length||'-'} แผ่นแบบ</div>
       <div class="ins-sub" style="margin-top:3px">${parts}</div>
     </div>`);
   }
@@ -2286,31 +2879,85 @@ function updMk(id,k,v){
   renderList();
 }
 function delMk(id){markups=markups.filter(m=>m.id!==id);if(selId===id)selId=null;redraw();renderList();renderLayerBar();}
+function selectMk(id){ // จิ้มการ์ดในแถบข้าง → เลือก markup นั้นบนแบบ (เดิมเรียกฟังก์ชันนี้แต่ยังไม่มีตัวจริง)
+  selId=(selId===id)?null:id;
+  redraw(); renderList();
+  const m=markups.find(x=>x.id===id);
+  if(m&&m.page!==pageNum){pageNum=m.page;renderPage();}
+}
 
 // ── PHOTOS
 function addPhoto(id){photoTargetId=id;document.getElementById('photoIn').click();}
 // Resize an uploaded image to max 1280px on the long edge, JPEG 0.8.
 // Phone photos are 3-12MB; this brings them to ~150-400KB with no visible loss in a report.
-function downscaleImage(file){
-  return new Promise((resolve)=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      const img=new Image();
-      img.onload=()=>{
-        const MAX=1280;
-        let{width:w,height:h}=img;
-        if(w>MAX||h>MAX){const s=MAX/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
-        const c=document.createElement('canvas');c.width=w;c.height=h;
-        const x=c.getContext('2d');
-        x.imageSmoothingQuality='high';
-        x.drawImage(img,0,0,w,h);
-        resolve(c.toDataURL('image/jpeg',0.8));
-      };
-      img.onerror=()=>resolve(e.target.result); // fallback: original
-      img.src=e.target.result;
+// ── ขนาดรูปถ่าย: ตั้งค่าเดียวใช้ทั้งรูปใหม่และรูปเก่า (ลดขนาดไฟล์เซฟ) ──
+const IMG_MAX=1000, IMG_Q=0.62;   // 1000px / คุณภาพ 62% — เล็กลง ~3 เท่าจากเดิม ยังอ่านรายละเอียดหน้างานได้
+function shrinkToDataUrl(src){     // ย่อ+บีบอัดจาก dataURL หรือ objectURL → dataURL
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      let{width:w,height:h}=img;
+      if(!w||!h){resolve(src);return;}
+      if(w>IMG_MAX||h>IMG_MAX){const s=IMG_MAX/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const x=c.getContext('2d');
+      x.imageSmoothingQuality='high';
+      x.drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',IMG_Q));
     };
+    img.onerror=()=>resolve(src); // ย่อไม่ได้ → คงของเดิม
+    img.src=src;
+  });
+}
+function downscaleImage(file){
+  return new Promise(resolve=>{
+    const r=new FileReader();
+    r.onload=e=>shrinkToDataUrl(e.target.result).then(resolve);
+    r.onerror=()=>resolve('');
     r.readAsDataURL(file);
   });
+}
+function b64Bytes(s){ // ขนาดจริงของ dataURL (ไบต์ที่กินในไฟล์เซฟ)
+  return typeof s==='string'?s.length:0;
+}
+function fmtMB(b){ return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB'; }
+function photoStats(){ // นับรูปทั้งหมด + ขนาดที่กิน
+  let n=0,bytes=0;
+  markups.forEach(m=>(m.photos||[]).forEach(p=>{n++;bytes+=b64Bytes(p);}));
+  meetings.forEach(m=>(m.photos||[]).forEach(p=>{n++;bytes+=b64Bytes(p);}));
+  return {n,bytes};
+}
+function saveSizeBreakdown(){ // ประมาณขนาดไฟล์เซฟ แยกตามส่วน
+  const ph=photoStats();
+  const pdfB=pdfData?Math.round((pdfData.byteLength||pdfData.length||0)*1.37):0; // base64 +37%
+  let mkB=0;
+  try{ mkB=JSON.stringify(markups.map(m=>Object.assign({},m,{photos:[]}))).length; }catch(_){}
+  let otherB=0;
+  try{ otherB=JSON.stringify({poItems,plans,meetings:meetings.map(m=>Object.assign({},m,{photos:[]})),pageAreas,pageScale}).length; }catch(_){}
+  return {photos:ph.bytes,photoCount:ph.n,pdf:pdfB,markups:mkB,other:otherB,total:ph.bytes+pdfB+mkB+otherB};
+}
+async function optimizePhotos(){ // บีบอัดรูป "ที่มีอยู่แล้ว" ทั้งหมดให้เล็กลงตามค่าปัจจุบัน
+  const ph=photoStats();
+  if(!ph.n){alert('ยังไม่มีรูปในโครงการนี้');return;}
+  if(!confirm(`บีบอัดรูปทั้งหมด ${ph.n} รูป (ตอนนี้ ${fmtMB(ph.bytes)})\n\nจะย่อเป็นด้านยาวสุด ${IMG_MAX}px คุณภาพ ${Math.round(IMG_Q*100)}%\nรูปที่เล็กอยู่แล้วจะไม่ถูกแตะ · ทำแล้วย้อนกลับไม่ได้\n\nดำเนินการต่อ?`))return;
+  const btn=document.getElementById('optImgBtn');
+  const before=ph.bytes; let done=0,saved=0;
+  const step=async(arrObj)=>{
+    const arr=arrObj.photos||[];
+    for(let i=0;i<arr.length;i++){
+      const old=arr[i], nw=await shrinkToDataUrl(old);
+      if(nw&&nw.length<old.length){saved+=old.length-nw.length;arr[i]=nw;} // เก็บของใหม่เฉพาะเมื่อเล็กลงจริง
+      done++;
+      if(btn)btn.textContent=`🗜 กำลังบีบอัด ${done}/${ph.n}...`;
+    }
+  };
+  for(const m of markups)await step(m);
+  for(const m of meetings)await step(m);
+  if(btn)btn.textContent='🗜 ลดขนาดรูป';
+  renderList(); renderMeetPhotos();
+  const dov=document.getElementById('dashOverlay');
+  if(dov&&dov.style.display!=='none')buildDashboard(); // อัพเดตแผงขนาดไฟล์ให้เห็นผลทันที
+  alert(`เสร็จแล้ว ✓\n\nรูป ${ph.n} รูป: ${fmtMB(before)} → ${fmtMB(before-saved)}\nประหยัดได้ ${fmtMB(saved)} (${before?Math.round(saved/before*100):0}%)\n\nกด 💾 เซฟ เพื่อบันทึกลงไฟล์`);
 }
 document.getElementById('photoIn').addEventListener('change',async function(){
   const m=markups.find(x=>x.id===photoTargetId);if(!m){this.value='';return;}
@@ -2324,27 +2971,510 @@ document.getElementById('photoIn').addEventListener('change',async function(){
 });
 function delPhoto(id,pi){const m=markups.find(x=>x.id===id);if(m){pushHistory();m.photos.splice(pi,1);renderList();}}
 
-// ── MEETING REPORT (รายงานการประชุม)
-let meeting={date:'',people:'',progress:'',plan:'',issue:'',safety:''};
+// ══════ PLANS (แผนงาน 1,2,3... — โครงสร้างเดียวกับบันทึกประชุม) ══════
+let plans=[];     // [{id,no,name,owner,start,end,note,rows:[{task,zone,qty,start,end}]}]
+let planSel=null;
+function newPlan(){
+  const no=plans.reduce((mx,x)=>Math.max(mx,parseInt(x.no)||0),0)+1;
+  return {id:Date.now()+Math.random(), no, name:'แผนที่ '+no, owner:'',
+    start:new Date().toISOString().slice(0,10), end:'', note:'', rows:[], status:'active', supersededBy:null};
+}
+function activePlan(){ return plans.filter(p=>p.status!=='replaced').slice(-1)[0]||plans.slice(-1)[0]; }
+function planStatusLabel(p){ return p.status==='replaced'?'แทนที่แล้ว':'ใช้อยู่'; }
+function openPlans(){
+  if(!plans.length)plans.push(newPlan());
+  if(!plans.some(x=>x.id===planSel))planSel=plans[plans.length-1].id;
+  renderPlanTabs(); loadPlanForm();
+  document.getElementById('planOverlay').style.display='flex';
+}
+function renderPlanTabs(){
+  const act=activePlan();
+  document.getElementById('planCount').textContent=`ทั้งหมด ${plans.length} แผน · แผนที่ใช้อยู่: ${act?(act.name||'แผนที่ '+act.no):'-'}`;
+  document.getElementById('planTabs').innerHTML=
+    plans.map(p=>{
+      const replaced=p.status==='replaced';
+      const isAct=act&&p.id===act.id;
+      return `<button class="meet-tab ${p.id===planSel?'active':''} ${replaced?'replaced':''}" onclick="switchPlan(${p.id})">${(p.name||'แผนที่ '+p.no).replace(/</g,'&lt;')} ${isAct?'●':''}<small>${replaced?'แทนที่แล้ว':(p.rows.length+' รายการ · ใช้อยู่')}</small></button>`;
+    }).join('')
+    +`<button class="meet-tab new" onclick="revisePlan()" title="คัดลอกแผนปัจจุบันเป็นเวอร์ชันใหม่ แล้วแก้ต่อ (แผนเดิมเก็บเป็นประวัติ)">✏️ แก้เป็นแผนใหม่<small>สร้างเวอร์ชันถัดไป</small></button>`
+    +`<button class="meet-tab new" onclick="addPlan()" title="สร้างแผนเปล่าจากศูนย์">➕ แผนเปล่า<small>เริ่มใหม่ทั้งหมด</small></button>`;
+}
+function loadPlanForm(){
+  const p=plans.find(x=>x.id===planSel); if(!p)return;
+  const replaced=p.status==='replaced';
+  const banner=document.getElementById('planStatusBanner');
+  if(banner){
+    const sup=p.supersededBy?plans.find(x=>x.id===p.supersededBy):null;
+    banner.style.display=replaced?'block':'none';
+    banner.innerHTML=replaced?`🔒 แผนนี้ถูกแทนที่แล้ว — เก็บเป็นประวัติ ดูได้อย่างเดียว${sup?` (แผนปัจจุบันคือ ${sup.name||'แผนที่ '+sup.no})`:''}`:'';
+  }
+  ['planName','planOwner','planStart','planEnd','planNote'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=replaced;});
+  document.getElementById('planName').value=p.name||'';
+  document.getElementById('planOwner').value=p.owner||'';
+  document.getElementById('planStart').value=p.start||'';
+  document.getElementById('planEnd').value=p.end||'';
+  document.getElementById('planNote').value=p.note||'';
+  renderPlanRows();
+}
+function renderPlanRows(){
+  const p=plans.find(x=>x.id===planSel); if(!p)return;
+  const box=document.getElementById('planRows');
+  if(!p.rows.length){box.innerHTML='<div class="plan-empty">ยังไม่มีรายการงาน<br>กด ⬇ ดึงจาก markup ที่ยังไม่เสร็จ หรือ ➕ เพิ่มแถว</div>';return;}
+  box.innerHTML=p.rows.map((r,i)=>`<div class="plan-row">
+    <input value="${(r.task||'').replace(/"/g,'&quot;')}" placeholder="งาน" onchange="planSetRow(${i},'task',this.value)">
+    <input value="${(r.zone||'').replace(/"/g,'&quot;')}" placeholder="ตำแหน่ง/โซน" onchange="planSetRow(${i},'zone',this.value)">
+    <input value="${r.qty||''}" placeholder="ปริมาณ" onchange="planSetRow(${i},'qty',this.value)">
+    <input type="date" value="${r.start||''}" onchange="planSetRow(${i},'start',this.value)">
+    <input type="date" value="${r.end||''}" onchange="planSetRow(${i},'end',this.value)">
+    <button type="button" class="rm" title="ลบแถว" onclick="planDelRow(${i})">✕</button>
+  </div>`).join('');
+}
+function planIsLocked(){const p=plans.find(x=>x.id===planSel);return p&&p.status==='replaced';}
+function planSetRow(i,k,v){if(planIsLocked())return;const p=plans.find(x=>x.id===planSel);if(p&&p.rows[i])p.rows[i][k]=v;}
+function planDelRow(i){if(planIsLocked()){alert('แผนนี้ถูกแทนที่แล้ว แก้ไขไม่ได้ — กด ✏️ แก้เป็นแผนใหม่ เพื่อทำเวอร์ชันถัดไป');return;}const p=plans.find(x=>x.id===planSel);if(!p)return;p.rows.splice(i,1);renderPlanRows();renderPlanTabs();}
+function planAddRow(){if(planIsLocked()){alert('แผนนี้ถูกแทนที่แล้ว แก้ไขไม่ได้ — กด ✏️ แก้เป็นแผนใหม่ เพื่อทำเวอร์ชันถัดไป');return;}const p=plans.find(x=>x.id===planSel);if(!p)return;p.rows.push({task:'',zone:'',qty:'',start:'',end:''});renderPlanRows();renderPlanTabs();
+  setTimeout(()=>{const els=document.querySelectorAll('#planRows .plan-row input');if(els.length)els[els.length-5].focus();},50);}
+function planPullMarkups(){ // ดึงพื้นที่ที่วาดไว้บน "ชั้นแผนงาน" ของแผนนี้ มาเป็นรายการงาน
+  const p=plans.find(x=>x.id===planSel); if(!p)return;
+  const mine=pmk(p.id);
+  if(!mine.length){alert('แผนนี้ยังไม่มีพื้นที่ที่วาดไว้\n\nวิธีวาด: ปิดหน้านี้ → เลือกแท็บชั้นงาน "แผนงาน" ด้านบนแบบแปลน → วาดกรอบพื้นที่ที่วางแผนไว้');return;}
+  let added=0;
+  mine.forEach(m=>{
+    const zone=[m.note,getPageName(m.page)||('แผ่น '+m.page)].filter(Boolean).join(' · ');
+    if(p.rows.some(r=>r.mkId===m.id))return;                 // กันซ้ำด้วย id ของ markup
+    const first=mkItems(m)[0];
+    const itName=first?((poItems.find(it=>String(it.id)===first.id)||{}).name||'') : '';
+    p.rows.push({mkId:m.id,task:itName||'งานตามแผน',zone,qty:m.area||'',start:m.start||'',end:m.end||''});
+    added++;
+  });
+  renderPlanRows(); renderPlanTabs();
+  if(!added)alert('พื้นที่ทั้งหมดของแผนนี้ถูกดึงมาแล้ว');
+}
+function collectPlanForm(){
+  const p=plans.find(x=>x.id===planSel); if(!p)return null;
+  if(p.status==='replaced')return p; // แผนที่ถูกแทนที่แล้ว ไม่รับการแก้ไข
+  p.name=document.getElementById('planName').value;
+  p.owner=document.getElementById('planOwner').value;
+  p.start=document.getElementById('planStart').value;
+  p.end=document.getElementById('planEnd').value;
+  p.note=document.getElementById('planNote').value;
+  return p;
+}
+function switchPlan(id){collectPlanForm();planSel=id;renderPlanTabs();loadPlanForm();renderLayerBar();updateSideTitle();document.getElementById('planForm').scrollTop=0;}
+function addPlan(){collectPlanForm();const p=newPlan();plans.push(p);planSel=p.id;renderPlanTabs();loadPlanForm();renderLayerBar();updateSideTitle();document.getElementById('planForm').scrollTop=0;}
+function revisePlan(){ // แก้เป็นแผนใหม่: คัดลอกแผนปัจจุบัน (รายการ + พื้นที่ที่วาดบนแบบ) เป็นเวอร์ชันถัดไป, ปิดแผนเดิมเป็นประวัติ
+  collectPlanForm();
+  const base=activePlan()||plans.find(x=>x.id===planSel);
+  if(!base){addPlan();return;}
+  if(base.status==='replaced'){
+    const cur=activePlan();
+    if(cur&&!confirm(`กำลังแก้จากแผนเก่า "${base.name||'แผนที่ '+base.no}" ที่ถูกแทนที่ไปแล้ว\nปกติควรแก้จากแผนปัจจุบัน "${cur.name||'แผนที่ '+cur.no}"\n\nจะแก้จากแผนเก่านี้ต่อไหม?`))return;
+  }
+  const no=plans.reduce((mx,x)=>Math.max(mx,parseInt(x.no)||0),0)+1;
+  const np={id:Date.now()+Math.random(), no, name:'แผนที่ '+no, owner:base.owner||'',
+    start:new Date().toISOString().slice(0,10), end:'', note:base.note||'',
+    rows:base.rows.map(r=>Object.assign({},r)), status:'active', supersededBy:null,
+    revisedFrom:base.id};
+  // คัดลอกพื้นที่ markup ของแผนเดิม → ผูกกับแผนใหม่ (id ใหม่, rows.mkId ชี้ไปที่สำเนา)
+  pushHistory();
+  const idMap={};
+  pmk(base.id).forEach(m=>{
+    const c=JSON.parse(JSON.stringify(m));
+    c.id=Date.now()+Math.random(); c.planId=np.id;
+    idMap[m.id]=c.id;
+    markups.push(c);
+  });
+  np.rows.forEach(r=>{ if(r.mkId&&idMap[r.mkId])r.mkId=idMap[r.mkId]; });
+  base.status='replaced'; base.supersededBy=np.id;   // ปิดแผนเดิมเป็นประวัติ
+  plans.push(np); planSel=np.id;
+  renderPlanTabs(); loadPlanForm(); redraw(); renderLayerBar(); renderList();
+  document.getElementById('planForm').scrollTop=0;
+}
+function delPlan(){
+  const p=plans.find(x=>x.id===planSel); if(!p)return;
+  const mine=pmk(p.id);
+  if(!confirm(`ลบ "${p.name||'แผนที่ '+p.no}" ?`+(mine.length?`\n(มีพื้นที่ที่วาดไว้บนแบบ ${mine.length} จุด)`:'')))return;
+  if(mine.length){
+    if(confirm('ลบพื้นที่ที่วาดไว้บนแบบของแผนนี้ด้วยไหม?\n\nตกลง = ลบทิ้ง · ยกเลิก = เก็บไว้ (ย้ายไปแผนที่เหลืออยู่)')){
+      pushHistory();
+      markups=markups.filter(m=>!(isPlanMk(m)&&m.planId===p.id));
+    }else{
+      const other=plans.find(x=>x.id!==p.id);
+      markups.forEach(m=>{if(isPlanMk(m)&&m.planId===p.id)m.planId=other?other.id:null;});
+    }
+  }
+  plans=plans.filter(x=>x.id!==planSel);
+  if(!plans.length)plans.push(newPlan());
+  planSel=plans[plans.length-1].id;
+  renderPlanTabs(); loadPlanForm(); redraw(); renderLayerBar(); renderList();
+}
+function savePlans(){collectPlanForm();document.getElementById('planOverlay').style.display='none';renderLayerBar();updateSideTitle();}
+function closePlans(){savePlans();}
+function planText(p){ // แปลงแผนเป็นข้อความสำหรับใส่ในบันทึกประชุม
+  const L=[];
+  L.push(`${p.name||'แผนที่ '+p.no}${p.start||p.end?` (${meetThDate(p.start)||'-'} ถึง ${meetThDate(p.end)||'-'})`:''}${p.owner?` · ผู้รับผิดชอบ: ${p.owner}`:''}`);
+  p.rows.forEach((r,i)=>{
+    const seg=[r.task,r.zone].filter(Boolean).join(' — ');
+    const q=r.qty?` ${isNaN(parseFloat(r.qty))?r.qty:fmtQ(r.qty)+' ตร.ม.'}`:'';
+    const d=(r.start||r.end)?` [${meetThDate(r.start)||'-'} ถึง ${meetThDate(r.end)||'-'}]`:'';
+    L.push(`${i+1}. ${seg}${q}${d}`);
+  });
+  const mine=pmk(p.id);
+  if(mine.length)L.push(`พื้นที่ตามแผนที่ระบุบนแบบ: ${fmtQ(mine.reduce((s,m)=>s+(parseFloat(m.area)||0),0))} ตร.ม. (${mine.length} พื้นที่)`);
+  if(p.note)L.push(`หมายเหตุ: ${p.note}`);
+  return L.join('\n');
+}
+function planToMeeting(){ // ใส่แผนนี้ลงในบันทึกประชุมครั้งที่กำลังแก้
+  const p=collectPlanForm()||activePlan(); if(!p)return;
+  if(!meetings.length){meetings.push(newMeeting());meetSel=meetings[meetings.length-1].id;}
+  const m=meetings.find(x=>x.id===meetSel)||meetings[meetings.length-1];
+  m.planId=p.id;                       // ผูกไว้ เพื่อพิมพ์ตารางแผนแนบในรายงาน
+  // เก็บ "สแนปช็อตแผน" ไว้กับการประชุม เพื่อให้ครั้งถัดไปทวนได้ว่าวางแผนอะไรไว้ แม้แผนจะถูกแก้/เปลี่ยนเวอร์ชันภายหลัง
+  m.planSnapshot={ planId:p.id, planName:p.name||'แผนที่ '+p.no,
+    rows:p.rows.map(r=>({task:r.task||'',zone:r.zone||'',qty:r.qty||'',start:r.start||'',end:r.end||'',mkId:r.mkId||null})) };
+  m.plan=planText(p);
+  const el=document.getElementById('meetPlan'); if(el)el.value=m.plan;
+  document.getElementById('planOverlay').style.display='none';
+  if(document.getElementById('meetOverlay').style.display!=='flex')openMeeting();
+}
+let meetings=[];      // [{id,no,type,month,date,place,sub,people,progress,plan,issue,safety,signFore,signLead,signExec}]
+let meetSel=null;     // id ของครั้งที่กำลังแก้ / กำลังจะแนบในรายงาน
+const MEET_F=['no','type','month','date','place','sub','people','progress','plan','issue','safety','signFore','signLead','signExec'];
+const MEET_EL={no:'meetNo',type:'meetType',month:'meetMonth',date:'meetDate',place:'meetPlace',sub:'meetSub',people:'meetPeople',
+  progress:'meetProgress',plan:'meetPlan',issue:'meetIssue',safety:'meetSafety',signFore:'meetSignFore',signLead:'meetSignLead',signExec:'meetSignExec'};
+function newMeeting(){ // สร้างครั้งใหม่: ต่อเลขครั้ง + เดือนถัดจากครั้งล่าสุด + ยกชื่อผู้ลงนาม/ผรม. มาให้
+  const last=meetings[meetings.length-1];
+  const now=new Date();
+  let month=now.toISOString().slice(0,7);
+  if(last&&last.month){const[y,m]=last.month.split('-').map(Number);const d=new Date(y,m,1);month=d.toISOString().slice(0,7);}
+  return {id:Date.now()+Math.random(),
+    no:(meetings.reduce((mx,x)=>Math.max(mx,parseInt(x.no)||0),0)+1),
+    type:last?last.type:'monthly', month, date:now.toISOString().slice(0,10), place:last?last.place:'',
+    sub:last?last.sub:'', people:last?last.people:'', progress:'',plan:'',issue:'',safety:'', photos:[], planId:null,
+    signFore:last?last.signFore:'', signLead:last?last.signLead:'', signExec:last?last.signExec:''};
+}
+function meetThMonth(m){ // 2026-07 → ก.ค. 2569
+  if(!m)return '';
+  const TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const[y,mo]=m.split('-').map(Number); return `${TH[mo-1]||''} ${y+543}`;
+}
+function meetThDate(d){ if(!d)return ''; const[y,m,dd]=d.split('-'); return `${+dd}/${+m}/${+y+543}`; }
 function openMeeting(){
-  document.getElementById('meetDate').value=meeting.date||new Date().toISOString().slice(0,10);
-  document.getElementById('meetPeople').value=meeting.people||'';
-  document.getElementById('meetProgress').value=meeting.progress||'';
-  document.getElementById('meetPlan').value=meeting.plan||'';
-  document.getElementById('meetIssue').value=meeting.issue||'';
-  document.getElementById('meetSafety').value=meeting.safety||'';
+  if(!meetings.length){meetings.push(newMeeting());}
+  if(!meetings.some(x=>x.id===meetSel))meetSel=meetings[meetings.length-1].id;
+  renderMeetTabs(); loadMeetForm(); renderMeetPhotos();
   document.getElementById('meetOverlay').style.display='flex';
 }
-function saveMeeting(){
-  meeting={
-    date:document.getElementById('meetDate').value,
-    people:document.getElementById('meetPeople').value,
-    progress:document.getElementById('meetProgress').value,
-    plan:document.getElementById('meetPlan').value,
-    issue:document.getElementById('meetIssue').value,
-    safety:document.getElementById('meetSafety').value
+function renderMeetTabs(){
+  document.getElementById('meetCount').textContent=`ทั้งหมด ${meetings.length} ครั้ง · ครั้งที่เลือกจะแนบในรายงาน`;
+  document.getElementById('meetTabs').innerHTML=
+    meetings.map(x=>`<button class="meet-tab ${x.id===meetSel?'active':''}" onclick="switchMeeting(${x.id})">ครั้งที่ ${x.no||'-'}<small>${meetThMonth(x.month)||meetThDate(x.date)||'—'}</small></button>`).join('')
+    +`<button class="meet-tab new" onclick="addMeeting()">➕ ครั้งใหม่<small>เพิ่มรอบประชุม</small></button>`;
+}
+function loadMeetForm(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!m.photos)m.photos=[];
+  MEET_F.forEach(k=>{const el=document.getElementById(MEET_EL[k]); if(el)el.value=m[k]||'';});
+  renderMeetPhotos();
+  renderPlanReview();
+}
+// ── วาระต่อเนื่อง: ทบทวนแผนที่แนบไว้ในประชุม "ครั้งก่อน" ──
+function prevMeeting(m){ // ประชุมครั้งก่อนหน้า (เลขครั้งน้อยกว่า ที่มีแผนแนบไว้)
+  const idx=meetings.findIndex(x=>x.id===m.id);
+  for(let i=idx-1;i>=0;i--){ if(meetings[i].planSnapshot&&meetings[i].planSnapshot.rows.length)return meetings[i]; }
+  return null;
+}
+function renderPlanReview(){
+  const m=meetings.find(x=>x.id===meetSel);
+  const fld=document.getElementById('planReviewFld');
+  const box=document.getElementById('planReviewBox');
+  if(!m||!fld||!box)return;
+  const prev=prevMeeting(m);
+  if(!prev){ fld.style.display='none'; box.innerHTML=''; return; }
+  fld.style.display='block';
+  if(!m.planReview)m.planReview={}; // { rowIdx: {status, note} }
+  const snap=prev.planSnapshot;
+  const STATUS=[['done','✓ ตามแผน'],['partial','↻ เปลี่ยน/เลื่อน'],['miss','✗ ไม่ได้ตามแผน']];
+  box.innerHTML=`<div class="pr-head">อ้างอิงแผนจาก ${prev.planName||('ประชุมครั้งที่ '+prev.no)} · ${meetThMonth(prev.month)||meetThDate(prev.date)||''}</div>`
+    +snap.rows.map((r,i)=>{
+      const rv=m.planReview[i]||{status:'',note:''};
+      const seg=[r.task,r.zone].filter(Boolean).join(' — ')||'(ไม่มีชื่อ)';
+      const q=r.qty?` ${isNaN(parseFloat(r.qty))?r.qty:fmtQ(r.qty)+' ตร.ม.'}`:'';
+      return `<div class="pr-row">
+        <div class="pr-task">${(i+1)+'. '+seg+q}</div>
+        <div class="pr-btns">${STATUS.map(([k,lb])=>`<button type="button" class="pr-s ${rv.status===k?'on '+k:''}" onclick="setPlanReview(${i},'${k}')">${lb}</button>`).join('')}</div>
+        <input class="pr-note" placeholder="หมายเหตุ (เช่น เลื่อนเพราะฝนตก / เปลี่ยนไปโซน C)" value="${(rv.note||'').replace(/"/g,'&quot;')}" onchange="setPlanReviewNote(${i},this.value)">
+      </div>`;
+    }).join('');
+}
+function setPlanReview(i,status){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!m.planReview)m.planReview={};
+  if(!m.planReview[i])m.planReview[i]={status:'',note:''};
+  m.planReview[i].status=(m.planReview[i].status===status)?'':status;
+  renderPlanReview();
+}
+function setPlanReviewNote(i,v){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!m.planReview)m.planReview={};
+  if(!m.planReview[i])m.planReview[i]={status:'',note:''};
+  m.planReview[i].note=v;
+}
+function meetAutoReview(){ // ประเมินอัตโนมัติแบบระมัดระวัง: เทียบพื้นที่แผนรายจุดกับงานจริงที่ทับกันบนแผ่นเดียวกัน
+  const m=collectMeetForm(); if(!m)return;
+  const prev=prevMeeting(m); if(!prev)return;
+  const cut=m.date||new Date().toISOString().slice(0,10);
+  if(!m.planReview)m.planReview={};
+  let guessed=0, ambiguous=0;
+  prev.planSnapshot.rows.forEach((r,i)=>{
+    if(!m.planReview[i])m.planReview[i]={status:'',note:''};
+    if(m.planReview[i].status)return; // ที่ทำเครื่องหมายเองแล้ว ไม่ทับ
+    const planMk=r.mkId?markups.find(x=>x.id===r.mkId):null;
+    if(!planMk){ambiguous++;return;} // ไม่มีพื้นที่อ้างอิง เดาไม่ได้
+    // งานจริงที่ "ทับ" พื้นที่แผนนี้ (แผ่นเดียวกัน + กรอบซ้อนกัน) และลงวันเสร็จ ≤ วันประชุม
+    const overlaps=wmk().filter(x=>x.page===planMk.page&&x.end&&x.end<=cut&&shapesOverlap(x,planMk));
+    const doneArea=overlaps.reduce((s,x)=>s+(parseFloat(x.area)||0),0);
+    const target=parseFloat(r.qty)||parseFloat(planMk.area)||0;
+    if(!overlaps.length){ // ไม่มีงานจริงทับเลย → ยังไม่ได้ตามแผน
+      m.planReview[i].status='miss'; guessed++;
+    }else if(target>0&&doneArea>=target*0.9){
+      m.planReview[i].status='done'; guessed++;
+    }else{
+      m.planReview[i].status='partial'; guessed++;
+    }
+  });
+  renderPlanReview();
+  if(ambiguous)alert(`ประเมินอัตโนมัติได้ ${guessed} รายการ\nอีก ${ambiguous} รายการไม่มีพื้นที่อ้างอิงบนแบบ กรุณาทำเครื่องหมายเอง`);
+}
+// กรอบสองอันซ้อนทับกันไหม (เทียบ bounding box แบบหยาบ เพียงพอสำหรับจับคู่พื้นที่แผน↔งานจริง)
+function shapeBBox(m){
+  const pts=[];
+  const collect=sh=>{ if(!sh)return;
+    if(sh.pts)pts.push(...sh.pts);
+    else if(sh.x!=null&&sh.w!=null){pts.push([sh.x,sh.y],[sh.x+sh.w,sh.y+sh.h]);}
+    else if(sh.x1!=null){pts.push([sh.x1,sh.y1],[sh.x2,sh.y2]);}
   };
-  document.getElementById('meetOverlay').style.display='none';
+  collect(m.shape); (m.extraShapes||[]).forEach(collect);
+  if(!pts.length)return null;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const sf=(m.canvasW&&m.canvasW>0)?1/m.canvasW:1; // normalize คร่าวๆ ด้วยความกว้าง canvas
+  return {x1:Math.min(...xs)*sf,y1:Math.min(...ys)*sf,x2:Math.max(...xs)*sf,y2:Math.max(...ys)*sf};
+}
+function shapesOverlap(a,b){
+  const A=shapeBBox(a),B=shapeBBox(b);
+  if(!A||!B)return false;
+  return !(A.x2<B.x1||B.x2<A.x1||A.y2<B.y1||B.y2<A.y1);
+}
+function collectMeetForm(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return null;
+  MEET_F.forEach(k=>{const el=document.getElementById(MEET_EL[k]); if(el)m[k]=el.value;});
+  return m;
+}
+function switchMeeting(id){ collectMeetForm(); meetSel=id; renderMeetTabs(); loadMeetForm();
+  document.getElementById('meetForm').scrollTop=0; }
+function addMeeting(){ collectMeetForm(); const m=newMeeting(); meetings.push(m); meetSel=m.id;
+  renderMeetTabs(); loadMeetForm(); document.getElementById('meetForm').scrollTop=0; }
+function delMeeting(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!confirm(`ลบบันทึกประชุมครั้งที่ ${m.no||'-'} (${meetThMonth(m.month)||meetThDate(m.date)})?`))return;
+  meetings=meetings.filter(x=>x.id!==meetSel);
+  if(!meetings.length)meetings.push(newMeeting());
+  meetSel=meetings[meetings.length-1].id;
+  renderMeetTabs(); loadMeetForm();
+}
+function saveMeeting(){ collectMeetForm(); document.getElementById('meetOverlay').style.display='none'; }
+function closeMeeting(){ saveMeeting(); }
+function meetHasContent(m){ return m&&(['progress','plan','issue','safety'].some(k=>(m[k]||'').trim())||(m.photos&&m.photos.length)); }
+
+// ── 1. ความคืบหน้างาน: สรุปอัตโนมัติจาก markup/BOQ ณ "วันที่ประชุม" ──
+function meetFillProgress(){
+  const m=collectMeetForm(); if(!m)return;
+  const cut=m.date||new Date().toISOString().slice(0,10); // ตัดยอด ณ วันที่ประชุม
+  const done=mk=>mk.end&&mk.end<=cut;                      // ลงวันเสร็จ ไม่เกินวันประชุม = เสร็จแล้ว
+  const wip=mk=>!done(mk)&&mk.start&&mk.start<=cut;        // เริ่มแล้วแต่ยังไม่เสร็จ = กำลังดำเนินการ
+  const A=arr=>arr.reduce((s,x)=>s+(parseFloat(x.area)||0),0);
+  const L=[`สรุปความคืบหน้า ณ วันที่ ${meetThDate(cut)}`];
+  // แยกตามชั้นงาน
+  LAYERS.forEach(l=>{
+    const inLay=wmk().filter(x=>x.layer===l.key);
+    if(!inLay.length)return;
+    const d=inLay.filter(done), w=inLay.filter(wip);
+    const tot=A(inLay), dn=A(d);
+    L.push(`• ${l.name}: เสร็จแล้ว ${fmtQ(dn)} ตร.ม. (${d.length} จุด)`
+      +(tot>0?` จากที่ markup ไว้ ${fmtQ(tot)} ตร.ม. คิดเป็น ${Math.round(dn/tot*100)}%`:'')
+      +(w.length?` · กำลังดำเนินการ ${fmtQ(A(w))} ตร.ม. (${w.length} จุด)`:''));
+  });
+  // เทียบกับ BOQ รายรายการ
+  const items=poItems.filter(it=>parseFloat(it.qty)>0);
+  if(items.length){
+    L.push('เทียบปริมาณตาม BOQ:');
+    items.forEach(it=>{
+      const boq=parseFloat(it.qty)||0;
+      const acc=wmk().reduce((s,mk)=>{
+        if(!done(mk))return s;
+        const sel=mkItems(mk).find(x=>x.id===String(it.id));
+        return s+(sel?(parseFloat(sel.qty)||0):0);
+      },0);
+      L.push(`• ${it.name}: ทำแล้ว ${fmtQ(acc)}/${fmtQ(boq)}${it.unit?' '+it.unit:''} (${Math.round(acc/boq*100)}%) คงเหลือ ${fmtQ(boq-acc)}`);
+    });
+  }
+  // แผ่นแบบที่ยังค้าง
+  const pend=wmk().filter(x=>!done(x));
+  if(pend.length){
+    const pages=[...new Set(pend.map(x=>x.page))].sort((a,b)=>a-b);
+    L.push(`คงค้าง ${pend.length} จุด บนแผ่นที่ ${pages.join(', ')}`);
+  }else if(wmk().length)L.push('งาน markup ทั้งหมดลงวันเสร็จครบแล้ว');
+  const txt=L.join('\n');
+  const el=document.getElementById('meetProgress');
+  if(el.value.trim()&&!confirm('มีข้อความอยู่แล้ว — แทนที่ด้วยสรุปอัตโนมัติ?'))return;
+  el.value=txt; m.progress=txt;
+}
+
+// ── 3. ปัญหาอุปสรรค: รูปแนบ ──
+function renderMeetPhotos(){
+  const m=meetings.find(x=>x.id===meetSel);
+  const box=document.getElementById('meetIssuePhotos'); if(!box)return;
+  const ph=(m&&m.photos)||[];
+  box.innerHTML=ph.map((src,i)=>`<div class="meet-photo"><img src="${src}" alt=""><button type="button" title="ลบรูป" onclick="delMeetPhoto(${i})">✕</button></div>`).join('');
+}
+function delMeetPhoto(i){
+  const m=meetings.find(x=>x.id===meetSel); if(!m||!m.photos)return;
+  m.photos.splice(i,1); renderMeetPhotos();
+}
+document.getElementById('meetPhotoIn').addEventListener('change',async function(){
+  const m=meetings.find(x=>x.id===meetSel);
+  const files=Array.from(this.files); this.value='';
+  if(!m)return;
+  if(!m.photos)m.photos=[];
+  for(const f of files){ m.photos.push(await downscaleImage(f)); renderMeetPhotos(); }
+});
+// ── ตัวช่วยสร้าง HTML สำหรับพิมพ์: ตารางแผนงานที่ผูกกับการประชุม + รูปแนบปัญหาอุปสรรค ──
+function prEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function meetPlanRows(p){
+  return `<table class="pl-tbl"><thead><tr><th>#</th><th style="text-align:left">งาน</th><th style="text-align:left">ตำแหน่ง/โซน</th><th>ปริมาณ</th><th>เริ่ม</th><th>เสร็จ</th></tr></thead><tbody>`
+    +p.rows.map((r,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${prEsc(r.task)||'-'}</td><td style="text-align:left">${prEsc(r.zone)||'-'}</td><td class="num">${r.qty?fmtQ(r.qty):'-'}</td><td>${meetThDate(r.start)||'-'}</td><td>${meetThDate(r.end)||'-'}</td></tr>`).join('')
+    +`</tbody></table>`;
+}
+function planAreaLine(p){ // สรุปพื้นที่ตามแผนที่วาดไว้บนแบบ (markup ชั้นแผนงาน)
+  const mine=pmk(p.id);
+  if(!mine.length)return '';
+  const tot=mine.reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+  const byPage={};
+  mine.forEach(m=>{byPage[m.page]=(byPage[m.page]||0)+(parseFloat(m.area)||0);});
+  const det=Object.keys(byPage).map(Number).sort((a,b)=>a-b)
+    .map(pg=>`${prEsc(getPageName(pg))||'แผ่นที่ '+pg} ${fmtQ(byPage[pg])}`).join(' · ');
+  return `<div class="pl-area">พื้นที่ตามแผนที่ระบุบนแบบ: <b>${fmtQ(tot)} ตร.ม.</b> (${mine.length} พื้นที่) — ${det}</div>`;
+}
+function meetReviewTable(m){ // ตารางทบทวนแผนครั้งก่อน (ผลว่าทำได้ตามแผนไหม)
+  if(!m)return '';
+  const prev=prevMeeting(m);
+  if(!prev||!m.planReview)return '';
+  const rows=prev.planSnapshot.rows;
+  const has=rows.some((r,i)=>m.planReview[i]&&(m.planReview[i].status||m.planReview[i].note));
+  if(!has)return '';
+  const LB={done:'✓ ตามแผน',partial:'↻ เปลี่ยน/เลื่อน',miss:'✗ ไม่ได้ตามแผน','':'-'};
+  const CL={done:'#16a34a',partial:'#d97706',miss:'#dc2626','':'#6b7280'};
+  return `<div class="rv-wrap"><div class="rv-h">ทบทวนแผนครั้งก่อน — ${prEsc(prev.planName)||('ประชุมครั้งที่ '+prev.no)} (${meetThMonth(prev.month)||meetThDate(prev.date)||'-'})</div>
+  <table class="rv-tbl"><thead><tr><th>#</th><th style="text-align:left">งานที่วางแผนไว้</th><th>ผล</th><th style="text-align:left">หมายเหตุ</th></tr></thead><tbody>${
+    rows.map((r,i)=>{const rv=m.planReview[i]||{};const seg=[r.task,r.zone].filter(Boolean).join(' — ')||'-';
+      return `<tr><td>${i+1}</td><td style="text-align:left">${prEsc(seg)}</td><td style="color:${CL[rv.status||'']};font-weight:600;white-space:nowrap">${LB[rv.status||'']}</td><td style="text-align:left">${prEsc(rv.note)||'-'}</td></tr>`;
+    }).join('')
+  }</tbody></table></div>`;
+}
+function meetPlanTable(m){ // ตารางแผนที่ผูกกับการประชุมครั้งนี้ (แสดงใต้หัวข้อ 1.2)
+  if(!m||!m.planId)return '';
+  const p=plans.find(x=>x.id===m.planId);
+  if(!p||!p.rows.length)return '';
+  return meetPlanRows(p)+(p.note?`<div class="pl-note">หมายเหตุ: ${prEsc(p.note)}</div>`:'');
+}
+function meetPhotoHTML(m){
+  const ph=(m&&m.photos)||[];
+  if(!ph.length)return '';
+  return `<div class="mp-grid">${ph.map((src,i)=>`<figure><img src="${src}" alt=""><figcaption>รูปที่ ${i+1}</figcaption></figure>`).join('')}</div>`;
+}
+function appFontCSS(){ // ดึง @font-face (Sarabun ฝัง base64) จากหน้าแอพ ไปใช้ในหน้าต่างพิมพ์ กันสระไทยหาย
+  let css='';
+  [...document.querySelectorAll('style')].forEach(s=>{
+    const m=s.textContent.match(/@font-face\{[^}]*\}/g);
+    if(m)css+=m.join('\n');
+  });
+  return css;
+}
+function printMeeting(){ // พิมพ์เฉพาะบันทึกประชุมครั้งนี้ → PDF สำหรับเก็บเข้าระบบ EPR-Mango
+  const m=collectMeetForm();
+  if(!m)return;
+  if(!meetHasContent(m)){alert('ยังไม่ได้กรอกเนื้อหาการประชุม');return;}
+  const pn=document.getElementById('projName').value||'โครงการ';
+  const au=document.getElementById('authorName').value||'';
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  const fileName=`${pn}-บันทึกประชุม-ครั้งที่${m.no||''}${m.month?'-'+m.month:''}`.replace(/[\\/:*?"<>|]/g,'-');
+  const boxes=[['1. ความคืบหน้างาน',m.progress,''],['2. แผนงาน',m.plan,meetReviewTable(m)+meetPlanTable(m)],['3. ปัญหาอุปสรรค',m.issue,meetPhotoHTML(m)],['4. ด้านความปลอดภัย',m.safety,'']]
+    .map(([t,v,extra])=>`<div class="box"><h3>${t}</h3><div class="tx">${(v||'').trim()?esc(v):(extra?'':'<span style="color:#9ca3af">— ไม่มี —</span>')}</div>${extra}</div>`).join('');
+  const sign=[['ลงนามรับรอง',m.signFore,'โฟร์แมน'],['ลงนามรับรอง',m.signLead,'หัวหน้าทีม / ผู้ช่วยผู้จัดการฝ่ายติดตั้ง'],['รับทราบ',m.signExec,'ผู้ช่วยกรรมการผู้จัดการสายงานก่อสร้าง']]
+    .map(([l,n,r])=>`<div class="sg"><div class="sg-l">${l}</div><div class="sg-line"></div><div class="sg-n">( ${esc(n)||'&nbsp;'.repeat(20)} )</div><div class="sg-r">${r}</div><div class="sg-d">วันที่ ......../......../........</div></div>`).join('');
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${fileName}</title><style>
+${appFontCSS()}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;color:#1f2937;font-size:12.5px;line-height:1.5;padding-top:56px}
+@page{size:A4;margin:14mm}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding-top:0}.pdfbar{display:none}}
+.bar{height:4px;background:#f4a726;margin-bottom:12px}
+h1{font-size:17px;font-weight:700;color:#111827}
+.sub{font-size:11px;color:#6b7280;margin-top:2px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #e5e7eb;padding-bottom:9px;margin-bottom:12px}
+.meta{text-align:right;font-size:10.5px;color:#6b7280;line-height:1.6}
+table.hd{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:11px}
+table.hd th{background:#f9fafb;border:1px solid #e5e7eb;padding:6px 9px;text-align:left;color:#6b7280;font-weight:600;white-space:nowrap;width:1%}
+table.hd td{border:1px solid #e5e7eb;padding:6px 9px;color:#111827}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{border:1px solid #e5e7eb;border-radius:6px;padding:10px 13px;page-break-inside:avoid;break-inside:avoid}
+.box h3{font-size:11.5px;font-weight:700;color:#e8761a;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #f3f4f6}
+.box .tx{font-size:11.5px;color:#111827;line-height:1.7;word-break:break-word}
+.pl-tbl{width:100%;border-collapse:collapse;font-size:10px;margin-top:7px}
+.pl-tbl th{background:#f9fafb;border:1px solid #e5e7eb;padding:4px 6px;color:#6b7280;font-weight:600}
+.pl-tbl td{border:1px solid #e5e7eb;padding:4px 6px;text-align:center;color:#111827}
+.pl-tbl td.num{text-align:right;font-family:'Sarabun'}
+.pl-note{font-size:10px;color:#6b7280;margin-top:5px}
+.rv-wrap{margin-top:7px}
+.rv-h{font-size:10px;color:#6b7280;font-weight:600;margin-bottom:5px}
+.rv-tbl{width:100%;border-collapse:collapse;font-size:10px}
+.rv-tbl th{background:#f9fafb;border:1px solid #e5e7eb;padding:4px 6px;color:#6b7280;font-weight:600}
+.rv-tbl td{border:1px solid #e5e7eb;padding:4px 6px;text-align:center;color:#111827}
+.mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.mp-grid figure{border:1px solid #e5e7eb;border-radius:5px;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
+.mp-grid img{width:100%;height:118px;object-fit:cover;display:block}
+.mp-grid figcaption{font-size:9px;color:#6b7280;text-align:center;padding:3px 0 4px}
+.signs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px;page-break-inside:avoid;break-inside:avoid}
+.sg{text-align:center;font-size:10px}
+.sg-l{font-size:9.5px;color:#6b7280;margin-bottom:30px}
+.sg-line{border-bottom:1px dotted #9ca3af;margin:0 8px 5px}
+.sg-n{font-size:10.5px;margin-bottom:3px}
+.sg-r{font-size:9.5px;color:#6b7280;line-height:1.35}
+.sg-d{font-size:9px;color:#9ca3af;margin-top:6px}
+.foot{margin-top:18px;padding-top:8px;border-top:1px solid #e5e7eb;font-size:9.5px;color:#9ca3af}
+.pdfbar{position:fixed;top:0;left:0;right:0;z-index:999;background:#111827;color:#fff;display:flex;align-items:center;gap:14px;padding:10px 18px;font-size:13px}
+.pdfbar button{background:#f4a726;border:none;color:#111;font-family:'Sarabun';font-weight:700;font-size:14px;padding:9px 20px;border-radius:8px;cursor:pointer}
+.pdfbar .hint{color:#9ca3af;font-size:11.5px}
+</style></head><body>
+<div class="pdfbar"><button onclick="window.print()">📄 บันทึกเป็น PDF / พิมพ์</button>
+<span class="hint">เลือกปลายทางเป็น <b style="color:#f4a726">"Save as PDF"</b> แล้ว Save เพื่อนำเข้าระบบ EPR-Mango</span></div>
+<div class="bar"></div>
+<div class="hdr"><div><h1>บันทึกการประชุมติดตามความคืบหน้างานโครงการ</h1><div class="sub">${esc(pn)}</div></div>
+<div class="meta"><div>ครั้งที่ ${m.no||'-'}${m.month?' · ประจำเดือน '+meetThMonth(m.month):''}</div><div>พิมพ์เมื่อ ${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</div></div></div>
+<table class="hd"><tbody>
+<tr><th>ประเภท</th><td>${m.type==='onsite'?'หารือหน้างาน (โครงการระยะเวลาไม่เกิน 1 เดือน)':'ประชุมติดตามความคืบหน้าประจำเดือน'}</td><th>วันที่ประชุม</th><td>${meetThDate(m.date)||'-'}</td></tr>
+<tr><th>สถานที่</th><td colspan="3">${esc(m.place)||'-'}</td></tr>
+<tr><th>ผู้รับเหมาช่วง</th><td colspan="3">${esc(m.sub)||'-'}</td></tr>
+<tr><th>ผู้เข้าร่วมอื่น</th><td colspan="3">${esc(m.people)||'-'}</td></tr>
+</tbody></table>
+<div class="grid">${boxes}</div>
+<div class="signs">${sign}</div>
+<div class="foot">เอกสารนี้จัดทำจากระบบ Floor Markup Report${au?' · ผู้จัดทำ: '+esc(au):''} · จัดเก็บในระบบ EPR-Mango รูปแบบ PDF</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>
+</body></html>`;
+  const w=window.open('','_blank');
+  if(w){w.document.open();w.document.write(html);w.document.close();}
+  else alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');
 }
 
 // ── SAVE / LOAD
@@ -2359,10 +3489,11 @@ function saveProject(){
     pageAreas:pageAreas,
     pageNames:pageNames,
     poItems:poItems,
-    meeting:meeting,
+    meeting:meetings,
+    plans:plans,
     pageScale:pageScale,
     measures:measures,
-    grayscale, layers:LAYERS, markups, pageNum,
+    grayscale, layers:LAYERS, planLayerVisible:PLAN_LAYER.visible, markups, pageNum,
     pdf: pdfData?ab2b64(pdfData):null
   };
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
@@ -2372,7 +3503,7 @@ function saveProject(){
 
 // ── EXPORT EXCEL (offline, HTML-table .xls — opens in Excel, supports Thai, keeps formatting)
 function exportExcel(){
-  if(!markups.length){alert('ยังไม่มีข้อมูล markup ให้ส่งออก');return;}
+  if(!wmk().length){alert('ยังไม่มีข้อมูล markup ให้ส่งออก');return;}
   const th='border:1px solid #888;padding:6px 8px;background:#f4a726;color:#000;font-weight:bold;text-align:center';
   const td='border:1px solid #ccc;padding:5px 8px';
   const tdNum='border:1px solid #ccc;padding:5px 8px;text-align:right';
@@ -2384,7 +3515,7 @@ function exportExcel(){
   const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   // 1) per-sheet per-layer table
-  const sheets=[...new Set([...Object.keys(pageAreas).map(Number),...markups.map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
+  const sheets=[...new Set([...Object.keys(pageAreas).map(Number),...wmk().map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
   let sheetRows='';
   sheets.forEach(pg=>{
     const pa=getPageArea(pg);
@@ -2407,7 +3538,7 @@ function exportExcel(){
 
   // 2) full markup detail
   let detailRows='';
-  markups.forEach((m,i)=>{
+  wmk().forEach((m,i)=>{
     const ln=LAYERS.find(l=>l.key===m.layer);
     const p=areaPct(m.area,m.page);
     const dd=durDays(m.start,m.end);
@@ -2472,13 +3603,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=document.ge
 function buildDashboard(){
   const body=document.getElementById('dashBody');
   const po=getProjectArea();
-  const sheets=[...new Set([...Object.keys(pageAreas).map(Number),...markups.map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
-  if(!markups.length){body.innerHTML='<div style="text-align:center;color:var(--text2);padding:40px">ยังไม่มีข้อมูล markup — เริ่มทำ markup ก่อนเพื่อดูสรุป</div>';return;}
+  const sheets=[...new Set([...Object.keys(pageAreas).map(Number),...wmk().map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
+  if(!wmk().length){body.innerHTML='<div style="text-align:center;color:var(--text2);padding:40px">ยังไม่มีข้อมูล markup — เริ่มทำ markup ก่อนเพื่อดูสรุป</div>';return;}
 
   // KPIs
-  const totalMk=markups.length;
+  const totalMk=wmk().length;
   const totalDone=doneProject();
-  const photoCount=markups.reduce((s,m)=>s+m.photos.length,0);
+  const photoCount=wmk().reduce((s,m)=>s+m.photos.length,0);
   const layerDone=LAYERS.map(l=>({l,done:doneLayer(l.key),pct:po?doneLayer(l.key)/po*100:0}));
   const overallPct=po?(layerDone.reduce((s,x)=>s+x.pct,0)/LAYERS.length):0;
 
@@ -2497,7 +3628,7 @@ function buildDashboard(){
 
   // Chart 3: area distribution by zone (donut)
   const zoneAgg={};
-  markups.forEach(m=>{const z=m.zone||'อื่นๆ';zoneAgg[z]=(zoneAgg[z]||0)+(parseFloat(m.area)||0);});
+  wmk().forEach(m=>{const z=m.zone||'อื่นๆ';zoneAgg[z]=(zoneAgg[z]||0)+(parseFloat(m.area)||0);});
   const zoneData=Object.entries(zoneAgg).filter(([,v])=>v>0).map(([k,v])=>({label:k,value:v,color:ZONES[k]||'#888'}));
   const donut=zoneData.length?svgDonut(zoneData):'<div style="color:var(--text2);font-size:12px;text-align:center;padding:30px">ยังไม่มีพื้นที่ในแต่ละโซน</div>';
 
@@ -2510,7 +3641,24 @@ function buildDashboard(){
       <div class="dash-card"><h3>สัดส่วนพื้นที่ตามประเภทงาน</h3>${donut}</div>
       <div class="dash-card full"><h3>ความคืบหน้าแต่ละแผ่น (แยกชั้นงาน)</h3>${sheetChart}</div>
       <div class="dash-card full"><h3>พื้นที่สะสมตามเวลา</h3>${lineChart}</div>
+      <div class="dash-card full"><h3>ขนาดไฟล์เซฟ</h3>${storagePanel()}</div>
     </div>`;
+}
+function storagePanel(){ // แจกแจงว่าไฟล์เซฟหนักที่ส่วนไหน + ปุ่มลดขนาดรูป
+  const b=saveSizeBreakdown();
+  const rows=[
+    ['รูปถ่าย'+(b.photoCount?` (${b.photoCount} รูป)`:''),b.photos,'#f4a726'],
+    ['แบบแปลน PDF',b.pdf,'#60a5fa'],
+    ['ข้อมูล markup',b.markups,'#3dd68c'],
+    ['อื่นๆ (PO/แผน/ประชุม)',b.other,'#a78bfa']
+  ];
+  const bar=rows.filter(r=>r[1]>0).map(r=>`<div style="width:${(r[1]/Math.max(1,b.total)*100).toFixed(1)}%;background:${r[2]}"></div>`).join('');
+  const est=b.photoCount?`<div class="st-note">ถ้ากดลดขนาดรูป จะประหยัดได้ประมาณ ${fmtMB(Math.round(b.photos*0.6))} (รูปที่ยังไม่ถูกบีบอัด)</div>`:'';
+  return `<div class="st-total">รวมประมาณ <b>${fmtMB(b.total)}</b></div>
+    <div class="st-bar">${bar}</div>
+    <div class="st-rows">${rows.map(r=>`<div><span class="st-dot" style="background:${r[2]}"></span>${r[0]}<b>${fmtMB(r[1])}</b></div>`).join('')}</div>
+    ${est}
+    <button class="st-btn" id="optImgBtn" onclick="optimizePhotos()">🗜 ลดขนาดรูป (มีผลกับรูปเก่าด้วย)</button>`;
 }
 
 // horizontal progress bars (0-100%)
@@ -2599,7 +3747,7 @@ function svgDonut(data){
 
 // cumulative area completed over time (by markup end dates)
 function svgTimeline(){
-  const dated=markups.filter(m=>m.end&&parseFloat(m.area)>0&&!isNaN(new Date(m.end))).map(m=>({d:new Date(m.end),a:parseFloat(m.area)})).sort((x,y)=>x.d-y.d);
+  const dated=wmk().filter(m=>m.end&&parseFloat(m.area)>0&&!isNaN(new Date(m.end))).map(m=>({d:new Date(m.end),a:parseFloat(m.area)})).sort((x,y)=>x.d-y.d);
   if(dated.length<2)return '<div style="color:var(--text2);font-size:12px;text-align:center;padding:24px">ต้องมี markup ที่ระบุวันเสร็จอย่างน้อย 2 จุด เพื่อแสดงกราฟเวลา</div>';
   let cum=0;const pts=dated.map(x=>{cum+=x.a;return{d:x.d,c:cum};});
   const W=900,H=220,padL=52,padB=40,padT=14,padR=14;
@@ -2640,16 +3788,27 @@ function loadProject(input){
       pageAreas=d.pageAreas||{};
       pageNames=d.pageNames||{};
       poItems=d.poItems||[];
-      meeting=d.meeting||{date:'',people:'',progress:'',plan:'',issue:'',safety:''};
+      // รองรับไฟล์เก่าที่เก็บบันทึกประชุมครั้งเดียว (object) → แปลงเป็นรายการ
+      meetings=Array.isArray(d.meeting)?d.meeting
+        :(d.meeting&&Object.values(d.meeting).some(v=>String(v||'').trim())
+           ?[Object.assign(newMeeting(),d.meeting,{no:1})]:[]);
+      meetSel=meetings.length?meetings[meetings.length-1].id:null;
+      meetings.forEach(x=>{if(!x.photos)x.photos=[];if(!x.planReview)x.planReview={};});
+      plans=(d.plans||[]).map(p=>Object.assign({rows:[],status:'active',supersededBy:null},p));
+      planSel=plans.length?plans[plans.length-1].id:null;
       pageScale=d.pageScale||{};
       measures=d.measures||[];
       if(d.totalArea&&!d.pageAreas){pageAreas={1:d.totalArea};} // backward compat
       poArea=d.poArea||(d.totalArea&&!d.pageAreas?'':d.poArea)||'';
       syncPageAreaInput();
       grayscale=!!d.grayscale; document.getElementById('grayToggle').checked=grayscale;
-      if(d.layers){LAYERS.length=0;d.layers.forEach(l=>LAYERS.push(l));}
+      if(d.layers){ // คืนค่าชั้นงานจริง (ชั้นแผนงานเป็นของระบบ ไม่เก็บปนใน LAYERS)
+        LAYERS.splice(0,LAYERS.length,...d.layers.filter(l=>l.key!=='plan'));
+        ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER);
+      }
+      if(d.planLayerVisible!==undefined)PLAN_LAYER.visible=d.planLayerVisible;
       markups=d.markups||[];
-      markups.forEach(m=>{m.zone=layerZone(m.layer);}); // ไฟล์เก่า: บังคับประเภทงานให้ตรงชั้นงาน
+      markups.forEach(m=>{m.zone=layerZone(m.layer);if(m.planId===undefined)m.planId=null;}); // ไฟล์เก่า: บังคับประเภทงานให้ตรงชั้นงาน
       if(d.pdf){ pdfData=b642ab(d.pdf); await openPdf(pdfData.slice(0)); if(d.pageNum){pageNum=d.pageNum;await renderPage();} }
       renderLayerBar();renderList();updateSideTitle();
       undoStack=[];redoStack=[];updHistoryBtns();
@@ -2677,7 +3836,7 @@ document.getElementById('cwrap').addEventListener('wheel',e=>{
 // Build a monthly calendar grid for each month spanned by markups,
 // with a colored bar drawn from start->end of each job across day cells.
 function buildCalendarHTML(forPrint){
-  const dated=markups.filter(m=>m.start&&m.end&&!isNaN(new Date(m.start))&&!isNaN(new Date(m.end)));
+  const dated=wmk().filter(m=>m.start&&m.end&&!isNaN(new Date(m.start))&&!isNaN(new Date(m.end)));
   if(!dated.length) return forPrint
     ? '<div class="no-photo">— ยังไม่ได้ลงวันที่งาน —</div>'
     : '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">ลงวันเริ่ม–เสร็จของงานเพื่อแสดงปฏิทิน</div>';
@@ -2812,19 +3971,55 @@ async function printReport(mode){
   const pn=document.getElementById('projName').value||'โครงการ';
   const au=document.getElementById('authorName').value||'';
 
-  // ── ส่วนรายงานการประชุม (แสดงเฉพาะรายงานความก้าวหน้า และเฉพาะเมื่อมีเนื้อหา) ──
+  // ── บันทึกการประชุมติดตามความคืบหน้างานโครงการ (แนบครั้งที่เลือกไว้ + ตารางสรุปทุกครั้ง) ──
   const meetEsc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  const hasMeet=!planOnly&&['progress','plan','issue','safety'].some(k=>(meeting[k]||'').trim());
-  const meetDateTh=meeting.date?(()=>{const[y,mo,d]=meeting.date.split('-');return `${+d}/${+mo}/${+y+543}`;})():'';
-  const meetSection=hasMeet?`<h2><span class="n">1</span> รายงานการประชุม (Meeting Report)</h2>
-<div class="meet-meta">${meetDateTh?`วันที่ประชุม: ${meetDateTh}`:''}${meetDateTh&&meeting.people.trim()?' · ':''}${meeting.people.trim()?`ผู้เข้าร่วม: ${meetEsc(meeting.people)}`:''}</div>
+  const mSel=meetings.find(x=>x.id===meetSel)||meetings[meetings.length-1];
+  const hasMeet=!planOnly&&meetHasContent(mSel);
+  const meetLog=meetings.filter(meetHasContent);
+  const meetPlanTbl=meetPlanTable(mSel);   // ตารางแผนงานที่ผูกไว้ (ถ้ามี)
+  const meetReviewTbl=meetReviewTable(mSel); // ตารางทบทวนแผนครั้งก่อน (วาระต่อเนื่อง)
+  const meetPhotoBlk=meetPhotoHTML(mSel);  // รูปแนบปัญหาอุปสรรค
+  const meetSection=hasMeet?`<h2><span class="n">1</span> บันทึกการประชุมติดตามความคืบหน้างานโครงการ</h2>
+<table class="meet-hdr"><tbody>
+<tr><th>ครั้งที่</th><td>${mSel.no||'-'}${meetLog.length>1?` (จากทั้งหมด ${meetLog.length} ครั้ง)`:''}</td>
+    <th>ประเภท</th><td>${mSel.type==='onsite'?'หารือหน้างาน (โครงการระยะเวลาไม่เกิน 1 เดือน)':'ประชุมติดตามความคืบหน้าประจำเดือน'}</td></tr>
+<tr><th>ประจำเดือน</th><td>${meetThMonth(mSel.month)||'-'}</td>
+    <th>วันที่ประชุม</th><td>${meetThDate(mSel.date)||'-'}</td></tr>
+<tr><th>สถานที่</th><td colspan="3">${meetEsc(mSel.place)||'-'}</td></tr>
+<tr><th>ผู้รับเหมาช่วง</th><td colspan="3">${meetEsc(mSel.sub)||'-'}</td></tr>
+<tr><th>ผู้เข้าร่วมอื่น</th><td colspan="3">${meetEsc(mSel.people)||'-'}</td></tr>
+</tbody></table>
 <div class="meet-grid">
-${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แผนงาน',meeting.plan],['1.3 ปัญหาอุปสรรค',meeting.issue],['1.4 ด้านความปลอดภัย',meeting.safety]]
-  .map(([t,v])=>`<div class="meet-box"><h3>${t}</h3><div class="meet-txt">${(v||'').trim()?meetEsc(v):'<span style="color:#9ca3af">— ไม่มี —</span>'}</div></div>`).join('')}
-</div>`:'';
-  const sOff=hasMeet?1:0; // เลื่อนเลขหัวข้อถัดไปเมื่อมีส่วนประชุม
+${[['1.1 ความคืบหน้างาน',mSel.progress,''],['1.2 แผนงาน',mSel.plan,meetReviewTbl+meetPlanTbl],['1.3 ปัญหาอุปสรรค',mSel.issue,meetPhotoBlk],['1.4 ด้านความปลอดภัย',mSel.safety,'']]
+  .map(([t,v,extra])=>`<div class="meet-box"><h3>${t}</h3><div class="meet-txt">${(v||'').trim()?meetEsc(v):(extra?'':'<span style="color:#9ca3af">— ไม่มี —</span>')}</div>${extra}</div>`).join('')}
+</div>
+<div class="meet-sign">
+  <div class="sg"><div class="sg-l">ลงนามรับรอง</div><div class="sg-line"></div><div class="sg-n">( ${meetEsc(mSel.signFore)||'&nbsp;'.repeat(18)} )</div><div class="sg-r">โฟร์แมน</div><div class="sg-d">วันที่ ......../......../........</div></div>
+  <div class="sg"><div class="sg-l">ลงนามรับรอง</div><div class="sg-line"></div><div class="sg-n">( ${meetEsc(mSel.signLead)||'&nbsp;'.repeat(18)} )</div><div class="sg-r">หัวหน้าทีม / ผู้ช่วยผู้จัดการฝ่ายติดตั้ง</div><div class="sg-d">วันที่ ......../......../........</div></div>
+  <div class="sg"><div class="sg-l">รับทราบ</div><div class="sg-line"></div><div class="sg-n">( ${meetEsc(mSel.signExec)||'&nbsp;'.repeat(18)} )</div><div class="sg-r">ผู้ช่วยกรรมการผู้จัดการสายงานก่อสร้าง</div><div class="sg-d">วันที่ ......../......../........</div></div>
+</div>
+${meetLog.length>1?`<div class="meet-log"><b>ประวัติการประชุมของโครงการ</b><table><thead><tr><th>ครั้งที่</th><th>ประจำเดือน</th><th>วันที่</th><th>ประเภท</th><th style="text-align:left">ผู้รับเหมาช่วง</th></tr></thead><tbody>${
+  meetLog.map(x=>`<tr${x.id===mSel.id?' class="cur"':''}><td>${x.no||'-'}</td><td>${meetThMonth(x.month)||'-'}</td><td>${meetThDate(x.date)||'-'}</td><td>${x.type==='onsite'?'หารือหน้างาน':'ประจำเดือน'}</td><td style="text-align:left">${meetEsc(x.sub)||'-'}</td></tr>`).join('')
+}</tbody></table></div>`:''}`:'';
+  // ── ส่วนแผนงาน: แสดง "แผนปัจจุบัน" เป็นหลัก + ตารางประวัติเวอร์ชัน ──
+  const act=activePlan();
+  const planCandidates=plans.filter(p=>p.rows.length||(p.note||'').trim()||pmk(p.id).length);
+  const showPlan=!planOnly&&act&&planCandidates.some(p=>p.id===act.id)?act:null;
+  const planHist=planCandidates.filter(p=>p.status==='replaced');
+  const planSection=showPlan?`<h2><span class="n">${1+(hasMeet?1:0)}</span> แผนงาน (Work Plan)</h2>
+<div class="pl-blk">
+  <div class="pl-hd"><b>${prEsc(showPlan.name)||'แผนที่ '+showPlan.no} <span class="pl-cur">● แผนปัจจุบัน</span></b><span>${(showPlan.start||showPlan.end)?`${meetThDate(showPlan.start)||'-'} ถึง ${meetThDate(showPlan.end)||'-'}`:''}${showPlan.owner?` · ผู้รับผิดชอบ: ${prEsc(showPlan.owner)}`:''}</span></div>
+  ${planAreaLine(showPlan)}
+  ${showPlan.rows.length?meetPlanRows(showPlan):'<div class="pl-note">— ยังไม่มีรายการงาน —</div>'}
+  ${showPlan.note?`<div class="pl-note">หมายเหตุ: ${prEsc(showPlan.note)}</div>`:''}
+</div>
+${planHist.length?`<div class="meet-log"><b>ประวัติการเปลี่ยนแผน (${planHist.length} เวอร์ชันก่อนหน้า)</b><table><thead><tr><th>แผน</th><th>ช่วงเวลา</th><th style="text-align:left">ผู้รับผิดชอบ</th><th>พื้นที่ตามแผน</th><th>สถานะ</th></tr></thead><tbody>${
+  [...planHist,showPlan].map(p=>{const ar=pmk(p.id).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+    return `<tr${p.id===showPlan.id?' class="cur"':''}><td>${prEsc(p.name)||'แผนที่ '+p.no}</td><td>${meetThDate(p.start)||'-'} – ${meetThDate(p.end)||'-'}</td><td style="text-align:left">${prEsc(p.owner)||'-'}</td><td class="num">${ar?fmtQ(ar):'-'}</td><td>${p.status==='replaced'?'แทนที่แล้ว':'ใช้อยู่'}</td></tr>`;}).join('')
+}</tbody></table></div>`:''}`:'';
+  const sOff=(hasMeet?1:0)+(showPlan?1:0); // เลื่อนเลขหัวข้อถัดไปตามส่วนที่มีจริง
   const today=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-  if(!markups.length){alert('ยังไม่มี markup ให้พิมพ์');return;}
+  if(!(planOnly?pmk():wmk()).length){alert(planOnly?'ยังไม่มี markup แผนงานให้พิมพ์':'ยังไม่มี markup ให้พิมพ์');return;}
 
   // open window NOW (synchronously, on the click) so popup blockers don't stop it
   const w=window.open('','_blank');
@@ -2835,7 +4030,8 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
   await new Promise(r=>setTimeout(r,30)); // let the spinner paint
 
   // pages that have markups, sorted
-  const pagesWithMk=[...new Set(markups.map(m=>m.page))].sort((a,b)=>a-b);
+  const RMK=planOnly?pmk():wmk();  // โหมดแผนงาน = เฉพาะ markup แผน · โหมดปกติ = เฉพาะงานจริง
+  const pagesWithMk=[...new Set(RMK.map(m=>m.page))].sort((a,b)=>a-b);
 
   // for each page render the base plan once, then build a per-layer snapshot
   const pageSnaps={};
@@ -2848,11 +4044,11 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
       const bx=bareC.getContext('2d');bx.fillStyle='#fff';bx.fillRect(0,0,bareC.width,bareC.height);bx.drawImage(base,0,0);
       const bare=bareC.toDataURL('image/jpeg',0.75);
       const layers={};
-      LAYERS.forEach(l=>{
-        if(!markups.some(m=>m.layer===l.key&&m.page===pg)){layers[l.key]=null;return;}
+      (planOnly?[PLAN_LAYER]:LAYERS).forEach(l=>{
+        if(!RMK.some(m=>m.layer===l.key&&m.page===pg)){layers[l.key]=null;return;}
         const mc=document.createElement('canvas');mc.width=base.width;mc.height=base.height;
         const x=mc.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,mc.width,mc.height);x.drawImage(base,0,0);
-        markups.filter(m=>m.layer===l.key&&m.page===pg).forEach(m=>drawMarkupOnCtx(x,m,markups.indexOf(m)+1));
+        RMK.filter(m=>m.layer===l.key&&m.page===pg).forEach(m=>drawMarkupOnCtx(x,m,markups.indexOf(m)+1));
         layers[l.key]=mc.toDataURL('image/jpeg',0.75);
       });
       pageSnaps[pg]={layers,bare};
@@ -2867,10 +4063,10 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
   // per-layer totals across all pages (each layer compared to whole-project area)
   const layerTotals={};
   LAYERS.forEach(l=>{
-    const sum=markups.filter(m=>m.layer===l.key).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+    const sum=wmk().filter(m=>m.layer===l.key).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
     layerTotals[l.key]={area:sum,pct:projTotal?sum/projTotal*100:null};
   });
-  const overviewRows=markups.map((m,i)=>{
+  const overviewRows=wmk().map((m,i)=>{
     const dd=durDays(m.start,m.end);const ln=LAYERS.find(l=>l.key===m.layer);
     const p=areaPct(m.area,m.page);
     return `<tr><td><span class="dot" style="background:${m.stroke}"></span>${i+1}</td>
@@ -2881,7 +4077,7 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
       <td>${m.start||'-'}</td><td>${m.end||'-'}</td><td>${dd||'-'}</td><td>${m.photos.length}</td></tr>`;
   }).join('');
   // one summary row per layer (only those with markups)
-  const overviewFoot=projTotal?`<tfoot>${LAYERS.filter(l=>markups.some(m=>m.layer===l.key)).map(l=>`<tr style="background:#f9fafb;font-weight:700">
+  const overviewFoot=projTotal?`<tfoot>${LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).map(l=>`<tr style="background:#f9fafb;font-weight:700">
       <td></td>
       <td style="text-align:left"><span class="dot" style="background:${l.color}"></span>${l.name} — รวมทุกหน้า</td>
       <td style="text-align:left;color:#9ca3af;font-weight:400">เทียบพื้นที่โครงการ ${projTotal.toLocaleString()} ตร.ม.</td>
@@ -2890,7 +4086,7 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
       <td colspan="4"></td></tr>`).join('')}</tfoot>`:'';
 
   // per-sheet progress table — split by layer (เทปรับ / ติดตั้ง), each vs sheet area
-  const sheetsWithArea=[...new Set([...Object.keys(pageAreas).map(Number),...markups.map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
+  const sheetsWithArea=[...new Set([...Object.keys(pageAreas).map(Number),...wmk().map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
   let sheetTable='';
   if(sheetsWithArea.length){
     const Ls=LAYERS; // [screed, install]
@@ -2971,7 +4167,7 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
       return `<span style="color:${l.color}">${l.name} ${d.toLocaleString()}/${pa.toLocaleString()} = ${fmtPct(pct)}</span>`;
     }).join(' · '):'';
     // markups on this sheet, ordered by layer then index
-    const sheetMks=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg);
+    const sheetMks=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg&&!isPlanMk(o.m));
     let mkBlocks='';
     sheetMks.forEach(({m,gi})=>{
       const dd=durDays(m.start,m.end);
@@ -3021,21 +4217,19 @@ ${[['1.1 ความคืบหน้างาน',meeting.progress],['1.2 แ
     const snaps=pageSnaps[pg]?pageSnaps[pg].layers:{};
     const bare=pageSnaps[pg]?pageSnaps[pg].bare:null;
     const pa=getPageArea(pg);
-    const headExtra=pa?' · '+LAYERS.map(l=>{
-      const d=donePageLayer(pg,l.key);
-      return `<span style="color:${l.color}">${l.name} ${d.toLocaleString()}/${pa.toLocaleString()} = ${fmtPct(d/pa*100)}</span>`;
-    }).join(' · '):'';
+    const planAreaPg=pmk().filter(m=>m.page===pg).reduce((t,m)=>t+(parseFloat(m.area)||0),0);
+    const headExtra=pa?` · <span style="color:${PLAN_LAYER.color}">พื้นที่ตามแผน ${planAreaPg.toLocaleString()}/${pa.toLocaleString()} = ${fmtPct(planAreaPg/pa*100)}</span>`:'';
     // ภาพแบบเต็มความกว้าง แยกตามชั้นงานที่มี markup
     let imgs='';
-    LAYERS.forEach(l=>{
+    (planOnly?[PLAN_LAYER]:LAYERS).forEach(l=>{
       if(!snaps[l.key])return;
       imgs+=`<div class="plan-l"><div class="cmp-h" style="border-color:${l.color}"><span class="dot" style="background:${l.color}"></span> ${l.name}</div><img src="${snaps[l.key]}"></div>`;
     });
     if(!imgs&&bare)imgs=`<div class="plan-l"><img src="${bare}"></div>`;
     // ตารางย่อ markup ของแผ่นนี้ (ไม่มีรูป)
     const sheetName=getPageName(pg)||('แผ่นที่ '+pg); // ตรงกับช่อง "ชื่อแผ่นนี้" ในแอพ
-    const rows=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg).map(({m,gi})=>{
-      const ln=LAYERS.find(l=>l.key===m.layer);
+    const rows=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg&&(planOnly?isPlanMk(o.m):!isPlanMk(o.m))).map(({m,gi})=>{
+      const ln=ALL_LAYERS.find(l=>l.key===m.layer);
       const p=areaPct(m.area,m.page);
       return `<tr>
         <td style="text-align:center"><span class="mk-n" style="background:${m.stroke}">${gi}</span></td>
@@ -3070,10 +4264,44 @@ body{font-family:'Sarabun',sans-serif;color:#1f2937;font-size:12.5px;line-height
 .summ .l{font-size:9.5px;color:#9ca3af;text-transform:uppercase}.summ .v{font-size:16px;font-weight:700;color:#111827;margin-top:1px}
 h2{font-size:13px;font-weight:700;color:#111827;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid #111827;display:flex;align-items:center;gap:7px;break-after:avoid}
 .meet-meta{font-size:10.5px;color:#6b7280;margin:-2px 0 8px}
+.meet-hdr{width:100%;border-collapse:collapse;font-size:10.5px;margin-bottom:9px}
+.meet-hdr th{background:#f9fafb;border:1px solid #e5e7eb;padding:5px 8px;text-align:left;color:#6b7280;font-weight:600;white-space:nowrap;width:1%}
+.meet-hdr td{border:1px solid #e5e7eb;padding:5px 8px;color:#111827}
 .meet-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px}
 .meet-box{border:1px solid #e5e7eb;border-radius:6px;padding:9px 12px;page-break-inside:avoid;break-inside:avoid}
 .meet-box h3{font-size:11px;font-weight:700;color:#e8761a;margin:0 0 5px;padding-bottom:4px;border-bottom:1px solid #f3f4f6}
 .meet-box .meet-txt{font-size:11px;color:#111827;line-height:1.65;word-break:break-word}
+.pl-tbl{width:100%;border-collapse:collapse;font-size:9.5px;margin-top:6px}
+.pl-tbl th{background:#f9fafb;border:1px solid #e5e7eb;padding:3px 5px;color:#6b7280;font-weight:600}
+.pl-tbl td{border:1px solid #e5e7eb;padding:3px 5px;text-align:center;color:#111827}
+.pl-tbl td.num{text-align:right;font-family:'IBM Plex Mono','Sarabun'}
+.pl-note{font-size:9.5px;color:#6b7280;margin-top:4px}
+.pl-blk{border:1px solid #e5e7eb;border-radius:6px;padding:9px 12px;margin-bottom:9px;page-break-inside:avoid;break-inside:avoid}
+.pl-hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid #f3f4f6}
+.pl-hd b{font-size:11.5px;color:#e8761a}
+.pl-cur{font-size:9px;color:#16a34a;font-weight:700}
+.rv-wrap{margin-top:6px}
+.rv-h{font-size:10px;color:#6b7280;font-weight:600;margin-bottom:4px}
+.rv-tbl{width:100%;border-collapse:collapse;font-size:9.5px}
+.rv-tbl th{background:#f9fafb;border:1px solid #e5e7eb;padding:3px 5px;color:#6b7280;font-weight:600}
+.rv-tbl td{border:1px solid #e5e7eb;padding:3px 5px;text-align:center;color:#111827}
+.pl-hd span{font-size:9.5px;color:#6b7280}
+.pl-area{font-size:10px;color:#1d4ed8;background:#eff6ff;border-radius:4px;padding:4px 7px;margin-bottom:5px}
+.mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}
+.mp-grid figure{border:1px solid #e5e7eb;border-radius:5px;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
+.mp-grid img{width:100%;height:104px;object-fit:cover;display:block}
+.mp-grid figcaption{font-size:8.5px;color:#6b7280;text-align:center;padding:2px 0 3px}
+.meet-sign{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0 6px;page-break-inside:avoid;break-inside:avoid}
+.meet-sign .sg{text-align:center;font-size:10px;color:#111827}
+.meet-sign .sg-l{font-size:9.5px;color:#6b7280;margin-bottom:26px}
+.meet-sign .sg-line{border-bottom:1px dotted #9ca3af;margin:0 8px 5px}
+.meet-sign .sg-n{font-size:10px;margin-bottom:3px}
+.meet-sign .sg-r{font-size:9.5px;color:#6b7280;line-height:1.35}
+.meet-sign .sg-d{font-size:9px;color:#9ca3af;margin-top:5px}
+.meet-log{margin-top:12px;page-break-inside:avoid;break-inside:avoid}
+.meet-log b{font-size:10.5px;color:#6b7280;display:block;margin-bottom:5px}
+.meet-log table{font-size:10px}
+.meet-log tr.cur td{background:#fff7ed;font-weight:700}
 h2 .n{width:20px;height:20px;background:#111827;color:#f4a726;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px}
 table{width:100%;border-collapse:collapse;font-size:11px}
 th{background:#f9fafb;padding:6px;border:1px solid #e5e7eb;font-weight:600}
@@ -3136,14 +4364,14 @@ body{padding-top:56px}
 </div>
 <div class="bar"></div>
 <div class="hdr"><div><h1>${planOnly?'แผนงาน':'รายงานความก้าวหน้า'} — ${pn}</h1><div class="sub">${planOnly?'แบบระบุตำแหน่งงาน (Markup Plan) · ใช้สำหรับวางแผน/สั่งงานหน้างาน':'งานติดตั้งกระเบื้องยาง · เปรียบเทียบงานเทปรับพื้น / งานติดตั้ง'}</div></div>
-<div class="meta"><div>วันที่: ${today}</div><div>จำนวน markup: ${markups.length}</div></div></div>
-<div class="summ" style="grid-template-columns:repeat(${(planOnly?1:2)+LAYERS.filter(l=>markups.some(m=>m.layer===l.key)).length},1fr)">
-  <div class="c"><div class="l">จำนวน Markup</div><div class="v">${markups.length} จุด</div></div>
-  ${projTotal?LAYERS.filter(l=>markups.some(m=>m.layer===l.key)).map(l=>`<div class="c"><div class="l"><span class="dot" style="background:${l.color}"></span>${l.name}</div><div class="v" style="color:${l.color}">${fmtPct(layerTotals[l.key].pct)}</div><div style="font-size:9px;color:#9ca3af;margin-top:1px">${layerTotals[l.key].area.toLocaleString()} / ${projTotal.toLocaleString()} ตร.ม.</div></div>`).join(''):`<div class="c"><div class="l">พื้นที่โครงการ</div><div class="v">— กรอกพื้นที่แต่ละหน้า —</div></div>`}
-  ${planOnly?'':`<div class="c"><div class="l">รูปภาพแนบ</div><div class="v">${markups.reduce((s,m)=>s+m.photos.length,0)} รูป</div></div>`}
+<div class="meta"><div>วันที่: ${today}</div><div>จำนวน markup: ${RMK.length}</div></div></div>
+<div class="summ" style="grid-template-columns:repeat(${(planOnly?1:2)+LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).length},1fr)">
+  <div class="c"><div class="l">จำนวน Markup</div><div class="v">${RMK.length} จุด</div></div>
+  ${projTotal?LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).map(l=>`<div class="c"><div class="l"><span class="dot" style="background:${l.color}"></span>${l.name}</div><div class="v" style="color:${l.color}">${fmtPct(layerTotals[l.key].pct)}</div><div style="font-size:9px;color:#9ca3af;margin-top:1px">${layerTotals[l.key].area.toLocaleString()} / ${projTotal.toLocaleString()} ตร.ม.</div></div>`).join(''):`<div class="c"><div class="l">พื้นที่โครงการ</div><div class="v">— กรอกพื้นที่แต่ละหน้า —</div></div>`}
+  ${planOnly?'':`<div class="c"><div class="l">รูปภาพแนบ</div><div class="v">${wmk().reduce((s,m)=>s+m.photos.length,0)} รูป</div></div>`}
 </div>
 ${poTable}
-${planOnly?planBody:`${meetSection}<h2><span class="n">${1+sOff}</span> ความคืบหน้าตามแผ่นแบบ (Progress by Sheet)</h2>
+${planOnly?planBody:`${meetSection}${planSection}<h2><span class="n">${1+sOff}</span> ความคืบหน้าตามแผ่นแบบ (Progress by Sheet)</h2>
 ${sheetTable}
 <h2><span class="n">${2+sOff}</span> ปฏิทินระยะเวลางาน (Timeline)</h2>
 ${buildCalendarHTML(true)}
