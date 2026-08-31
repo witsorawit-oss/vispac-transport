@@ -176,6 +176,8 @@ body.side-hidden .side-reopen{display:block}
 .layer-tab:hover{color:var(--text)}
 .layer-tab.active{color:var(--text);border-bottom-color:var(--lyr-color,#f4a726)}
 .layer-dot{width:10px;height:10px;border-radius:50%}
+.layer-add{background:var(--bg3);border:1px dashed var(--bd);border-radius:8px;color:var(--text2);font-family:'Sarabun';font-size:11.5px;font-weight:600;padding:0 11px;cursor:pointer;white-space:nowrap;align-self:stretch}
+.layer-add:hover{color:var(--text);border-color:var(--accent)}
 .layer-eye{position:absolute;right:8px;background:none;border:none;cursor:pointer;font-size:13px;opacity:.6;display:flex;align-items:center;justify-content:center}
 .layer-eye:hover{opacity:1}
 .layer-count{font-size:11px;color:var(--text2);background:var(--bg3);border-radius:9px;padding:1px 7px}
@@ -503,6 +505,9 @@ body.side-hidden .side-reopen{display:block}
 .dlv-act{display:flex;gap:6px;margin-top:7px}
 .dlv-act button{background:var(--bg2);border:1px solid var(--bd);border-radius:6px;color:var(--text2);font-family:'Sarabun';font-size:10.5px;padding:5px 9px;cursor:pointer}
 .dlv-act button:hover{color:var(--text)}
+.mv-opt{display:flex;align-items:center;gap:10px;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;cursor:pointer;font-family:'Sarabun';font-size:12.5px;color:var(--text);text-align:left}
+.mv-opt:hover{border-color:var(--accent)}
+.mv-opt small{display:block;color:var(--text2);font-size:10.5px;margin-top:2px;font-weight:400}
 .mg-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:12.5px}
 .mg-row:hover{background:var(--bg3)}
 .mg-row input{width:17px;height:17px;flex-shrink:0}
@@ -645,7 +650,7 @@ button,input,select,textarea,label{touch-action:manipulation}
       <button class="hbtn" onclick="openDashboard()" title="สรุปภาพรวม กราฟ ขนาดไฟล์">📊 สรุป</button>
       <button class="hbtn" onclick="exportExcel()" title="ส่งออกเป็นไฟล์ Excel">📗 Excel</button>
       <button class="hbtn" onclick="openDeliv()" title="จัดการรอบส่งงาน — เลือกพื้นที่ ใส่วัสดุ แล้วพิมพ์ใบส่งงาน">📋 ใบส่งงาน</button>
-      <button class="hbtn pri" onclick="printReport()" title="พิมพ์รายงานเต็ม (ประชุม + แผนงาน + ความคืบหน้า)">🖨 พิมพ์</button>
+      <button class="hbtn pri" onclick="openPrintPick()" title="พิมพ์รายงาน — เลือกหมวดงานที่จะเอาได้">🖨 พิมพ์</button>
     </span>
   </div>
 </header>
@@ -831,7 +836,7 @@ button,input,select,textarea,label{touch-action:manipulation}
     <div class="mkpop-btns">
       <button class="mkpop-save" onclick="savePlans()">✓ บันทึก</button>
       <button onclick="planToMeeting()" title="ใส่แผนนี้ลงในบันทึกการประชุมครั้งที่กำลังแก้">📋 ใส่ในบันทึกประชุม</button>
-      <button onclick="savePlans();printReport('plan')" title="พิมพ์เฉพาะแบบที่ markup ไม่มีรูปถ่าย — ใช้สั่งงานหน้างาน">🗺 พิมพ์แบบสั่งงาน</button>
+      <button onclick="savePlans();printReport('plan')" title="พิมพ์แบบพร้อมขอบเขตงานตามแผน + รูปถ่ายที่แนบไว้ — ใช้สั่งงานหน้างาน">🗺 พิมพ์แบบสั่งงาน</button>
       <button class="mkpop-del" onclick="delPlan()" title="ลบแผนนี้">🗑</button>
     </div>
   </div>
@@ -897,6 +902,23 @@ button,input,select,textarea,label{touch-action:manipulation}
         <button class="dash-close" onclick="closeDeliv()">✕</button>
       </div></div>
     <div class="po-body" id="delivBody"></div>
+  </div>
+</div>
+<div class="mkpop-overlay" id="printOverlay" style="display:none">
+  <div class="mkpop">
+    <div class="mkpop-head"><span>🖨 เลือกหมวดงานที่จะพิมพ์</span></div>
+    <div class="mkpop-body" id="printBody"></div>
+    <div class="mkpop-btns">
+      <button style="flex:1;background:var(--bg3);color:var(--text)" onclick="closePrintPick()">ยกเลิก</button>
+      <button style="flex:1;background:var(--accent);color:#111;border-color:var(--accent)" id="printGo" onclick="doPrintPick()">🖨 พิมพ์</button>
+    </div>
+  </div>
+</div>
+<div class="mkpop-overlay" id="moveOverlay" style="display:none">
+  <div class="mkpop">
+    <div class="mkpop-head"><span>↔ ย้ายชั้นงาน</span></div>
+    <div class="mkpop-body" id="moveBody"></div>
+    <div class="mkpop-btns"><button style="flex:1;background:var(--bg3);color:var(--text)" onclick="closeMove()">ยกเลิก</button></div>
   </div>
 </div>
 <div class="mkpop-overlay" id="mergeOverlay" style="display:none">
@@ -1137,7 +1159,12 @@ function setMulti(v){
 }
 function cancelMulti(){setMulti(null);}
 // ประเภทงานล็อกตามชั้นงานที่ markup — เปลี่ยนไม่ได้
-function layerZone(layerKey){return layerKey==='plan'?'แผนงาน (คาดการณ์)':(layerKey==='deliv'?'ใบส่งงาน':(layerKey==='screed'?'งานเทปรับพื้น':'งานติดตั้งกระเบื้องยาง'));}
+function layerZone(layerKey){
+  if(layerKey==='plan')return 'แผนงาน (คาดการณ์)';
+  if(layerKey==='deliv')return 'ใบส่งงาน';
+  const l=LAYERS.find(x=>x.key===layerKey);
+  return l?l.name:'งานติดตั้งกระเบื้องยาง';
+}
 // ── UNDO/REDO history (snapshots of markups)
 let undoStack=[], redoStack=[];
 function snapMarkups(){return JSON.stringify(markups);}
@@ -1456,9 +1483,37 @@ function renderLayerBar(){
       ${nm}
       <span class="layer-count">${cnt}</span>
       ${isPlan?`<button class="layer-eye" style="right:30px" onclick="event.stopPropagation();openPlans()" title="สร้าง/สลับแผน">🗓</button>`:''}
+      ${l.custom?`<button class="layer-eye" style="right:30px" onclick="event.stopPropagation();delLayer('${l.key}')" title="ลบประเภทงานนี้">🗑</button>`:''}
       <button class="layer-eye" onclick="event.stopPropagation();toggleLayerVis('${l.key}')" title="ซ่อน/แสดง">${l.visible?'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 1 11s4 7 11 7a9.26 9.26 0 0 0 5.39-1.61"/><path d="M14.12 14.12A3 3 0 1 1 9.88 9.88"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'}</button>
     </div>`;
-  }).join('');
+  }).join('')
+  +`<button class="layer-add" onclick="addLayer()" title="เพิ่มประเภทงานอื่น เช่น งานหลังคา">➕ ประเภทงาน</button>`;
+}
+// ── ประเภทงานที่ผู้ใช้เพิ่มเอง (เช่น งานหลังคา) ──
+// เก็บใน LAYERS เหมือนชั้นมาตรฐาน จึงถูกนับเข้าความคืบหน้า/BOQ/รายงานเหมือนกันทุกอย่าง
+const LAYER_COLORS=['#a855f7','#14b8a6','#f97316','#ec4899','#84cc16','#06b6d4','#eab308','#f43f5e'];
+function addLayer(){
+  const name=(prompt('ชื่อประเภทงานใหม่\n(เช่น งานหลังคา, งานผนัง, งานฝ้า)','')||'').trim();
+  if(!name)return;
+  if(ALL_LAYERS.some(l=>l.name===name)){alert('มีประเภทงานชื่อนี้อยู่แล้ว');return;}
+  const key='cus'+Date.now().toString(36);
+  const color=LAYER_COLORS[LAYERS.filter(l=>l.custom).length%LAYER_COLORS.length];
+  const nl={key,name,color,visible:true,custom:true};
+  LAYERS.push(nl);
+  ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+  activeLayer=key;
+  buildSwatches(); renderLayerBar(); renderList(); redraw(); renderProgress(); updateSideTitle();
+}
+function delLayer(key){
+  const l=LAYERS.find(x=>x.key===key); if(!l||!l.custom)return;
+  const n=markups.filter(m=>m.layer===key).length;
+  if(!confirm(`ลบประเภทงาน "${l.name}"?`+(n?`\n\nพื้นที่ที่วาดไว้ ${n} จุดจะถูกลบไปด้วย`:'')))return;
+  pushHistory();
+  markups=markups.filter(m=>m.layer!==key);
+  LAYERS.splice(LAYERS.indexOf(l),1);
+  ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+  if(activeLayer===key)activeLayer=LAYERS[0].key;
+  buildSwatches(); renderLayerBar(); renderList(); redraw(); renderProgress(); renderInsights(); updateSideTitle();
 }
 function setLayer(key){ activeLayer=key; selId=null; renderLayerBar(); redraw(); renderList(); updateSideTitle(); }
 function toggleLayerVis(key){ const l=ALL_LAYERS.find(x=>x.key===key); l.visible=!l.visible; renderLayerBar(); redraw(); }
@@ -3242,6 +3297,7 @@ function renderList(){
         <span class="mk-badge" style="background:${m.stroke}22;color:${m.stroke}">${m.zone}</span>
         <span style="font-size:10px;color:var(--text2)">หน้า ${m.page}</span>
         ${m.extraShapes&&m.extraShapes.length?`<span style="font-size:10px;color:var(--blue);border:1px solid var(--blue);border-radius:4px;padding:0 5px">⬡×${1+m.extraShapes.length}</span>`:''}
+        <button class="mk-del" style="right:60px;color:var(--text2)" title="ย้ายไปชั้นงานอื่น" onclick="event.stopPropagation();openMove(${m.id})">↔</button>
         <button class="mk-del" style="right:34px;color:var(--blue)" title="ยุบรวม markup อื่นเข้ากับตัวนี้ (ปริมาณบวกกัน)" onclick="event.stopPropagation();openMerge(${m.id})">🔗</button>
         <button class="mk-del" onclick="event.stopPropagation();pushHistory();delMk(${m.id})">🗑</button>
       </div>
@@ -3955,15 +4011,14 @@ function meetFillProgress(){
   const D=meetProgressData(m);
   const pc=(a,b)=>b>0?Math.round(a/b*1000)/10:null;
   const L=[`สรุปความคืบหน้า ณ วันที่ ${meetThDate(D.cut)}`];
-  // บรรทัดภาพรวม — แยกตามหน่วย
-  // หมายเหตุ: ยอดรวมต่อหน่วยคือ "ปริมาณตามสัญญารวมทุกรายการ" ไม่ใช่พื้นที่พื้น
-  // (Self Leveling + ไวนิล + แว็กซ์ เป็นงานคนละขั้นบนพื้นผืนเดียวกัน บวกกันแล้วไม่ใช่ขนาดพื้น)
-  if(D.units.length)L.push('ปริมาณงานรวมทุกรายการ — '+D.units.map(u=>`หน่วย ${u.unit}: ${fmtQ(u.acc)} / ${fmtQ(u.boqQty)} (${pc(u.acc,u.boqQty)}%)`).join(' · '));
-  // งวดนี้
+  // ไม่สรุปยอดรวมข้ามรายการอีกแล้ว — Self Leveling + ไวนิล + แว็กซ์ ทำบนพื้นผืนเดียวกัน
+  // บวกกันได้ตัวเลขที่ไม่มีความหมาย (เช่น 113,042 ตร.ม. ทั้งที่พื้นจริงมี 38,310) และอ่านเป็นพื้นที่ผิด
+  // ความคืบหน้าให้ดูจากบรรทัดชั้นงานด้านล่าง และ % รายรายการในตารางของไฟล์ PDF แทน
+  // งวดนี้ — บอกเป็นปริมาณที่เพิ่ม + จำนวนรายการที่ขยับ ไม่ใส่ % รวม (ตัวหารไม่มีความหมาย)
   if(D.prev&&D.pcut){
     const add=D.units.filter(u=>u.add>0.0001);
     L.push(add.length
-      ? `งวดนี้ (${meetThDate(D.pcut)} – ${meetThDate(D.cut)}) ทำเพิ่ม ${add.map(u=>`${fmtQ(u.add)} ${u.unit} (+${pc(u.add,u.boqQty)}%)`).join(' · ')} — ${D.moved.length} รายการมีความคืบหน้า`
+      ? `งวดนี้ (${meetThDate(D.pcut)} – ${meetThDate(D.cut)}) ทำเพิ่ม ${add.map(u=>`${fmtQ(u.add)} ${u.unit}`).join(' · ')} — ${D.moved.length} รายการมีความคืบหน้า`
       : `งวดนี้ (${meetThDate(D.pcut)} – ${meetThDate(D.cut)}) ยังไม่มีความคืบหน้าเพิ่ม`);
   }else if(meetings.length>1&&!m.date)L.push('* ยังไม่ได้กรอกวันที่ประชุม จึงเทียบกับครั้งก่อนไม่ได้');
   const notStarted=D.rows.length-D.started.length;
@@ -4642,6 +4697,66 @@ async function addSheets(input){
       '\n\nถ้าไฟล์ใหญ่มากและใช้บน iPad ลองปิดแท็บอื่นแล้วลองใหม่ หรือรวมไฟล์บนคอมแล้วอัพทั้งชุด');
   } finally { setBusy(''); }
 }
+// ══════════════ ย้าย MARKUP ไปชั้นงานอื่น ══════════════
+// ชั้นงานผูกกับ markup ตั้งแต่ตอนวาด เดิมย้ายไม่ได้ต้องลบแล้ววาดใหม่
+// การย้ายข้ามชั้นมีผลข้างเคียงเยอะ (นับ/ไม่นับความคืบหน้า, การอ้างอิงจากแผนและใบส่งงาน) จึงจัดการให้ครบในที่เดียว
+let moveMkId=null;
+function openMove(id){
+  const m=markups.find(x=>x.id===id); if(!m)return;
+  moveMkId=id;
+  const cur=ALL_LAYERS.find(l=>l.key===m.layer);
+  const body=document.getElementById('moveBody');
+  const opts=ALL_LAYERS.filter(l=>l.key!==m.layer);
+  body.innerHTML=`<div class="sc-note" style="margin-bottom:9px">
+      ย้าย <b>#${mkNo(m)} ${(m.note||m.zone).replace(/</g,'&lt;')}</b>
+      จาก <b style="color:${cur?cur.color:''}">${cur?cur.name:'-'}</b> ไปที่:</div>`
+    +opts.map(l=>{
+      const warn=moveWarn(m,l.key);
+      return `<button class="mv-opt" onclick="doMove('${l.key}')">
+        <span class="dot" style="background:${l.color}"></span>
+        <span><b>${l.name}</b>${warn?`<small>${warn}</small>`:''}</span></button>`;
+    }).join('')
+    +`<div class="sc-note" style="margin-top:9px">กรอบบนแบบ · พื้นที่ · วันที่ · รูปถ่าย ย้ายไปด้วยทั้งหมด · กด ↶ ย้อนได้</div>`;
+  showOverlay('moveOverlay');
+}
+function closeMove(){ document.getElementById('moveOverlay').style.display='none'; moveMkId=null; }
+function moveWarn(m,to){ // บอกล่วงหน้าว่าย้ายแล้วอะไรจะเปลี่ยน
+  const w=[];
+  const fromWork=!isPlanMk(m)&&!isDelivMk(m), toWork=(to!=='plan'&&to!=='deliv');
+  if(fromWork&&!toWork)w.push('จะไม่ถูกนับเป็นความคืบหน้า/BOQ อีก');
+  if(!fromWork&&toWork)w.push('จะเริ่มถูกนับเป็นความคืบหน้า/BOQ');
+  if(isPlanMk(m)&&to!=='plan')w.push('หลุดจากแผนที่ผูกไว้');
+  if(isDelivMk(m)&&to!=='deliv')w.push('หลุดจากรอบส่งงาน');
+  if(to==='plan')w.push(planSel?'เข้าแผนที่เปิดอยู่':'ยังไม่ได้เลือกแผน');
+  if(to==='deliv')w.push(delivSel?'เข้ารอบส่งงานที่เปิดอยู่':'ยังไม่ได้เลือกรอบ');
+  if(m.items&&m.items.length&&!toWork)w.push('รายการ PO ที่ติ๊กไว้จะถูกล้าง');
+  return w.join(' · ');
+}
+function doMove(to){
+  const m=markups.find(x=>x.id===moveMkId); if(!m)return closeMove();
+  if(to==='plan'&&!plans.length){alert('ยังไม่มีแผนงาน — สร้างแผนก่อน (🗓 แผนงาน)');return;}
+  if(to==='deliv'&&!delivs.length){alert('ยังไม่มีรอบส่งงาน — สร้างรอบก่อน (📋 ใบส่งงาน)');return;}
+  pushHistory();
+  const L=ALL_LAYERS.find(l=>l.key===to);
+  // ล้างการอ้างอิงของชั้นเดิมก่อน
+  if(isPlanMk(m)&&to!=='plan'){
+    plans.forEach(p=>(p.rows||[]).forEach(r=>{ if(r.mkId===m.id)r.mkId=null; }));
+    meetings.forEach(mt=>{ if(mt.planSnapshot&&mt.planSnapshot.rows)
+      mt.planSnapshot.rows.forEach(r=>{ if(r.mkId===m.id)r.mkId=null; }); });
+    m.planId=null;
+  }
+  if(isDelivMk(m)&&to!=='deliv'){ m.delivId=null; m.hatch=undefined; }
+  // ตั้งค่าของชั้นใหม่
+  m.layer=to;
+  m.zone=layerZone(to);
+  m.stroke=m.fill=L.color;                       // ใช้สีประจำชั้นใหม่ ให้ดูออกบนแบบ
+  if(to==='plan'){ m.planId=planSel; m.items=[]; }
+  else if(to==='deliv'){ m.delivId=delivSel; if(!m.hatch)m.hatch='diag'; m.items=[]; }
+  activeLayer=to; selId=m.id;
+  closeMove();
+  redraw(); renderList(); renderLayerBar(); renderProgress(); renderInsights(); updateSideTitle();
+  alert(`ย้ายไป "${L.name}" แล้ว ✓  (เลขใหม่ #${mkNo(m)})\n\nถ้าไม่ถูกใจ กด ↶ ย้อนกลับได้`);
+}
 // ══════════════ ยุบรวม MARKUP (เหมือน MATCHPROP+JOIN ของ AutoCAD) ══════════════
 // รวม markup หลายตัวที่เป็นงานกลุ่มเดียวกัน (ทำคนละวัน) ให้เหลือก้อนเดียว ปริมาณบวกกัน
 let mergeBase=null;
@@ -5132,7 +5247,8 @@ function loadProject(input){
       grayscale=!!d.grayscale; document.getElementById('grayToggle').checked=grayscale;
       if(d.layers){ // คืนค่าชั้นงานจริง (ชั้นแผนงานเป็นของระบบ ไม่เก็บปนใน LAYERS)
         LAYERS.splice(0,LAYERS.length,...d.layers.filter(l=>l.key!=='plan'&&l.key!=='deliv'));
-        ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER);
+        ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+        if(!ALL_LAYERS.some(l=>l.key===activeLayer))activeLayer=LAYERS[0].key;
       }
       if(d.planLayerVisible!==undefined)PLAN_LAYER.visible=d.planLayerVisible;
       markups=d.markups||[];
@@ -5170,8 +5286,10 @@ document.getElementById('cwrap').addEventListener('wheel',e=>{
 // ══════════════ CALENDAR / TIMELINE ══════════════
 // Build a monthly calendar grid for each month spanned by markups,
 // with a colored bar drawn from start->end of each job across day cells.
-function buildCalendarHTML(forPrint){
-  const dated=wmk().filter(m=>m.start&&m.end&&!isNaN(new Date(m.start))&&!isNaN(new Date(m.end)));
+function buildCalendarHTML(forPrint,only){
+  // only = หมวดงานที่เลือกพิมพ์ (ไม่ส่ง = ทุกหมวด) — ต้องกรองด้วย ไม่งั้นคำอธิบายสีจะโชว์งานหมวดที่ไม่ได้พิมพ์
+  const src=(Array.isArray(only)&&only.length)?wmk().filter(m=>only.includes(m.layer)):wmk();
+  const dated=src.filter(m=>m.start&&m.end&&!isNaN(new Date(m.start))&&!isNaN(new Date(m.end)));
   if(!dated.length) return forPrint
     ? '<div class="no-photo">— ยังไม่ได้ลงวันที่งาน —</div>'
     : '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">ลงวันเริ่ม–เสร็จของงานเพื่อแสดงปฏิทิน</div>';
@@ -5304,8 +5422,53 @@ async function renderPageToCanvas(pg,scale){
 }
 
 // ══════════════ PRINT ══════════════
-async function printReport(mode){
+// ── เลือกหมวดงานก่อนพิมพ์ ──
+// เดิมรายงานเอาทุกหมวดเสมอ ทำให้ตอนส่งงานเทปรับพื้นอย่างเดียวก็ยังมีตารางงานติดตั้งติดไปด้วย
+let printSel=null;   // null = ยังไม่เคยเลือก → ติ๊กทุกหมวด
+function openPrintPick(){
+  if(!wmk().length){alert('ยังไม่มี markup งานจริงให้พิมพ์');return;}
+  const has=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
+  if(has.length<2){ printReport(); return; }          // มีหมวดเดียว ไม่ต้องถาม
+  if(!printSel)printSel=has.map(l=>l.key);
+  printSel=printSel.filter(k=>has.some(l=>l.key===k));
+  if(!printSel.length)printSel=has.map(l=>l.key);
+  renderPrintPick();
+  showOverlay('printOverlay');
+}
+function closePrintPick(){ document.getElementById('printOverlay').style.display='none'; }
+function togglePrintLayer(k,on){
+  printSel = on ? [...new Set([...printSel,k])] : printSel.filter(x=>x!==k);
+  renderPrintPick();
+}
+function renderPrintPick(){
+  const has=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
+  const n=wmk().filter(m=>printSel.includes(m.layer)).length;
+  document.getElementById('printBody').innerHTML=
+    `<div class="sc-note" style="margin-bottom:9px">เลือกหมวดงานที่จะให้อยู่ในรายงาน — หมวดที่ไม่ติ๊กจะไม่มีทั้งภาพแบบ ตาราง และยอดสรุป</div>`
+    +has.map(l=>{
+      const cnt=wmk().filter(m=>m.layer===l.key).length;
+      const ar=wmk().filter(m=>m.layer===l.key).reduce((t,m)=>t+(parseFloat(m.area)||0),0);
+      return `<label class="mg-row">
+        <input type="checkbox" ${printSel.includes(l.key)?'checked':''} onchange="togglePrintLayer('${l.key}',this.checked)">
+        <span><span class="dot" style="background:${l.color}"></span> <b>${l.name}</b>
+          <small>${cnt} จุด · ${fmtQ(ar)} ตร.ม.</small></span></label>`;
+    }).join('')
+    +`<div class="sc-note" style="margin-top:8px">จะพิมพ์ <b>${n}</b> จุด${n?'':' — ติ๊กอย่างน้อย 1 หมวด'}</div>`;
+  document.getElementById('printGo').disabled=!n;
+}
+function doPrintPick(){
+  const has=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
+  closePrintPick();
+  // ติ๊กครบทุกหมวด = ไม่ต้องส่งตัวกรอง (หัวเอกสารจะขึ้นว่า "ทุกหมวดงาน")
+  printReport(undefined, printSel.length===has.length?null:printSel);
+}
+async function printReport(mode,only){
   const planOnly = (mode==='plan'); // โหมดแผนงาน: แบบที่มี markup อย่างเดียว ไม่เอารูปถ่าย
+  // only = รายการ key ของหมวดงานที่จะพิมพ์ (ไม่ส่งมา = เอาทุกหมวด)
+  // ใช้ PL แทน LAYERS และ WM() แทน wmk() ทุกที่ในฟังก์ชันนี้ เพื่อให้ตัวกรองมีผลทั่วทั้งรายงาน
+  const sel = Array.isArray(only)&&only.length ? only.slice() : null;
+  const PL  = sel ? LAYERS.filter(l=>sel.includes(l.key)) : LAYERS;
+  const WM  = () => sel ? wmk().filter(m=>sel.includes(m.layer)) : wmk();
   const pn=document.getElementById('projName').value||'โครงการ';
   const au=document.getElementById('authorName').value||'';
 
@@ -5358,7 +5521,7 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
 }</tbody></table></div>`:''}`:'';
   const sOff=(hasMeet?1:0)+(showPlan?1:0); // เลื่อนเลขหัวข้อถัดไปตามส่วนที่มีจริง
   const today=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-  if(!(planOnly?pmk():wmk()).length){alert(planOnly?'ยังไม่มี markup แผนงานให้พิมพ์':'ยังไม่มี markup ให้พิมพ์');return;}
+  if(!(planOnly?pmk():WM()).length){alert(planOnly?'ยังไม่มี markup แผนงานให้พิมพ์':'ไม่มี markup ในหมวดงานที่เลือก');return;}
 
   // open window NOW (synchronously, on the click) so popup blockers don't stop it
   const w=window.open('','_blank');
@@ -5369,7 +5532,7 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
   await new Promise(r=>setTimeout(r,30)); // let the spinner paint
 
   // pages that have markups, sorted
-  const RMK=planOnly?pmk():wmk();  // โหมดแผนงาน = เฉพาะ markup แผน · โหมดปกติ = เฉพาะงานจริง
+  const RMK=planOnly?pmk():WM();  // โหมดแผนงาน = เฉพาะ markup แผน · โหมดปกติ = เฉพาะงานจริง
   const pagesWithMk=[...new Set(RMK.map(m=>m.page))].sort((a,b)=>a-b);
 
   // for each page render the base plan once, then build a per-layer snapshot
@@ -5403,7 +5566,7 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
       const bx=bareC.getContext('2d');bx.fillStyle='#fff';bx.fillRect(0,0,bareC.width,bareC.height);bx.drawImage(base,0,0);
       const bare=bareC.toDataURL('image/jpeg',0.75);
       const layers={};
-      (planOnly?[PLAN_LAYER]:LAYERS).forEach(l=>{
+      (planOnly?[PLAN_LAYER]:PL).forEach(l=>{
         if(!RMK.some(m=>m.layer===l.key&&m.page===pg)){layers[l.key]=null;return;}
         const mc=document.createElement('canvas');mc.width=base.width;mc.height=base.height;
         const x=mc.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,mc.width,mc.height);x.drawImage(base,0,0);
@@ -5421,12 +5584,12 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
   const projTotal=getProjectArea(); // sum of all page areas
   // per-layer totals across all pages (each layer compared to whole-project area)
   const layerTotals={};
-  LAYERS.forEach(l=>{
-    const sum=wmk().filter(m=>m.layer===l.key).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+  PL.forEach(l=>{
+    const sum=WM().filter(m=>m.layer===l.key).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
     layerTotals[l.key]={area:sum,pct:projTotal?sum/projTotal*100:null};
   });
-  const overviewRows=wmk().map((m,i)=>{
-    const dd=durDays(m.start,m.end);const ln=LAYERS.find(l=>l.key===m.layer);
+  const overviewRows=WM().map((m,i)=>{
+    const dd=durDays(m.start,m.end);const ln=PL.find(l=>l.key===m.layer);
     const p=areaPct(m.area,m.page);
     return `<tr><td><span class="dot" style="background:${m.stroke}"></span>${i+1}</td>
       <td style="text-align:left">${ln?ln.name:''}</td>
@@ -5436,7 +5599,7 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
       <td>${m.start||'-'}</td><td>${m.end||'-'}</td><td>${dd||'-'}</td><td>${m.photos.length}</td></tr>`;
   }).join('');
   // one summary row per layer (only those with markups)
-  const overviewFoot=projTotal?`<tfoot>${LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).map(l=>`<tr style="background:#f9fafb;font-weight:700">
+  const overviewFoot=projTotal?`<tfoot>${PL.filter(l=>WM().some(m=>m.layer===l.key)).map(l=>`<tr style="background:#f9fafb;font-weight:700">
       <td></td>
       <td style="text-align:left"><span class="dot" style="background:${l.color}"></span>${l.name} — รวมทุกหน้า</td>
       <td style="text-align:left;color:#9ca3af;font-weight:400">เทียบพื้นที่โครงการ ${projTotal.toLocaleString()} ตร.ม.</td>
@@ -5445,10 +5608,10 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
       <td colspan="4"></td></tr>`).join('')}</tfoot>`:'';
 
   // per-sheet progress table — split by layer (เทปรับ / ติดตั้ง), each vs sheet area
-  const sheetsWithArea=[...new Set([...Object.keys(pageAreas).map(Number),...wmk().map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
+  const sheetsWithArea=[...new Set([...Object.keys(pageAreas).map(Number),...WM().map(m=>m.page)])].filter(pg=>getPageArea(pg)>0||donePage(pg)>0).sort((a,b)=>a-b);
   let sheetTable='';
   if(sheetsWithArea.length){
-    const Ls=LAYERS; // [screed, install]
+    const Ls=PL; // [screed, install]
     const pcCol=(pct)=>pct>=100?'#16a34a':pct>=50?'#d97706':'#2563eb';
     const rows=sheetsWithArea.map(pg=>{
       const pa=getPageArea(pg);
@@ -5514,24 +5677,25 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
     const bare=pageSnaps[pg]?pageSnaps[pg].bare:null;
     const pa=getPageArea(pg);
     // plan comparison cards (both layers side by side)
-    const cards=LAYERS.map(l=>{
+    const cards=PL.map(l=>{
       const has=snaps[l.key];
       return `<div class="cmp"><div class="cmp-h" style="border-color:${l.color}"><span class="dot" style="background:${l.color}"></span> ${l.name}</div>
         ${has?`<img src="${has}">`:(bare?`<img src="${bare}" style="opacity:.5">`:'<div class="no-photo">— ไม่มีภาพ —</div>')}</div>`;
     }).join('');
     // per-layer progress for this sheet (each vs sheet area, never summed)
-    const headExtra=pa?' · '+LAYERS.map(l=>{
+    const headExtra=pa?' · '+PL.map(l=>{
       const d=donePageLayer(pg,l.key);
       const pct=d/pa*100;
       return `<span style="color:${l.color}">${l.name} ${d.toLocaleString()}/${pa.toLocaleString()} = ${fmtPct(pct)}</span>`;
     }).join(' · '):'';
     // markups on this sheet, ordered by layer then index
-    const sheetMks=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg&&!isPlanMk(o.m));
+    // ต้องกรองหมวดที่ไม่ได้เลือกออกด้วย และใช้เลขรันแยกชั้น (เดิมใช้ลำดับรวมทั้งโครงการ)
+    const sheetMks=markups.map(m=>({m,gi:mkNo(m)})).filter(o=>o.m.page===pg&&!isPlanMk(o.m)&&!isDelivMk(o.m)&&(!sel||sel.includes(o.m.layer)));
     let mkBlocks='';
     sheetMks.forEach(({m,gi})=>{
       const dd=durDays(m.start,m.end);
       const p=areaPct(m.area,m.page);
-      const ln=LAYERS.find(l=>l.key===m.layer);
+      const ln=PL.find(l=>l.key===m.layer);
       const ph=m.photos.length?`<div class="ph-grid">${m.photos.map((pp,pi)=>`<figure><img src="${pp}"><figcaption>รูปที่ ${gi}.${pi+1}</figcaption></figure>`).join('')}</div>`:`<div class="no-photo">— ไม่มีรูปภาพ —</div>`;
       mkBlocks+=`<div class="mk-block">
         <div class="mk-bh" style="border-color:${m.stroke}">
@@ -5598,14 +5762,14 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
     const headExtra=pa?` · <span style="color:${PLAN_LAYER.color}">พื้นที่ตามแผน ${planAreaPg.toLocaleString()}/${pa.toLocaleString()} = ${fmtPct(planAreaPg/pa*100)}</span>`:'';
     // ภาพแบบเต็มความกว้าง แยกตามชั้นงานที่มี markup
     let imgs='';
-    (planOnly?[PLAN_LAYER]:LAYERS).forEach(l=>{
+    (planOnly?[PLAN_LAYER]:PL).forEach(l=>{
       if(!snaps[l.key])return;
       imgs+=`<div class="plan-l"><div class="cmp-h" style="border-color:${l.color}"><span class="dot" style="background:${l.color}"></span> ${l.name}</div><img src="${snaps[l.key]}"></div>`;
     });
     if(!imgs&&bare)imgs=`<div class="plan-l"><img src="${bare}"></div>`;
     // ตารางย่อ markup ของแผ่นนี้ (ไม่มีรูป)
     const sheetName=getPageName(pg)||('แผ่นที่ '+pg); // ตรงกับช่อง "ชื่อแผ่นนี้" ในแอพ
-    const rows=markups.map((m,i)=>({m,gi:i+1})).filter(o=>o.m.page===pg&&(planOnly?isPlanMk(o.m):!isPlanMk(o.m))).map(({m,gi})=>{
+    const rows=markups.map(m=>({m,gi:mkNo(m)})).filter(o=>o.m.page===pg&&(planOnly?isPlanMk(o.m):(!isPlanMk(o.m)&&!isDelivMk(o.m)&&(!sel||sel.includes(o.m.layer))))).map(({m,gi})=>{
       const ln=ALL_LAYERS.find(l=>l.key===m.layer);
       const p=areaPct(m.area,m.page);
       return `<tr>
@@ -5617,10 +5781,19 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
         <td>${m.start||'-'}</td><td>${m.end||'-'}</td>
       </tr>`;
     }).join('');
+    // รูปถ่ายที่แนบไว้กับ markup แผนงาน (เดิมโหมดนี้ตัดรูปทิ้งทั้งหมด)
+    const phMk=pmk().filter(m=>m.page===pg&&m.photos&&m.photos.length);
+    const phBlock=phMk.length?`<div class="plan-ph">
+      <div class="cmp-h" style="border-color:${PLAN_LAYER.color}"><span class="dot" style="background:${PLAN_LAYER.color}"></span> รูปภาพหน้างาน (${phMk.reduce((t,m)=>t+m.photos.length,0)} รูป)</div>
+      ${phMk.map(m=>`<div class="plan-ph-g">
+        <div class="plan-ph-t">#${mkNo(m)} ${prEsc(m.zone)}${m.note?' · '+prEsc(m.note):''}</div>
+        <div class="ph-grid">${m.photos.map((pp,ix)=>`<figure><img src="${pp}"><figcaption>รูปที่ ${mkNo(m)}.${ix+1}</figcaption></figure>`).join('')}</div>
+      </div>`).join('')}</div>`:'';
     planBody+=`<div class="plan-page${pi>0?' pb':''}">
       <div class="cmp-page-h" style="font-size:13px">${getPageLabel(pg)}${pa?` · ${pa.toLocaleString()} ตร.ม.`:''}${headExtra}</div>
       ${imgs}
       <table style="margin-top:7px"><thead><tr><th>#</th><th style="text-align:left">ชั้น</th><th style="text-align:left">ประเภทงาน</th><th style="text-align:left">ตำแหน่ง</th><th>ตร.ม.</th><th>% ของแบบ</th><th>เริ่ม</th><th>เสร็จ</th></tr></thead><tbody>${rows}</tbody></table>
+      ${phBlock}
     </div>`;
   });
 
@@ -5723,6 +5896,9 @@ tr{break-inside:avoid}
 .mk-bh{display:flex;align-items:center;gap:9px;padding:7px 11px;background:#f9fafb;border-left:4px solid;break-after:avoid}
 .mk-n{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
 .mk-z{font-size:12.5px;font-weight:700;color:#111827}.mk-m{font-size:10.5px;color:#6b7280;margin-top:1px}
+.plan-ph{border:1px solid #e5e7eb;border-radius:6px;margin-top:9px;page-break-inside:avoid;break-inside:avoid}
+.plan-ph-g{padding:0 0 4px}
+.plan-ph-t{font-size:10px;color:#374151;font-weight:600;padding:5px 9px 0}
 .ph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px}
 figure{break-inside:avoid;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden}
 figure img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
@@ -5760,18 +5936,18 @@ body{padding-top:56px}
   <span class="hint">ในหน้าต่างพิมพ์ เลือกปลายทาง (Destination) เป็น <b style="color:#f4a726">"Save as PDF"</b> · ปิด <b style="color:#f4a726">"Headers and footers"</b> เพื่อไม่ให้มีวันที่/about:blank ติดไปในไฟล์ · แถบนี้จะไม่ติดไปใน PDF</span>
 </div>
 <div class="bar"></div>
-<div class="hdr">${logoHTML()}<div><h1>${planOnly?'แผนงาน':'รายงานความก้าวหน้า'} — ${pn}</h1><div class="sub">${planOnly?'แบบระบุตำแหน่งงาน (Markup Plan) · ใช้สำหรับวางแผน/สั่งงานหน้างาน':'งานติดตั้งกระเบื้องยาง · เปรียบเทียบงานเทปรับพื้น / งานติดตั้ง'}</div></div>
+<div class="hdr">${logoHTML()}<div><h1>${planOnly?'แผนงาน':'รายงานความก้าวหน้า'} — ${pn}</h1><div class="sub">${planOnly?'แบบระบุตำแหน่งงาน (Markup Plan) · ใช้สำหรับวางแผน/สั่งงานหน้างาน':(sel?'เฉพาะหมวดงาน: '+PL.map(l=>l.name).join(' · '):'ทุกหมวดงาน — '+LAYERS.map(l=>l.name).join(' · '))}</div></div>
 <div class="meta"><div>วันที่: ${today}</div><div>จำนวน markup: ${RMK.length}</div></div></div>
-<div class="summ" style="grid-template-columns:repeat(${(planOnly?1:2)+LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).length},1fr)">
+<div class="summ" style="grid-template-columns:repeat(${2+(planOnly?0:PL.filter(l=>WM().some(m=>m.layer===l.key)).length)},1fr)">
   <div class="c"><div class="l">จำนวน Markup</div><div class="v">${RMK.length} จุด</div></div>
-  ${projTotal?LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).map(l=>`<div class="c"><div class="l"><span class="dot" style="background:${l.color}"></span>${l.name}</div><div class="v" style="color:${l.color}">${fmtPct(layerTotals[l.key].pct)}</div><div style="font-size:9px;color:#9ca3af;margin-top:1px">${layerTotals[l.key].area.toLocaleString()} / ${projTotal.toLocaleString()} ตร.ม.</div></div>`).join(''):`<div class="c"><div class="l">พื้นที่โครงการ</div><div class="v">— กรอกพื้นที่แต่ละหน้า —</div></div>`}
-  ${planOnly?'':`<div class="c"><div class="l">รูปภาพแนบ</div><div class="v">${wmk().reduce((s,m)=>s+m.photos.length,0)} รูป</div></div>`}
+  ${projTotal?PL.filter(l=>WM().some(m=>m.layer===l.key)).map(l=>`<div class="c"><div class="l"><span class="dot" style="background:${l.color}"></span>${l.name}</div><div class="v" style="color:${l.color}">${fmtPct(layerTotals[l.key].pct)}</div><div style="font-size:9px;color:#9ca3af;margin-top:1px">${layerTotals[l.key].area.toLocaleString()} / ${projTotal.toLocaleString()} ตร.ม.</div></div>`).join(''):`<div class="c"><div class="l">พื้นที่โครงการ</div><div class="v">— กรอกพื้นที่แต่ละหน้า —</div></div>`}
+  <div class="c"><div class="l">รูปภาพแนบ</div><div class="v">${(planOnly?pmk():WM()).reduce((s,m)=>s+m.photos.length,0)} รูป</div></div>
 </div>
 ${poTable}
 ${planOnly?planBody:`${meetSection}${planSection}<h2><span class="n">${1+sOff}</span> ความคืบหน้าตามแผ่นแบบ (Progress by Sheet)</h2>
 ${sheetTable}
 <h2><span class="n">${2+sOff}</span> ปฏิทินระยะเวลางาน (Timeline)</h2>
-${buildCalendarHTML(true)}
+${buildCalendarHTML(true,sel)}
 <h2><span class="n">${3+sOff}</span> ภาพรวม Markup</h2>
 <table><thead><tr><th>#</th><th style="text-align:left">ชั้นงาน</th><th style="text-align:left">โซน/ตำแหน่ง</th><th>ตร.ม.</th><th>% ของแบบ</th><th>เริ่ม</th><th>เสร็จ</th><th>วัน</th><th>รูป</th></tr></thead><tbody>${overviewRows}</tbody>${overviewFoot}</table>
 <h2><span class="n">${4+sOff}</span> เปรียบเทียบแบบแปลนและรูปภาพ (แยกตามแผ่น)</h2>
