@@ -145,7 +145,9 @@ body.side-hidden .side-reopen{display:block}
 .upl{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1.5px dashed var(--border2);
   border-radius:var(--r);padding:6px 12px;font-size:12.5px;color:var(--text);cursor:pointer}
 .upl:hover{border-color:var(--accent);color:var(--accent)}
-#pdfIn,#photoIn,#loadIn{display:none}
+/* input[type=file] ทุกตัวต้องซ่อน — ใช้ปุ่ม .upl เป็นตัวกดแทน
+   (ระบุเป็น selector รวม ไม่ไล่ทีละ id เพราะเพิ่ม input ใหม่แล้วลืมใส่ id จะโผล่ปุ่ม "เลือกไฟล์" ของเบราว์เซอร์ออกมา) */
+input[type=file]{display:none}
 .pill{background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;padding:6px 10px;
   font-size:12px;color:var(--text);cursor:pointer}
 .pill:hover{border-color:var(--accent);color:var(--text)}
@@ -4749,7 +4751,8 @@ function doMove(to){
   // ตั้งค่าของชั้นใหม่
   m.layer=to;
   m.zone=layerZone(to);
-  m.stroke=m.fill=L.color;                       // ใช้สีประจำชั้นใหม่ ให้ดูออกบนแบบ
+  // คงสีเดิมของ markup ไว้ — สีคือสิ่งที่ผู้ใช้เลือกเองตอนวาด และใช้อ้างอิงกับรูปถ่าย/เอกสารที่ส่งไปแล้ว
+  // ถ้าเปลี่ยนสีตามชั้นใหม่ กรอบบนแบบจะไม่ตรงกับที่เคยพิมพ์ส่งไป
   if(to==='plan'){ m.planId=planSel; m.items=[]; }
   else if(to==='deliv'){ m.delivId=delivSel; if(!m.hatch)m.hatch='diag'; m.items=[]; }
   activeLayer=to; selId=m.id;
@@ -5467,7 +5470,10 @@ async function printReport(mode,only){
   // only = รายการ key ของหมวดงานที่จะพิมพ์ (ไม่ส่งมา = เอาทุกหมวด)
   // ใช้ PL แทน LAYERS และ WM() แทน wmk() ทุกที่ในฟังก์ชันนี้ เพื่อให้ตัวกรองมีผลทั่วทั้งรายงาน
   const sel = Array.isArray(only)&&only.length ? only.slice() : null;
-  const PL  = sel ? LAYERS.filter(l=>sel.includes(l.key)) : LAYERS;
+  // ไม่ส่งตัวกรองมา = เอาเฉพาะหมวดที่มี markup จริง
+  // (เดิมใช้ LAYERS ทั้งหมด ทำให้โครงการที่วาดหมวดเดียว ยังมีการ์ด "งานเทปรับพื้น / งานติดตั้ง" ว่างๆ ติดมาด้วย)
+  const PL  = sel ? LAYERS.filter(l=>sel.includes(l.key))
+                  : LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
   const WM  = () => sel ? wmk().filter(m=>sel.includes(m.layer)) : wmk();
   const pn=document.getElementById('projName').value||'โครงการ';
   const au=document.getElementById('authorName').value||'';
@@ -5958,7 +5964,7 @@ body{padding-top:56px}
   <span class="hint">ในหน้าต่างพิมพ์ เลือกปลายทาง (Destination) เป็น <b style="color:#f4a726">"Save as PDF"</b> · ปิด <b style="color:#f4a726">"Headers and footers"</b> เพื่อไม่ให้มีวันที่/about:blank ติดไปในไฟล์ · แถบนี้จะไม่ติดไปใน PDF</span>
 </div>
 <div class="bar"></div>
-<div class="hdr">${logoHTML()}<div><h1>${planOnly?'แผนงาน':'รายงานความก้าวหน้า'} — ${pn}</h1><div class="sub">${planOnly?'แบบระบุตำแหน่งงาน (Markup Plan) · ใช้สำหรับวางแผน/สั่งงานหน้างาน':(sel?'เฉพาะหมวดงาน: '+PL.map(l=>l.name).join(' · '):'ทุกหมวดงาน — '+LAYERS.map(l=>l.name).join(' · '))}</div></div>
+<div class="hdr">${logoHTML()}<div><h1>${planOnly?'แผนงาน':'รายงานความก้าวหน้า'} — ${pn}</h1><div class="sub">${planOnly?'แบบระบุตำแหน่งงาน (Markup Plan) · ใช้สำหรับวางแผน/สั่งงานหน้างาน':(sel?'เฉพาะหมวดงาน: '+PL.map(l=>l.name).join(' · '):'หมวดงาน: '+PL.map(l=>l.name).join(' · '))}</div></div>
 <div class="meta"><div>วันที่: ${today}</div><div>จำนวน markup: ${RMK.length}</div></div></div>
 <div class="summ" style="grid-template-columns:repeat(${2+(planOnly?0:PL.filter(l=>WM().some(m=>m.layer===l.key)).length)},1fr)">
   <div class="c"><div class="l">จำนวน Markup</div><div class="v">${RMK.length} จุด</div></div>
