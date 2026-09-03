@@ -5691,19 +5691,33 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
     // markups on this sheet, ordered by layer then index
     // ต้องกรองหมวดที่ไม่ได้เลือกออกด้วย และใช้เลขรันแยกชั้น (เดิมใช้ลำดับรวมทั้งโครงการ)
     const sheetMks=markups.map(m=>({m,gi:mkNo(m)})).filter(o=>o.m.page===pg&&!isPlanMk(o.m)&&!isDelivMk(o.m)&&(!sel||sel.includes(o.m.layer)));
-    let mkBlocks='';
-    sheetMks.forEach(({m,gi})=>{
-      const dd=durDays(m.start,m.end);
-      const p=areaPct(m.area,m.page);
-      const ln=PL.find(l=>l.key===m.layer);
-      const ph=m.photos.length?`<div class="ph-grid">${m.photos.map((pp,pi)=>`<figure><img src="${pp}"><figcaption>รูปที่ ${gi}.${pi+1}</figcaption></figure>`).join('')}</div>`:`<div class="no-photo">— ไม่มีรูปภาพ —</div>`;
-      mkBlocks+=`<div class="mk-block">
+    // จุดที่มีรูป → บล็อกเต็มพร้อมรูป · จุดที่ไม่มีรูป → ยุบเป็นตารางแถวเดียว
+    // (เดิมทุกจุดกินบล็อกเต็มพร้อมข้อความ "— ไม่มีรูปภาพ —" ทำให้รายงานยาวและรกโดยไม่ได้ข้อมูลเพิ่ม)
+    const mkRow=(m,gi)=>{
+      const dd=durDays(m.start,m.end), p=areaPct(m.area,m.page), ln=PL.find(l=>l.key===m.layer);
+      return {m,gi,dd,p,ln};
+    };
+    const withPh=sheetMks.filter(o=>o.m.photos.length).map(o=>mkRow(o.m,o.gi));
+    const noPh  =sheetMks.filter(o=>!o.m.photos.length).map(o=>mkRow(o.m,o.gi));
+    let mkBlocks=withPh.map(({m,gi,dd,p,ln})=>`<div class="mk-block">
         <div class="mk-bh" style="border-color:${m.stroke}">
           <span class="mk-n" style="background:${m.stroke}">${gi}</span>
           <div><div class="mk-z">${ln?`<span style="color:${ln.color};font-weight:600">[${ln.name}]</span> `:''}${m.zone}${m.note?` <span style="font-weight:400;color:#6b7280">— ${m.note}</span>`:''}</div>
           <div class="mk-m">${m.area?`${parseFloat(m.area).toLocaleString()} ตร.ม.`:''}${p!=null?` · <b style="color:${m.stroke}">${fmtPct(p)} ของแบบ</b>`:''}${m.start?` · เริ่ม ${m.start}`:''}${m.end?` · เสร็จ ${m.end}`:''}${dd?` · ${dd} วัน`:''}</div></div>
-        </div>${ph}</div>`;
-    });
+        </div><div class="ph-grid">${m.photos.map((pp,pi)=>`<figure><img src="${pp}"><figcaption>รูปที่ ${gi}.${pi+1}</figcaption></figure>`).join('')}</div></div>`).join('');
+    if(noPh.length){
+      const tot=noPh.reduce((t,o)=>t+(parseFloat(o.m.area)||0),0);
+      mkBlocks+=`<div class="mk-plain">
+        <div class="mk-plain-h">จุดที่ไม่ได้แนบรูป — ${noPh.length} จุด · รวม ${fmtQ(tot)} ตร.ม.</div>
+        <table class="mk-plain-t"><thead><tr><th>#</th><th style="text-align:left">ชั้นงาน / ตำแหน่ง</th><th>ตร.ม.</th><th>% ของแบบ</th><th>เริ่ม</th><th>เสร็จ</th><th>วัน</th></tr></thead><tbody>
+        ${noPh.map(({m,gi,dd,p,ln})=>`<tr>
+          <td><span class="mk-n sm" style="background:${m.stroke}">${gi}</span></td>
+          <td style="text-align:left">${ln?`<span style="color:${ln.color};font-weight:600">[${ln.name}]</span> `:''}${m.zone}${m.note?` <span style="color:#6b7280">— ${m.note}</span>`:''}</td>
+          <td class="num">${m.area?parseFloat(m.area).toLocaleString():'-'}</td>
+          <td class="num" style="color:${m.stroke};font-weight:600">${p!=null?fmtPct(p):'-'}</td>
+          <td>${m.start||'-'}</td><td>${m.end||'-'}</td><td>${dd||'-'}</td></tr>`).join('')}
+        </tbody></table></div>`;
+    }
     sheetSection+=`<div class="sheet-group">
       <div class="cmp-page-h">${getPageLabel(pg)}${pa?` · ${pa.toLocaleString()} ตร.ม.`:''}${headExtra}</div>
       <div class="cmp-wrap">${cards}</div>
@@ -5899,6 +5913,14 @@ tr{break-inside:avoid}
 .plan-ph{border:1px solid #e5e7eb;border-radius:6px;margin-top:9px;page-break-inside:avoid;break-inside:avoid}
 .plan-ph-g{padding:0 0 4px}
 .plan-ph-t{font-size:10px;color:#374151;font-weight:600;padding:5px 9px 0}
+.mk-plain{border:1px solid #e5e7eb;border-radius:6px;margin-top:8px;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
+.mk-plain-h{background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:5px 9px;font-size:10.5px;color:#6b7280;font-weight:600}
+.mk-plain-t{width:100%;border-collapse:collapse;font-size:10px}
+.mk-plain-t th{background:#fff;border-bottom:1px solid #e5e7eb;padding:4px 6px;text-align:center;color:#9ca3af;font-weight:600;font-size:9.5px}
+.mk-plain-t td{border-bottom:1px solid #f3f4f6;padding:4px 6px;text-align:center;vertical-align:middle}
+.mk-plain-t td.num{text-align:right;font-variant-numeric:tabular-nums}
+.mk-plain-t tr:last-child td{border-bottom:none}
+.mk-n.sm{width:15px;height:15px;font-size:8.5px;display:inline-flex}
 .ph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px}
 figure{break-inside:avoid;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden}
 figure img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
