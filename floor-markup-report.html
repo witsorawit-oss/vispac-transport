@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report · rev 3</title>
+<title>Floor Markup Report · rev 4</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -744,7 +744,7 @@ input.ro{opacity:.75;pointer-events:none}
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report <span class="rev-tag">rev 3</span>
+    Markup Report <span class="rev-tag">rev 4</span>
   </div>
   <div class="hd-fields">
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
@@ -1871,6 +1871,7 @@ cwrapEl.addEventListener('pointermove',e=>{
   if(rec){rec.x=e.clientX;rec.y=e.clientY;}
   if(pinch){
     e.preventDefault();
+    if(pinch.src==='touch')return;
     const t=touchList();
     if(t.length>=2){
       const [a,b]=t, r=cwrapEl.getBoundingClientRect();
@@ -1929,7 +1930,7 @@ function ptrUp(e){
   activePtrs.delete(e.pointerId);
   if(e.pointerType==='pen'){penDown=false;penNearUntil=Date.now()+PALM_AFTER_PEN;}
   if(pinch){
-    if(touchList().length<2){ pinch=null; settleCam(); }
+    if(pinch.src!=='touch'&&touchList().length<2){ pinch=null; settleCam(); }
     return;
   }
   if(rec&&rec.palm)return;
@@ -1976,6 +1977,40 @@ function ptrUp(e){
   if(drawing||(measDraft&&measDraft.type==='dist'))end(e);
 }
 cwrapEl.addEventListener('pointerup',ptrUp);
+// ── บีบสองนิ้วจากสัญญาณสัมผัสโดยตรง (rev 4) ──
+// บนเครื่องจริง Safari อาจแย่งท่าบีบไปซูมหน้าเว็บ และ Samsung อาจรายงานนิ้วที่กดแน่นว่าใหญ่จนถูกนับเป็นฝ่ามือ
+// สัญญาณ touch มีครบทุกนิ้วเสมอ จึงใช้เป็นหลักของการซูม และสั่งเบราว์เซอร์ไม่ให้ซูมหน้าเว็บเอง
+function touchMid(t){const r=cwrapEl.getBoundingClientRect();return {x:(t[0].clientX+t[1].clientX)/2-r.left,y:(t[0].clientY+t[1].clientY)/2-r.top,d:Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1};}
+function beginTouchPinch(t){
+  const q=touchMid(t);
+  stopFling(); stopCamAnim(); clearTimeout(zoomTimer);
+  pinch={src:'touch',d0:q.d,z0:zoom,ux:(q.x-camX)/pxPerUnit(),uy:(q.y-camY)/pxPerUnit()};
+  stageEl().classList.add('no-anim');
+}
+cwrapEl.addEventListener('touchstart',e=>{
+  if(e.touches.length<2||penDown)return;
+  e.preventDefault();
+  if(!pinch||pinch.src!=='touch')cancelPrimaryDraw();
+  tapStart=null; lastTap=null;
+  beginTouchPinch(e.touches); // นิ้วเปลี่ยน (เช่น 3 → 2 นิ้ว) ก็ตั้งจุดยึดใหม่จากตำแหน่งปัจจุบัน ภาพไม่กระโดด
+},{passive:false});
+cwrapEl.addEventListener('touchmove',e=>{
+  if(e.touches.length>=2||(pinch&&pinch.src==='touch'))e.preventDefault();
+  if(!pinch||pinch.src!=='touch'||e.touches.length<2)return;
+  const q=touchMid(e.touches);
+  let z=pinch.z0*q.d/pinch.d0;
+  if(z>ZMAX)z=ZMAX*Math.pow(z/ZMAX,0.25);
+  if(z<ZMIN)z=ZMIN*Math.pow(z/ZMIN,0.25);
+  zoom=z; camX=q.x-pinch.ux*pxPerUnit(); camY=q.y-pinch.uy*pxPerUnit();
+  applyCam();
+},{passive:false});
+function touchPinchEnd(e){
+  if(!pinch||pinch.src!=='touch')return;
+  if(e.touches.length>=2){beginTouchPinch(e.touches);return;}
+  pinch=null; tapStart=null; settleCam();
+}
+cwrapEl.addEventListener('touchend',touchPinchEnd,{passive:false});
+cwrapEl.addEventListener('touchcancel',touchPinchEnd,{passive:false});
 cwrapEl.addEventListener('pointercancel',ptrUp);
 cwrapEl.addEventListener('contextmenu',e=>{ if(e.pointerType!=='mouse')e.preventDefault(); });
 cwrapEl.addEventListener('auxclick',e=>{ if(e.button===1)e.preventDefault(); });
@@ -6364,7 +6399,7 @@ renderList();
 updateSideTitle();
 
 // ════════════════ rev 1 ════════════════
-const APP_REV='rev 3';
+const APP_REV='rev 4';
 
 // ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
 const ErrTrap=(()=>{
