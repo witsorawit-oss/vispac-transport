@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report</title>
+<title>Floor Markup Report · rev 3</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -616,75 +616,224 @@ button,input,select,textarea,label{touch-action:manipulation}
   input,textarea,select{font-size:16px}
   .fld input,.po-row .po-qty,.po-it input,.mkpop-body input,.mkpop-body select,.mkpop-body textarea{font-size:16px}
 }
+
+/* ── rev 1: ป้ายรุ่น · สถานะบันทึก · แถบข้อผิดพลาด · ตรวจข้อมูล · กู้งาน ── */
+.rev-tag{font-size:10px;font-weight:600;color:var(--text2);border:1px solid var(--border2);border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:2px}
+.save-st{font-size:11px;color:var(--text2);white-space:nowrap;display:flex;align-items:center;gap:5px;cursor:default}
+.save-st i{width:7px;height:7px;border-radius:50%;background:var(--text2);display:inline-block}
+.save-st.ok i{background:var(--green)}.save-st.wait i{background:var(--accent)}.save-st.err{color:var(--red)}.save-st.err i{background:var(--red)}
+#errBar{display:none;position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:10050;background:#3b1219;color:#fde2e4;border:1px solid #9b2c3a;border-radius:10px;padding:10px 12px;font-family:'Sarabun';font-size:13px;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+#errBar .eb-h{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+#errBar b{color:#fff}
+#errBar .eb-d{font-size:11.5px;color:#f5b8c0;margin-top:3px;word-break:break-word}
+#errBar .eb-b{display:flex;gap:6px;flex-shrink:0}
+#errBar button{background:#5a1c26;border:1px solid #9b2c3a;color:#fff;border-radius:6px;padding:3px 9px;font:inherit;font-size:12px;cursor:pointer}
+#restoreBar{display:none;position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:10040;width:min(560px,calc(100vw - 24px));background:var(--bg2);border:1.5px solid var(--accent);border-radius:12px;padding:12px 14px;font-family:'Sarabun';color:var(--text);box-shadow:0 10px 36px rgba(0,0,0,.55)}
+#restoreBar .rb-t{font-weight:700;font-size:14.5px}
+#restoreBar .rb-d{font-size:12.5px;color:var(--text2);margin:3px 0 9px;line-height:1.5}
+#restoreBar .rb-b{display:flex;gap:7px;flex-wrap:wrap}
+#restoreBar button{font-family:'Sarabun';font-size:13px;border-radius:7px;padding:6px 12px;cursor:pointer;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text)}
+#restoreBar button.pri{background:var(--accent);border-color:var(--accent);color:#111;font-weight:700}
+.audit-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(244,167,38,.12);border:1px solid rgba(244,167,38,.45);border-radius:8px;padding:6px 9px;margin-bottom:10px;font-size:11.5px;color:var(--text);cursor:pointer}
+.audit-chip b{color:var(--accent)}
+.audit-chip.bad{background:rgba(245,101,101,.12);border-color:rgba(245,101,101,.5)}.audit-chip.bad b{color:var(--red)}
+.au-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:min(640px,100%);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,.6)}
+.au-body{overflow-y:auto;padding:14px 16px;-webkit-overflow-scrolling:touch}
+.au-grp{margin-bottom:12px}
+.au-grp h4{margin:0 0 3px;font-size:13px;display:flex;gap:6px;align-items:center}
+.au-grp h4 .n{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:0 7px;font-size:11px}
+.au-grp .why{font-size:11.5px;color:var(--text2);margin-bottom:5px}
+.au-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--border);border-radius:7px;margin-bottom:4px;font-size:12.5px;cursor:pointer;background:var(--bg3)}
+.au-row:hover{border-color:var(--accent)}
+.au-row .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.au-row .go{margin-left:auto;color:var(--accent);font-size:11.5px;white-space:nowrap}
+.au-ok{text-align:center;color:var(--green);padding:26px 0;font-size:14px}
+/* ── rev 2: เมนู · ป้ายหมวด · กรอบสีกันหลง · มุมมองกล้อง ── */
+.cwrap{overflow:hidden!important;--cue:#f4a726}
+.cwrap::after{content:"";position:absolute;inset:0;border:3px solid var(--cue);pointer-events:none;z-index:7;opacity:.85;border-radius:2px}
+.cwrap.tool-pan::after{border-style:dashed;opacity:.5}
+.cwrap.space-pan,.cwrap.tool-pan{cursor:grab}.cwrap.grabbing{cursor:grabbing}
+.cpad{position:absolute!important;left:0;top:0;padding:0!important;margin:0!important;display:block!important}
+.cstage{transition:none!important;transform-origin:0 0}
+.layer-cue{position:absolute;top:10px;left:10px;z-index:8;display:flex;align-items:center;gap:7px;background:rgba(15,17,23,.88);border:1px solid var(--border2);border-radius:999px;padding:4px 6px 4px 11px;font-family:'Sarabun';font-size:12.5px;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.35);max-width:calc(100% - 20px)}
+.layer-cue .lc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.layer-cue .lc-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;pointer-events:none}
+.layer-cue .lc-mode{background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:999px;font-family:'Sarabun';font-size:11.5px;padding:2px 6px;max-width:150px}
+.menu-wrap{position:relative;display:inline-flex}
+.hmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:400;min-width:200px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:5px;box-shadow:0 12px 36px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:2px}
+.hmenu[hidden]{display:none!important}
+.hmenu.right{left:auto;right:0}
+.hmenu>button,.hmenu>label{display:block;text-align:left;background:none;border:0;color:var(--text);font-family:'Sarabun';font-size:13.5px;padding:8px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.hmenu>button:hover,.hmenu>label:hover{background:var(--bg3)}
+.hmenu>label small,.hmenu>button small{display:block;color:var(--text2);font-size:11px;white-space:normal}
+.hm-t{font-size:11px;color:var(--text2);padding:7px 11px 3px;letter-spacing:.02em}
+.pdf-choice{position:fixed;top:64px;left:50%;transform:translateX(-50%);width:min(340px,calc(100vw - 24px))}
+.set-menu{width:280px}
+.set-fld{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--text2);padding:4px 11px}
+.set-fld input{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:7px;padding:7px 9px;font-family:'Sarabun';font-size:13.5px}
+.set-logo{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--text2);padding:4px 11px}
+.set-tg{display:flex!important;align-items:center;gap:8px}
+.gear{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:var(--r);width:38px;height:34px;font-size:17px;cursor:pointer}
+.tgrp{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ph-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.ph-btn{font-family:'Sarabun';font-size:14px;border-radius:9px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text)}
+.ph-btn.pri{background:var(--accent);border-color:var(--accent);color:#111;font-weight:700}
+#ph{pointer-events:auto;position:relative;z-index:9}
+@media(max-width:880px){.cwrap{flex:none!important;height:62vh!important;height:62dvh!important;min-height:320px}}
+@media(max-width:1100px){.hd .hbtn .t{display:none}.save-st>span{display:none}.hd .hbtn{padding:6px 9px;font-size:14px}}
+/* ── rev 3: บันทึกประชุมแบบขั้นตอน ── */
+.meet-pop{display:flex;flex-direction:column;max-height:92vh}
+.msteps{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.msteps::-webkit-scrollbar{display:none}
+.mst{flex:1;min-width:104px;padding:9px 6px;background:none;border:0;border-bottom:3px solid transparent;color:var(--text2);font-family:'Sarabun';font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.mst .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--border2);align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.mst.done .n{background:#22a06b}.mst.warn .n{background:var(--accent);color:#111}
+.mst.on{color:var(--text);border-bottom-color:var(--accent)}
+.mst .t{white-space:nowrap}
+.mstep[hidden]{display:none!important}
+.m-hint{font-size:11.5px;color:var(--text2);margin-top:3px}
+input.ro{opacity:.75;pointer-events:none}
+.m-empty{color:var(--text2);font-size:13px;padding:14px 4px}
+.m-banner{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;border-radius:8px;padding:8px 11px;font-size:13px;margin-bottom:10px}
+.m-banner.warn{background:rgba(244,167,38,.12);border:1px solid rgba(244,167,38,.5)}
+.m-diff{width:100%;margin:4px 0 0 18px;font-size:12px;color:var(--text2)}
+.m-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 10px}
+.m-k{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.m-k small{color:var(--text2);font-size:11.5px;display:block}.m-k b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.m-k.warn b{color:var(--accent)} .m-k a{color:var(--accent)}
+.m-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:4px 0}
+.m-tbl th{color:var(--text2);font-weight:500;text-align:left;border-bottom:1px solid var(--border);padding:6px 5px}
+.m-tbl td{border-bottom:1px solid var(--border);padding:6px 5px;vertical-align:middle}
+.m-tbl td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.m-tbl .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.m-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:3px}.m-bar i{display:block;height:100%}
+.m-pick{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.m-pick select{flex:1;min-width:220px}
+.m-auto{font-size:10.5px;color:var(--text2);border:1px solid var(--border2);border-radius:8px;padding:0 6px;margin-left:6px}
+.meet-btns{flex-wrap:wrap}
+@media(max-width:640px){.mst .t{display:none}.mst{min-width:48px}.m-kpis{grid-template-columns:1fr}}
+.po-it,.po-it-head{grid-template-columns:26px 1fr 84px 84px 84px 36px!important}
+#meetProgTbl .m-tbl th:not(:first-child){text-align:right}
+.set-row{display:flex;gap:6px;padding:0 6px}.set-row .set-fld{flex:1;padding:4px 5px}
 </style>
 </head>
 <body>
+<div id="restoreBar" role="dialog" aria-live="polite">
+  <div class="rb-t">พบงานที่บันทึกไว้ในเครื่องนี้</div>
+  <div class="rb-d" id="restoreInfo"></div>
+  <div class="rb-b">
+    <button class="pri" id="restoreGo" type="button">กู้คืนงานนี้</button>
+    <button id="restoreNo" type="button">เริ่มงานใหม่</button>
+    <button id="restorePrev" type="button" hidden>ดูชุดสำรองก่อนหน้า</button>
+  </div>
+</div>
+<div id="errBar" role="alert">
+  <div class="eb-h"><div><b>เกิดข้อผิดพลาด</b> — งานที่ทำไว้ยังอยู่ (บันทึกลงเครื่องอัตโนมัติ) ถ้าปุ่มไหนไม่ทำงาน ให้กดคัดลอกรายละเอียดส่งให้ผู้ดูแลแอป
+    <div class="eb-d" id="errDetail"></div></div>
+    <div class="eb-b"><button type="button" id="errCopy">คัดลอกรายละเอียด</button><button type="button" id="errClose" aria-label="ปิด">✕</button></div></div>
+</div>
+<div class="po-overlay" id="auditOverlay" style="display:none" onclick="if(event.target===this)closeAudit()">
+  <div class="au-box">
+    <div class="po-head"><div class="po-head-l"><span>⚠ ตรวจข้อมูลไม่ครบ</span><span class="po-sum" id="auditSum" style="margin-left:8px"></span></div>
+      <div class="po-head-r"><button class="dash-close" onclick="closeAudit()">✕</button></div></div>
+    <div class="au-body" id="auditBody"></div>
+  </div>
+</div>
+
 
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report
+    Markup Report <span class="rev-tag">rev 3</span>
   </div>
   <div class="hd-fields">
-    <span id="logoWrap" class="logo-wrap"></span>
-    <input type="file" id="logoIn" accept="image/*" style="display:none" onchange="pickLogo(this)">
-    <div class="fld"><label>โครงการ</label><input id="projName" value="โครงการปรับปรุงพื้น อาคาร A" style="min-width:150px"></div>
-    <div class="fld"><label>ผู้จัดทำ</label><input id="authorName" value="" style="min-width:90px"></div>
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
     <div class="fld"><label>ชื่อแผ่นนี้</label><input id="pageName" placeholder="เช่น ชั้น 1, Basement" value="" style="min-width:110px" oninput="onPageNameChange()"></div>
     <div class="fld"><label>พื้นที่แผ่นนี้</label><input id="pageArea" type="number" placeholder="ตร.ม." value="" style="min-width:70px" oninput="onPageAreaChange()"><span style="font-size:11px;color:var(--text2)">ตร.ม.</span></div>
   </div>
   <div class="hd-actions">
-    <span class="hgrp" title="ไฟล์งาน">
-      <button class="hbtn" onclick="saveProject()">💾 เซฟ</button>
-      <label class="hbtn" for="loadIn">📂 โหลด</label>
+    <span class="save-st" id="saveSt" title="สถานะบันทึกลงเครื่องอัตโนมัติ"><i></i><span>ยังไม่มีงาน</span></span>
+    <span class="hgrp">
+      <span class="menu-wrap">
+        <button class="hbtn" type="button" title="ไฟล์" onclick="toggleMenu('fileMenu',this)" aria-haspopup="true">📁<span class="t"> ไฟล์</span> ▾</button>
+        <div class="hmenu" id="fileMenu" role="menu" hidden>
+          <button type="button" onclick="closeMenus();saveProject()">💾 เซฟเป็นไฟล์</button>
+          <label for="loadIn" onclick="closeMenus()">📂 เปิดโครงการ</label>
+          <button type="button" onclick="closeMenus();choosePdf()">📄 ใส่แบบ PDF…</button>
+          <button type="button" onclick="closeMenus();openScan()">🔍 สแกนแบบ / BOQ</button>
+        </div>
+      </span>
       <input type="file" id="loadIn" accept=".json" onchange="loadProject(this)">
     </span>
-    <span class="hgrp" title="ข้อมูลงาน">
-      <button class="hbtn" onclick="openScan()" title="สแกนแบบ/BOQ ที่โหลดอยู่ — ดึงรายการวัสดุ, ตาราง BOQ, รายการตัดม้วน, ปักหมุดห้อง">🔍 สแกน</button>
-      <button class="hbtn" onclick="openPoManager()" title="รายการ PO / BOQ">📋 PO</button>
+    <span class="hgrp">
+      <button class="hbtn" onclick="openPoManager()" title="รายการ PO / BOQ">📋<span class="t"> รายการ PO</span></button>
     </span>
-    <span class="hgrp" title="เอกสาร">
-      <button class="hbtn" onclick="openPlans()" title="สร้าง/แก้ไขแผนงาน 1,2,3... เก็บไว้ในโครงการ">🗓 แผนงาน</button>
-      <button class="hbtn" onclick="openMeeting()" title="บันทึกการประชุม">📝 ประชุม</button>
+    <span class="hgrp">
+      <button class="hbtn" onclick="openPlans()" title="แผนงาน — สร้าง/แก้ไขแผน 1,2,3...">🗓<span class="t"> แผนงาน</span></button>
+      <button class="hbtn" onclick="openMeeting()" title="บันทึกการประชุม">📝<span class="t"> ประชุม</span></button>
     </span>
-    <span class="hgrp" title="ผลลัพธ์">
-      <button class="hbtn" onclick="openDashboard()" title="สรุปภาพรวม กราฟ ขนาดไฟล์">📊 สรุป</button>
-      <button class="hbtn" onclick="exportExcel()" title="ส่งออกเป็นไฟล์ Excel">📗 Excel</button>
-      <button class="hbtn" onclick="openDeliv()" title="จัดการรอบส่งงาน — เลือกพื้นที่ ใส่วัสดุ แล้วพิมพ์ใบส่งงาน">📋 ใบส่งงาน</button>
-      <button class="hbtn pri" onclick="openPrintPick()" title="พิมพ์รายงาน — เลือกหมวดงานที่จะเอาได้">🖨 พิมพ์</button>
+    <span class="hgrp" style="border-right:0;padding-right:0">
+      <button class="hbtn" onclick="openDeliv()" title="ใบส่งงาน — จัดการรอบส่งงาน แล้วพิมพ์">📦<span class="t"> ใบส่งงาน</span></button>
+      <span class="menu-wrap">
+        <button class="hbtn pri" type="button" onclick="toggleMenu('outMenu',this)" aria-haspopup="true" title="พิมพ์ / ส่งออก">🖨<span class="t"> พิมพ์ / ส่งออก</span> ▾</button>
+        <div class="hmenu right" id="outMenu" role="menu" hidden>
+          <button type="button" onclick="closeMenus();openPrintPick()">🖨 พิมพ์รายงาน</button>
+          <button type="button" onclick="closeMenus();exportExcel()">📗 ส่งออกเอ็กเซล</button>
+          <button type="button" onclick="closeMenus();openDashboard()">📊 สรุปภาพรวม</button>
+        </div>
+      </span>
     </span>
   </div>
 </header>
+<div class="hmenu pdf-choice" id="pdfMenu" role="menu" hidden>
+  <div class="hm-t">แบบที่เปิดอยู่มี <b id="pdfMenuN">0</b> แผ่น — จะทำอะไรกับไฟล์ใหม่</div>
+  <label for="addSheetIn" onclick="closeMenus()">➕ เพิ่มแผ่นต่อท้าย<small>markup เดิมอยู่ที่เดิม</small></label>
+  <label for="pdfIn" onclick="closeMenus()">🔄 แทนที่แบบทั้งชุด<small>ใช้เมื่อได้แบบชุดใหม่ที่หน้าเรียงเหมือนเดิม</small></label>
+  <button type="button" onclick="closeMenus()">ยกเลิก</button>
+</div>
+
 
 <div class="main">
   <div class="canvas-side">
     <div class="ctools">
-      <label class="upl" for="pdfIn">📄 อัพโหลด PDF</label>
       <input type="file" id="pdfIn" accept=".pdf" onchange="loadPDF(this)">
-      <label class="upl" for="addSheetIn" id="addSheetBtn" title="เพิ่มแบบอีกไฟล์ต่อท้ายแผ่นเดิม โดย markup เดิมไม่ขยับ">➕ เพิ่มแผ่น</label>
       <input type="file" id="addSheetIn" accept=".pdf" onchange="addSheets(this)">
-      <div class="pill active" data-tool="poly" onclick="setTool('poly',this)">⬡ กรอบหลายจุด</div>
-      <div class="pill" data-tool="pen" onclick="setTool('pen',this)">✏️ วาด</div>
-      <div class="pill" data-tool="highlight" onclick="setTool('highlight',this)">🖌️ ไฮไลท์</div>
-      <div class="pill" data-tool="pan" onclick="setTool('pan',this)" title="โหมดเลื่อน: ลากนิ้ว/เมาส์เพื่อเลื่อนแบบ (ใช้ตอนซูมเข้า)">✋ เลื่อน</div>
+      <div class="tgrp">
+        <div class="pill active" data-tool="poly" onclick="setTool('poly',this)" title="วาดกรอบทีละจุด แตะจุดแรกหรือแตะสองครั้งเพื่อปิดกรอบ">⬡ กรอบ</div>
+        <div class="pill" data-tool="pen" onclick="setTool('pen',this)">✏️ วาด</div>
+        <div class="pill" data-tool="highlight" onclick="setTool('highlight',this)">🖌️ ไฮไลท์</div>
+        <div class="pill" data-tool="pan" onclick="setTool('pan',this)" title="โหมดเลื่อน: ลากเพื่อเลื่อนแบบ แตะสองครั้งเพื่อซูมเข้า">✋ เลื่อน</div>
+      </div>
       <div class="pnav" style="gap:3px">
         <button id="undoBtn" onclick="doUndo()" title="ย้อนกลับ (Ctrl+Z)" disabled>↶</button>
         <button id="redoBtn" onclick="doRedo()" title="ทำซ้ำ (Ctrl+Y)" disabled>↷</button>
-        <button id="sideToggleBtn" onclick="toggleSide()" title="ซ่อน/แสดงแถบข้อมูล">⏵ ข้อมูล</button>
       </div>
-      <label class="toggle"><input type="checkbox" id="grayToggle" onchange="toggleGray()"> เทาดำ</label>
-      <label class="toggle"><input type="checkbox" id="autoColorToggle" checked onchange="toggleAutoColor()" title="ให้แต่ละ markup ได้สีไม่ซ้ำกันโดยอัตโนมัติ">🎨 สีไม่ซ้ำ</label>
       <div class="pnav" style="gap:3px">
         <button onclick="zoomOut()" title="ซูมออก">−</button>
-        <span id="zoomInfo" style="min-width:42px;text-align:center;cursor:pointer" onclick="zoomReset()" title="คลิกเพื่อรีเซ็ต">100%</span>
+        <span id="zoomInfo" style="min-width:42px;text-align:center;cursor:pointer" onclick="zoomReset()" title="แตะเพื่อกลับพอดีจอ">100%</span>
         <button onclick="zoomIn()" title="ซูมเข้า">+</button>
       </div>
       <div class="pnav">
-        <button onclick="prevPage()">◀</button>
+        <button onclick="prevPage()" title="แผ่นก่อนหน้า">◀</button>
         <span id="pInfo">0 / 0</span>
-        <button onclick="nextPage()">▶</button>
+        <button onclick="nextPage()" title="แผ่นถัดไป">▶</button>
       </div>
+      <span class="menu-wrap" style="margin-left:auto">
+        <button class="gear" type="button" onclick="toggleMenu('setMenu',this)" title="ตั้งค่าการแสดงผลและข้อมูลโครงการ" aria-haspopup="true">⚙</button>
+        <div class="hmenu right set-menu" id="setMenu" role="menu" hidden>
+          <div class="hm-t">ข้อมูลโครงการ</div>
+          <label class="set-fld">ชื่อโครงการ<input id="projName" value="โครงการปรับปรุงพื้น อาคาร A"></label>
+          <label class="set-fld">ผู้จัดทำ<input id="authorName" value=""></label>
+          <label class="set-fld">ผู้ว่าจ้าง<input id="clientName" value="" placeholder="ชื่อผู้รับเหมาหลัก / เจ้าของงาน"></label>
+          <div class="set-row"><label class="set-fld">เริ่มสัญญา<input id="contractStart" type="date"></label><label class="set-fld">สิ้นสุดสัญญา<input id="contractEnd" type="date"></label></div>
+          <div class="set-logo">โลโก้บนหัวกระดาษ <span id="logoWrap" class="logo-wrap"></span></div>
+          <input type="file" id="logoIn" accept="image/*" style="display:none" onchange="pickLogo(this)">
+          <div class="hm-t">การแสดงผล</div>
+          <label class="set-tg"><input type="checkbox" id="grayToggle" onchange="toggleGray()"> แบบเป็นสีเทาดำ</label>
+          <label class="set-tg"><input type="checkbox" id="autoColorToggle" checked onchange="toggleAutoColor()"> สีไม่ซ้ำกันอัตโนมัติ</label>
+          <button type="button" id="sideToggleBtn" onclick="closeMenus();toggleSide()">⏵ ข้อมูล</button>
+        </div>
+      </span>
     </div>
 
     <!-- LAYER TABS -->
@@ -695,8 +844,13 @@ button,input,select,textarea,label{touch-action:manipulation}
     <div class="cwrap" id="cwrap">
       <div class="ph" id="ph">
         <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
-        <p>อัพโหลดแบบ PDF เพื่อเริ่มทำ markup</p>
+        <p>เริ่มงานด้วยแบบ PDF หรือเปิดโครงการที่เซฟไว้</p>
+        <div class="ph-btns"><label class="ph-btn pri" for="pdfIn">📄 เลือกไฟล์แบบ PDF</label><label class="ph-btn" for="loadIn">📂 เปิดโครงการ</label></div>
       </div>
+      <div class="layer-cue" id="layerCue" hidden><span class="lc-dot"></span><span class="lc-t"></span>
+        <select id="inputModeSel" class="lc-mode" aria-label="โหมดอุปกรณ์" onchange="setInputPref(this.value)" onpointerdown="event.stopPropagation()">
+          <option value="auto">อัตโนมัติ</option><option value="pen">✒️ ปากกา</option><option value="touch">👆 นิ้ว</option><option value="mouse">🖱 เมาส์</option>
+        </select></div>
       <div class="cpad" id="cpad">
         <div class="cstage" id="cstage">
           <canvas id="planCanvas"></canvas>
@@ -730,8 +884,8 @@ button,input,select,textarea,label{touch-action:manipulation}
       <h4>สไตล์กรอบที่เลือก (#<span id="zselNo">-</span>)</h4>
       <div class="zrow"><label>สีเส้น</label><div class="swatches" id="strokeSw"></div></div>
       <div class="zrow"><label>สีพื้น</label><div class="swatches" id="fillSw"></div></div>
-      <div class="zrow"><label>โปร่งใส</label><input type="range" id="opacityRange" min="0" max="100" value="13" oninput="setOpacity(this.value)"><span class="pct" id="opacityVal">13%</span></div>
-      <div class="zrow"><label>หนาเส้น</label><input type="range" id="widthRange" min="1" max="12" step="0.5" value="2.6" oninput="setWidth(this.value)"><span class="pct" id="widthVal">2.6</span></div>
+      <div class="zrow"><label>โปร่งใส</label><input type="range" id="opacityRange" min="0" max="100" value="25" oninput="setOpacity(this.value)"><span class="pct" id="opacityVal">13%</span></div>
+      <div class="zrow"><label>หนาเส้น</label><input type="range" id="widthRange" min="0.5" max="12" step="0.5" value="1" oninput="setWidth(this.value)"><span class="pct" id="widthVal">2.6</span></div>
     </div>
 
     <div class="meas-wrap" id="measWrap" style="display:none">
@@ -782,22 +936,22 @@ button,input,select,textarea,label{touch-action:manipulation}
         <div class="po-pane-h">
           <span>📄 ดึงรายการจากเอกสาร</span>
           <div class="po-pane-tools">
-            <button onclick="closePoManager();openScan()">🔍 สแกนแบบ/BOQ</button>
-            <button onclick="document.getElementById('poPdfIn').click()" title="เปิดไฟล์ BOQ แยกต่างหาก แล้วจิ้มบรรทัดเอง (ทางสำรอง)">📄 เปิดไฟล์อื่น</button>
+            <button onclick="closePoManager();openScan()" title="อ่านตารางวัสดุ/BOQ จากแบบที่โหลดอยู่">🔍 ดึงจากแบบที่โหลดอยู่</button>
+            <button onclick="document.getElementById('poPdfIn').click()" title="เปิดไฟล์ BOQ แยกต่างหาก แล้วจิ้มบรรทัดเอง">📄 เปิดไฟล์ BOQ อื่น</button>
             <span id="poPgNav" style="display:none">
               <button onclick="poPage(-1)">◀</button>
               <span id="poPgInfo">1/1</span>
               <button onclick="poPage(1)">▶</button>
             </span>
-            <button onclick="poAutoParse()" id="poScanBtn" style="display:none">สแกนไฟล์นี้</button>
+            <button onclick="poAutoParse()" id="poScanBtn" style="display:none">อ่านรายการจากไฟล์นี้</button>
           </div>
         </div>
         <div class="po-parsed" id="poParsedBox" style="display:none"></div>
-        <div class="po-lines" id="poLines"><div class="po-empty">ดึงรายการเข้าที่นี่ได้จาก <b style="color:var(--accent)">🔍 สแกนแบบ/BOQ</b><br><small>ใช้ไฟล์แบบที่โหลดอยู่ · อ่านทั้งตารางวัสดุในแบบและใบ BOQ<br>หรือกด "เปิดไฟล์อื่น" ถ้าต้องการดึงจากไฟล์แยก แล้วจิ้มบรรทัดเอง</small></div></div>
+        <div class="po-lines" id="poLines"><div class="po-empty">ดึงรายการเข้าที่นี่ได้จาก <b style="color:var(--accent)">🔍 ดึงจากแบบที่โหลดอยู่</b><br><small>ใช้ไฟล์แบบที่โหลดอยู่ · อ่านทั้งตารางวัสดุในแบบและใบ BOQ<br>หรือกด "เปิดไฟล์ BOQ อื่น" ถ้าต้องการดึงจากไฟล์แยก แล้วจิ้มบรรทัดเอง</small></div></div>
       </div>
       <div class="po-pane">
         <div class="po-pane-h">
-          <span>🧾 ตาราง Items</span>
+          <span>🧾 ตารางรายการ</span>
           <div class="po-pane-tools"><button onclick="syncPoToMarkups()" title="จับคู่รายการ PO กับ markup ที่ทำไว้แล้วโดยอัตโนมัติ">🔗 จับคู่กับ markup</button><button onclick="addPoItem()">➕ เพิ่มเอง</button></div>
         </div>
         <div class="po-items" id="poItemsList"></div>
@@ -856,46 +1010,77 @@ button,input,select,textarea,label{touch-action:manipulation}
 </div>
 <!-- ══════ MEETING MINUTES (บันทึกการประชุมติดตามความคืบหน้างานโครงการ) ══════ -->
 <div class="mkpop-overlay" id="meetOverlay" style="display:none" onclick="if(event.target===this)closeMeeting()">
-  <div class="mkpop" style="max-width:680px">
-    <div class="mkpop-head"><span>📝 บันทึกการประชุมติดตามความคืบหน้างานโครงการ</span><span class="mkpop-areas" id="meetCount"></span></div>
+  <div class="mkpop meet-pop" style="max-width:760px">
+    <div class="mkpop-head"><span>📝 บันทึกการประชุมติดตามความคืบหน้างาน</span><span class="mkpop-areas" id="meetCount"></span></div>
     <div class="meet-tabs" id="meetTabs"></div>
+    <div class="msteps" id="meetSteps" role="tablist"></div>
     <div class="mkpop-body" id="meetForm">
-      <div class="mkpop-row">
-        <div class="mk-fld"><label>ครั้งที่</label><input id="meetNo" type="number" inputmode="numeric" placeholder="1"></div>
-        <div class="mk-fld"><label>ประเภท</label><select id="meetType">
-          <option value="monthly">ประชุมประจำเดือน</option>
-          <option value="onsite">หารือหน้างาน (โครงการ ≤ 1 เดือน)</option>
-        </select></div>
-      </div>
-      <div class="mkpop-row">
-        <div class="mk-fld"><label>ประจำเดือน</label><input id="meetMonth" type="month"></div>
-        <div class="mk-fld"><label>วันที่ประชุม</label><input id="meetDate" type="date"></div>
-      </div>
-      <div class="mk-fld"><label>สถานที่ประชุม</label><input id="meetPlace" placeholder="เช่น สำนักงานสนาม / หน้างานชั้น 5"></div>
-      <div class="mk-fld"><label>ผู้รับเหมาช่วง (ผรม.) <span style="font-weight:400;color:var(--text2)">· ระเบียบกำหนดให้ร่วมประชุม</span></label><input id="meetSub" placeholder="ชื่อบริษัท / ผู้แทน ผรม."></div>
-      <div class="mk-fld"><label>ผู้เข้าร่วมอื่น</label><input id="meetPeople" placeholder="เช่น ผจก.โครงการ, โฟร์แมน, จป., ผู้ควบคุมงาน"></div>
-      <div class="mk-fld"><label class="lbl-row">1. ความคืบหน้างาน <button type="button" class="mini-btn" onclick="meetFillProgress()">⚡ ดึงข้อมูลปัจจุบัน</button></label><textarea id="meetProgress" rows="3" placeholder="งานที่ทำเสร็จ/กำลังทำ ณ ปัจจุบัน... (กด ⚡ เพื่อดึงยอดจาก markup/BOQ อัตโนมัติ)"></textarea></div>
-      <div class="mk-fld" id="planReviewFld" style="display:none">
-        <label class="lbl-row">ทบทวนแผนครั้งก่อน <button type="button" class="mini-btn" onclick="meetAutoReview()">⚡ ประเมินจากงานจริง</button></label>
-        <div class="plan-review" id="planReviewBox"></div>
-      </div>
-      <div class="mk-fld"><label class="lbl-row">2. แผนงาน (ครั้งถัดไป) <button type="button" class="mini-btn" onclick="openPlans()">🗓 จัดการแผน 1,2,3...</button></label><textarea id="meetPlan" rows="3" placeholder="แผนงานช่วงถัดไป... (กด 🗓 เพื่อสร้าง/เลือกแผน แล้วดึงมาใส่)"></textarea></div>
-      <div class="mk-fld"><label class="lbl-row">3. ปัญหาอุปสรรค <button type="button" class="mini-btn" onclick="document.getElementById('meetPhotoIn').click()">📷 เพิ่มรูป</button></label><textarea id="meetIssue" rows="3" placeholder="ปัญหาหน้างาน สิ่งที่รอการแก้ไข ผู้รับผิดชอบ..."></textarea><div class="meet-photos" id="meetIssuePhotos"></div></div>
-      <div class="mk-fld"><label>4. ด้านความปลอดภัย</label><textarea id="meetSafety" rows="3" placeholder="ประเด็นความปลอดภัย อุบัติเหตุ/เหตุเกือบเกิด มาตรการ..."></textarea></div>
-      <div class="mk-fld"><label style="color:var(--accent)">ผู้ลงนามรับรอง</label></div>
-      <div class="mkpop-row">
-        <div class="mk-fld"><label>โฟร์แมน</label><input id="meetSignFore" placeholder="ชื่อ-สกุล"></div>
-        <div class="mk-fld"><label>หัวหน้าทีม / ผู้ช่วย ผจก.ฝ่ายติดตั้ง</label><input id="meetSignLead" placeholder="ชื่อ-สกุล"></div>
-      </div>
-      <div class="mk-fld"><label>เสนอ ผู้ช่วยกรรมการผู้จัดการสายงานก่อสร้าง (รับทราบ)</label><input id="meetSignExec" placeholder="ชื่อ-สกุล"></div>
+      <!-- ① ข้อมูลประชุม -->
+      <section class="mstep" data-step="1">
+        <div class="mkpop-row">
+          <div class="mk-fld"><label>ครั้งที่</label><input id="meetNo" readonly tabindex="-1" class="ro"><div class="m-hint">รันเลขให้เอง เรียงตามวันที่ประชุม</div></div>
+          <div class="mk-fld"><label>วันที่ประชุม</label><input id="meetDate" type="date"><div class="m-hint" id="meetMonthHint"></div><input id="meetMonth" type="hidden"></div>
+        </div>
+        <div class="mkpop-row">
+          <div class="mk-fld"><label>ประเภท</label><select id="meetType">
+            <option value="monthly">ประชุมประจำเดือน</option>
+            <option value="onsite">หารือหน้างาน (โครงการ ≤ 1 เดือน)</option>
+          </select></div>
+          <div class="mk-fld"><label>สถานที่ประชุม</label><input id="meetPlace" placeholder="เช่น สำนักงานสนาม / หน้างานชั้น 5"></div>
+        </div>
+        <div class="mk-fld"><label>ผู้รับเหมาช่วง (ผรม.) <span style="font-weight:400;color:var(--text2)">· ระเบียบกำหนดให้ร่วมประชุม</span></label><input id="meetSub" placeholder="ชื่อบริษัท / ผู้แทน ผรม."></div>
+        <div class="mk-fld"><label>ผู้เข้าร่วมอื่น</label><input id="meetPeople" placeholder="เช่น ผจก.โครงการ, โฟร์แมน, จป., ผู้ควบคุมงาน"></div>
+      </section>
+      <!-- ② ทบทวนแผนเดิม -->
+      <section class="mstep" data-step="2">
+        <div class="mk-fld" id="planReviewFld">
+          <label class="lbl-row">ทบทวนแผนจากการประชุมครั้งก่อน <button type="button" class="mini-btn" id="meetAutoBtn" onclick="meetAutoReview()">⚡ ประเมินจากงานจริงให้</button></label>
+          <div class="plan-review" id="planReviewBox"></div>
+        </div>
+      </section>
+      <!-- ③ ความคืบหน้า -->
+      <section class="mstep" data-step="3">
+        <div id="meetProgBanner"></div>
+        <div class="m-hint" id="meetProgInfo"></div>
+        <div class="m-kpis" id="meetKpis"></div>
+        <div id="meetProgTbl"></div>
+        <div class="mk-fld"><label class="lbl-row">สรุปเป็นข้อความ (แก้เพิ่มได้) <button type="button" class="mini-btn" onclick="meetRefreshProgress(true)">↻ ดึงตัวเลขใหม่</button></label>
+          <textarea id="meetProgress" rows="5" placeholder="ตัวเลขจะดึงให้อัตโนมัติจากกรอบมาร์กอัป"></textarea></div>
+      </section>
+      <!-- ④ แผนถัดไป -->
+      <section class="mstep" data-step="4">
+        <div class="mk-fld"><label>แผนที่ใช้กับประชุมครั้งนี้</label>
+          <div class="m-pick"><select id="meetPlanSel" onchange="meetLinkPlan(this.value)"></select>
+            <button type="button" class="mini-btn" onclick="meetEditPlan()">✏️ แก้แผนนี้</button>
+            <button type="button" class="mini-btn" onclick="meetNewPlan()">➕ สร้างแผนใหม่</button></div>
+          <div class="m-hint">เลือกแผนได้ตรงนี้เลย บันทึกจะผูกกับแผน ไม่ใช่คัดลอกข้อความ</div></div>
+        <div id="meetPlanBanner"></div>
+        <div id="meetPlanTbl"></div>
+        <div class="mk-fld"><label>หมายเหตุแผนงานเพิ่มเติม</label><textarea id="meetPlan" rows="2" placeholder="เช่น เงื่อนไขการเข้างาน สิ่งที่ต้องเตรียมก่อนเข้างาน"></textarea></div>
+      </section>
+      <!-- ⑤ ปัญหา · ปลอดภัย · ลงนาม -->
+      <section class="mstep" data-step="5">
+        <div class="mk-fld"><label class="lbl-row">ปัญหาอุปสรรค <button type="button" class="mini-btn" onclick="document.getElementById('meetPhotoIn').click()">📷 เพิ่มรูป</button></label><textarea id="meetIssue" rows="3" placeholder="ปัญหาหน้างาน สิ่งที่รอการแก้ไข ผู้รับผิดชอบ กำหนดแก้ไข..."></textarea><div class="meet-photos" id="meetIssuePhotos"></div></div>
+        <div class="mk-fld"><label>ด้านความปลอดภัย</label><textarea id="meetSafety" rows="2" placeholder="ประเด็นความปลอดภัย อุบัติเหตุ/เหตุเกือบเกิด มาตรการ..."></textarea></div>
+        <div class="mk-fld"><label>สิ่งที่ต้องการให้ผู้บริหารช่วยพิจารณา <span style="font-weight:400;color:var(--text2)">· ขึ้นหน้าแรกของรายงาน</span></label><textarea id="meetAsk" rows="2" placeholder="เช่น ขออนุมัติเพิ่มช่างติดตั้ง 1 ชุด ช่วง 1–15 พ.ย."></textarea></div>
+        <div class="mk-fld"><label style="color:var(--accent)">ผู้ลงนามรับรอง</label></div>
+        <div class="mkpop-row">
+          <div class="mk-fld"><label>โฟร์แมน</label><input id="meetSignFore" placeholder="ชื่อ-สกุล"></div>
+          <div class="mk-fld"><label>หัวหน้าทีม / ผู้ช่วย ผจก.ฝ่ายติดตั้ง</label><input id="meetSignLead" placeholder="ชื่อ-สกุล"></div>
+        </div>
+        <div class="mk-fld"><label>เสนอ ผู้ช่วยกรรมการผู้จัดการสายงานก่อสร้าง (รับทราบ)</label><input id="meetSignExec" placeholder="ชื่อ-สกุล"></div>
+      </section>
     </div>
-    <div class="mkpop-btns">
-      <button class="mkpop-save" onclick="saveMeeting()">✓ บันทึก</button>
-      <button onclick="printMeeting()" title="พิมพ์เฉพาะบันทึกประชุมครั้งนี้เป็น PDF สำหรับ EPR-Mango">🖨 PDF</button>
-      <button class="mkpop-del" onclick="delMeeting()" title="ลบครั้งนี้">🗑</button>
+    <div class="mkpop-btns meet-btns">
+      <button class="mkpop-del" onclick="delMeeting()" title="ลบบันทึกครั้งนี้">🗑</button>
+      <button onclick="printMeeting()" title="พิมพ์บันทึกประชุมครั้งนี้เป็น PDF สำหรับ EPR-Mango">🖨 พิมพ์บันทึกประชุม</button>
+      <span style="flex:1"></span>
+      <button id="meetPrev" onclick="meetGo(meetStep-1)">◀ ย้อนกลับ</button>
+      <button class="mkpop-save" id="meetNext" onclick="meetNextStep()">ถัดไป ▶</button>
     </div>
   </div>
 </div>
+
 <div class="po-overlay" id="delivOverlay" style="display:none" onclick="if(event.target===this)closeDeliv()">
   <div class="po-box">
     <div class="po-head"><div class="po-head-l"><span>📋 ใบส่งงาน</span><span class="po-sum" id="delivHint"></span></div>
@@ -1028,7 +1213,7 @@ window.addEventListener('orientationchange',()=>setTimeout(resetViewportZoom,180
 
 // ── LAYERS
 const LAYERS=[
-  {key:'screed', name:'งานเทปรับพื้น', color:'#fbbf24', visible:true},
+  {key:'screed', name:'งานเทปรับระดับพื้น', color:'#fbbf24', visible:true},
   {key:'install', name:'งานติดตั้งกระเบื้องยาง', color:'#3dd68c', visible:true},
 ];
 // ชั้น "แผนงาน" = พื้นที่ที่คาดการณ์ล่วงหน้า แยกจากงานจริงเด็ดขาด — ไม่ถูกนับเป็นความคืบหน้า/BOQ ที่ทำแล้ว
@@ -1099,7 +1284,7 @@ function nextMarkupColor(){
   return best;
 }
 const ZONES={
-  'งานรื้อถอน':'#f56565','งานขัดพื้น':'#f4a726','งานเทปรับพื้น':'#fbbf24',
+  'งานรื้อถอน':'#f56565','งานขัดพื้น':'#f4a726','งานเทปรับพื้น':'#fbbf24','งานเทปรับระดับพื้น':'#fbbf24','งานติดตั้งหลังคา':'#a855f7',
   'งานติดตั้งกระเบื้องยาง':'#3dd68c','งานตรวจสอบ/QC':'#60a5fa','งานเก็บงาน':'#a78bfa','แผนงาน (คาดการณ์)':'#60a5fa'
 };
 
@@ -1315,24 +1500,97 @@ async function prefetchAdjacent(pg){
 }
 
 // ── MAIN RENDER (instant if cached, async if not)
+// rev 2: มุมมองแบบ "กล้อง" — แบบวางอยู่ที่ (camX,camY) บนจอ ไม่ใช้แถบเลื่อนของเบราว์เซอร์
+// ซูม/เลื่อนระหว่างนิ้วแตะจอ = ขยับ transform อย่างเดียว (ลื่น) · ยกนิ้วแล้วค่อยวาดภาพให้คมในตำแหน่งเดิมเป๊ะ จึงไม่มีการกระเด็น
 let zoom=1;
 let rendering=false, renderQueued=false;
+let zoomTimer=null, renderedZoom=1, pendingScroll=null; // pendingScroll คงไว้ให้โค้ดเก่าที่อาจอ้างถึง
+let camX=0, camY=0, camReady=false, pageBase={w:1,h:1}, lastRenderPage=null, lastWrap={w:0,h:0};
+const ZMIN=0.5, ZMAX=8, CAM_M=40; // ซูมต่ำสุด/สูงสุด (เท่าของพอดีจอ) และระยะขอบรอบแบบ
+function wrapEl(){return document.getElementById('cwrap');}
+function stageEl(){return document.getElementById('cstage');}
+function pxPerUnit(z){return currentFitScale*(z==null?zoom:z);} // พิกเซลบนจอ ต่อ 1 หน่วยของหน้า PDF
+function applyCam(){
+  const st=stageEl(); if(!st)return;
+  const k=zoom/renderedZoom;
+  st.style.transform=`translate3d(${camX}px,${camY}px,0)`+(Math.abs(k-1)>1e-4?` scale(${k})`:'');
+  const zi=document.getElementById('zoomInfo'); if(zi)zi.textContent=Math.round(zoom*100)+'%';
+}
+function camBounds(z){
+  const W=wrapEl().clientWidth, H=wrapEl().clientHeight;
+  const w=pageBase.w*pxPerUnit(z), h=pageBase.h*pxPerUnit(z);
+  const bx=(w+CAM_M*2<=W)?[(W-w)/2,(W-w)/2]:[W-w-CAM_M,CAM_M];
+  const by=(h+CAM_M*2<=H)?[(H-h)/2,(H-h)/2]:[H-h-CAM_M,CAM_M];
+  return {x:bx,y:by,m:Math.min(W,H)*0.22};
+}
+function rubberband(v,lo,hi,m){ if(v>hi){const d=v-hi;return hi+d*m/(d+m);} if(v<lo){const d=lo-v;return lo-d*m/(d+m);} return v; }
+function clampCam(z,x,y){const b=camBounds(z);return [Math.min(b.x[1],Math.max(b.x[0],x)),Math.min(b.y[1],Math.max(b.y[0],y))];}
+let camAnimRaf=0;
+function stopCamAnim(){ if(camAnimRaf){cancelAnimationFrame(camAnimRaf);camAnimRaf=0;} }
+// เคลื่อนกล้องไปยัง (z,x,y) แบบนุ่ม — จุดบนแบบที่อยู่ใต้ (fx,fy) ระหว่างทางขยับเป็นเส้นตรง ไม่โค้งหนี
+function animateCam(z,x,y,dur,done){
+  stopCamAnim();
+  const z0=zoom,x0=camX,y0=camY,t0=performance.now();
+  if(Math.abs(z-z0)<1e-5&&Math.abs(x-x0)<0.5&&Math.abs(y-y0)<0.5){zoom=z;camX=x;camY=y;applyCam();done&&done();return;}
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)dur=1;
+  const step=t=>{
+    const p=Math.min(1,(t-t0)/(dur||240)), e=1-Math.pow(1-p,3);
+    const zz=z0*Math.pow(z/z0,e);
+    const k=Math.abs(z-z0)>1e-6?(zz-z0)/(z-z0):e;
+    zoom=zz; camX=x0+(x-x0)*k; camY=y0+(y-y0)*k; applyCam();
+    if(p<1)camAnimRaf=requestAnimationFrame(step); else {camAnimRaf=0;done&&done();}
+  };
+  camAnimRaf=requestAnimationFrame(step);
+}
+function scheduleRender(ms){
+  clearTimeout(zoomTimer);
+  zoomTimer=setTimeout(()=>{ if(pdfDoc&&!pinch&&!camAnimRaf&&Math.abs(zoom-renderedZoom)>1e-4)renderPage(); },ms==null?200:ms);
+}
+// ซูมไปที่ z โดยให้จุด (sx,sy) บนจอ (เทียบมุมซ้ายบนของกรอบแบบ) อยู่ที่เดิม
+function zoomAt(z,sx,sy,animate){
+  z=Math.max(ZMIN,Math.min(ZMAX,z));
+  const W=wrapEl().clientWidth,H=wrapEl().clientHeight;
+  if(sx==null){sx=W/2;sy=H/2;}
+  const ux=(sx-camX)/pxPerUnit(), uy=(sy-camY)/pxPerUnit();
+  let [nx,ny]=clampCam(z,sx-ux*pxPerUnit(z),sy-uy*pxPerUnit(z));
+  if(animate)animateCam(z,nx,ny,240,()=>scheduleRender(60));
+  else {zoom=z;camX=nx;camY=ny;applyCam();scheduleRender();}
+}
+function settleCam(after){
+  const z=Math.max(ZMIN,Math.min(ZMAX,zoom));
+  const W=wrapEl().clientWidth,H=wrapEl().clientHeight;
+  let x=camX,y=camY;
+  if(z!==zoom){const ux=(W/2-camX)/pxPerUnit(),uy=(H/2-camY)/pxPerUnit();x=W/2-ux*pxPerUnit(z);y=H/2-uy*pxPerUnit(z);}
+  [x,y]=clampCam(z,x,y);
+  animateCam(z,x,y,260,()=>{scheduleRender(40);after&&after();});
+}
+function fitCam(){
+  const W=wrapEl().clientWidth,H=wrapEl().clientHeight;
+  const w=pageBase.w*pxPerUnit(), h=pageBase.h*pxPerUnit();
+  camX=(W-w)/2; camY=Math.max(CAM_M*0.4,(H-h)/2);
+  [camX,camY]=clampCam(zoom,camX,camY);
+}
+
 async function renderPage(){
   if(!pdfDoc)return;
   if(rendering){renderQueued=true;return;}
   rendering=true;
   try{
-    const wrap=document.getElementById('cwrap');
+    const wrap=wrapEl();
     const page=await pdfDoc.getPage(pageNum);
     const base=page.getViewport({scale:1});
-    currentFitScale=Math.min(wrap.clientWidth/base.width,wrap.clientHeight/base.height)*0.96;
+    // จุดกลางจอเดิมอยู่ตรงไหนของแบบ (ไว้รักษาตำแหน่งเมื่อขนาดกรอบเปลี่ยน เช่น ซ่อนแถบข้อมูล/หมุนจอ)
+    const W=wrap.clientWidth,H=wrap.clientHeight;
+    const oldPx=pxPerUnit(), ucx=(lastWrap.w/2-camX)/oldPx, ucy=(lastWrap.h/2-camY)/oldPx;
+    const sizeChanged=camReady&&(Math.abs(W-lastWrap.w)>1||Math.abs(H-lastWrap.h)>1);
+    if(camReady&&lastRenderPage!==null&&lastRenderPage!==pageNum){zoom=1;} // เปลี่ยนแผ่น → เริ่มที่พอดีจอ
+    currentFitScale=Math.min(W/base.width,H/base.height)*0.96;
+    pageBase={w:base.width,h:base.height};
     const scale=currentFitScale*zoom;
     const vp=page.getViewport({scale});
 
     const pc=document.getElementById('planCanvas'),dc=document.getElementById('drawCanvas');
-    const stage=document.getElementById('cstage');
-    const keepL=wrap.scrollLeft,keepT=wrap.scrollTop;
-    // ปิด transition ชั่วคราวขณะสลับ (กันภาพยุบ/ขยาย)
+    const stage=stageEl();
     stage.classList.add('no-anim');
     // backing store คูณ DPR ให้คมบนจอความละเอียดสูง แต่ CSS size ยังเป็นขนาดตรรกะ
     // สำคัญ: canvas โตตามการซูม ถ้าไม่คุมเพดาน ซูมลึกๆ บนแท็บเล็ตจะกินหน่วยความจำจนแอพถูกปิด
@@ -1341,15 +1599,15 @@ async function renderPage(){
     if(edpr>capD)edpr=Math.max(capD,0.3);
     curDPR=edpr;
     const bw=Math.round(vp.width*edpr), bh=Math.round(vp.height*edpr);
+    // วาดเนื้อหาลง canvas ชั่วคราวก่อน แล้วค่อยสลับในเฟรมเดียว → ภาพไม่กระพริบ/ไม่ขยับ
+    let rec=pageImg.get(pageNum);
+    if(!rec) rec=await getPageImage(pageNum,currentFitScale*HIRES); // async เฉพาะครั้งแรกของหน้า
     pc.width=bw; pc.height=bh;
     dc.width=bw; dc.height=bh;
     stage.style.width=vp.width+'px'; stage.style.height=vp.height+'px';
-
-    // วาดเนื้อหาใหม่ให้เสร็จก่อน (ตอนนี้ stage ยังมี transform เดิมค้างอยู่ ภาพจึงไม่กระพริบ)
+    // ขนาดบนจอของ canvas ต้องเท่ากับ stage พอดี (ไม่ปัดเศษ) ไม่งั้นจุดบนแบบจะเลื่อนทีละนิดตอนซูม
+    pc.style.width=dc.style.width=vp.width+'px'; pc.style.height=dc.style.height=vp.height+'px';
     planCtx=pc.getContext('2d');
-    // ใช้ภาพ PNG ความละเอียดสูงที่ render ไว้ครั้งเดียว แล้วย่อ/ขยายตามซูม (ไม่เรียก pdf.js ซ้ำ)
-    let rec=pageImg.get(pageNum);
-    if(!rec) rec=await getPageImage(pageNum,currentFitScale*HIRES); // async เฉพาะครั้งแรกของหน้า
     planCtx.imageSmoothingEnabled=true;
     planCtx.imageSmoothingQuality='high';
     planCtx.drawImage(rec.bmp,0,0,bw,bh);
@@ -1363,28 +1621,14 @@ async function renderPage(){
         .then(()=>{upgrading=false;renderPage();})
         .catch(()=>{upgrading=false;});
     }
-
     renderedZoom=zoom;
-    // สลับ transform → scroll แบบ atomic ใน rAF เดียว (เหมือนไฟล์ตัวอย่าง จึงไม่กระพริบ)
-    const ps=pendingScroll; pendingScroll=null;
-    requestAnimationFrame(()=>{
-      stage.style.transform='';
-      stage.style.transformOrigin='';
-      if(ps&&ps._focal){
-        // จุดโฟกัส fx,fy (พิกัด stage เดิม) หลังสเกล อยู่ที่ offset ใหม่ของ stage + fx*ratio → เลื่อนให้อยู่ที่ ox
-        const f=ps._focal;
-        wrap.scrollLeft=stage.offsetLeft+f.fx*f.ratio-f.ox;
-        wrap.scrollTop =stage.offsetTop +f.fy*f.ratio-f.oy;
-      }else if(ps&&ps._abs){
-        wrap.scrollLeft=ps._abs.x; wrap.scrollTop=ps._abs.y;
-      }else{
-        wrap.scrollLeft=keepL;wrap.scrollTop=keepT;
-      }
-      requestAnimationFrame(()=>{if(!pinch)stage.classList.remove('no-anim');});
-    });
+    if(!camReady||lastRenderPage!==pageNum){ fitCam(); camReady=true; }
+    else if(sizeChanged){ const px=pxPerUnit(); [camX,camY]=clampCam(zoom,W/2-ucx*px,H/2-ucy*px); }
+    lastRenderPage=pageNum; lastWrap={w:W,h:H};
+    applyCam();
+    requestAnimationFrame(()=>{if(!pinch)stage.classList.remove('no-anim');});
 
     document.getElementById('pInfo').textContent=`${pageNum} / ${pdfDoc.numPages}`;
-    document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
     syncPageAreaInput();
     renderProgress();
     renderMeasList();
@@ -1397,34 +1641,19 @@ async function renderPage(){
     if(renderQueued){renderQueued=false;renderPage();}
   }
 }
-
-let zoomTimer=null, renderedZoom=1, pendingScroll=null;
-// ซูม (ลูกกลิ้ง/ปุ่ม): origin 0,0 + คำนวณ translate เอง ให้จุดโฟกัสอยู่นิ่ง แม่นทุกเบราว์เซอร์
+// ปุ่ม/ลูกกลิ้ง: ซูมรอบจุดที่ชี้ (หรือกลางจอ)
 function applyZoom(z,cx,cy){
-  z=Math.max(0.5,Math.min(5,z));
-  if(Math.abs(z-zoom)<0.0001&&!pinch)return;
-  const wrap=document.getElementById('cwrap'), st=document.getElementById('cstage');
-  const r=wrap.getBoundingClientRect();
-  const ox=(cx!=null?cx-r.left:r.width/2), oy=(cy!=null?cy-r.top:r.height/2); // จุดชี้เทียบ viewport
-  // ตำแหน่งมุมซ้ายบนของ stage ใน scroll content (เผื่อ padding/จัดกึ่งกลางของ .cpad)
-  const st0L=st.offsetLeft, st0T=st.offsetTop;
-  // จุดโฟกัสในพิกัด stage (หักตำแหน่ง stage ออก): (scroll + ox) - stageOffset
-  const fX=(wrap.scrollLeft+ox-st0L), fY=(wrap.scrollTop+oy-st0T);
-  zoom=z;
-  const ratio=zoom/renderedZoom;
-  // translate ให้จุดโฟกัสอยู่ที่ ox,oy เดิม
-  const trX=ox+wrap.scrollLeft-(st0L+fX*ratio), trY=oy+wrap.scrollTop-(st0T+fY*ratio);
-  st.style.transformOrigin='0 0';
-  st.style.transform=Math.abs(ratio-1)<0.0001?'':`translate(${trX}px,${trY}px) scale(${ratio})`;
-  // scroll ปลายทางหลัง render คมชัด (stage จะกลับไปอยู่ที่ offset เดิมของมัน)
-  pendingScroll={_focal:{fx:fX,fy:fY,ratio,ox,oy}};
-  document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
-  clearTimeout(zoomTimer);
-  zoomTimer=setTimeout(()=>{if(pdfDoc&&!pinch)renderPage();},pinch?400:180);
+  const r=wrapEl().getBoundingClientRect();
+  zoomAt(z,cx!=null?cx-r.left:null,cy!=null?cy-r.top:null,cx==null);
 }
 function zoomIn(){applyZoom(zoom*1.25);}
 function zoomOut(){applyZoom(zoom/1.25);}
-function zoomReset(){applyZoom(1);}
+function zoomReset(){ // กลับมาพอดีจอ
+  if(!pdfDoc)return;
+  const W=wrapEl().clientWidth,H=wrapEl().clientHeight;
+  const w=pageBase.w*pxPerUnit(1),h=pageBase.h*pxPerUnit(1);
+  animateCam(1,(W-w)/2,Math.max(CAM_M*0.4,(H-h)/2),260,()=>scheduleRender(40));
+}
 
 // ── SIDEBAR: hide/show + drag-resize ──
 function toggleSide(){
@@ -1484,18 +1713,17 @@ function renderLayerBar(){
       <span class="layer-dot" style="background:${l.color}"></span>
       ${nm}
       <span class="layer-count">${cnt}</span>
-      ${isPlan?`<button class="layer-eye" style="right:30px" onclick="event.stopPropagation();openPlans()" title="สร้าง/สลับแผน">🗓</button>`:''}
       ${l.custom?`<button class="layer-eye" style="right:30px" onclick="event.stopPropagation();delLayer('${l.key}')" title="ลบประเภทงานนี้">🗑</button>`:''}
       <button class="layer-eye" onclick="event.stopPropagation();toggleLayerVis('${l.key}')" title="ซ่อน/แสดง">${l.visible?'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 1 11s4 7 11 7a9.26 9.26 0 0 0 5.39-1.61"/><path d="M14.12 14.12A3 3 0 1 1 9.88 9.88"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'}</button>
     </div>`;
   }).join('')
-  +`<button class="layer-add" onclick="addLayer()" title="เพิ่มประเภทงานอื่น เช่น งานหลังคา">➕ ประเภทงาน</button>`;
+  +`<button class="layer-add" onclick="addLayer()" title="เพิ่มประเภทงานอื่น เช่น งานติดตั้งหลังคา">➕ ประเภทงาน</button>`;
 }
 // ── ประเภทงานที่ผู้ใช้เพิ่มเอง (เช่น งานหลังคา) ──
 // เก็บใน LAYERS เหมือนชั้นมาตรฐาน จึงถูกนับเข้าความคืบหน้า/BOQ/รายงานเหมือนกันทุกอย่าง
 const LAYER_COLORS=['#a855f7','#14b8a6','#f97316','#ec4899','#84cc16','#06b6d4','#eab308','#f43f5e'];
 function addLayer(){
-  const name=(prompt('ชื่อประเภทงานใหม่\n(เช่น งานหลังคา, งานผนัง, งานฝ้า)','')||'').trim();
+  const name=(prompt('ชื่อประเภทงานใหม่\n(เช่น งานติดตั้งหลังคา, งานผนัง, งานฝ้า)','')||'').trim();
   if(!name)return;
   if(ALL_LAYERS.some(l=>l.name===name)){alert('มีประเภทงานชื่อนี้อยู่แล้ว');return;}
   const key='cus'+Date.now().toString(36);
@@ -1517,7 +1745,7 @@ function delLayer(key){
   if(activeLayer===key)activeLayer=LAYERS[0].key;
   buildSwatches(); renderLayerBar(); renderList(); redraw(); renderProgress(); renderInsights(); updateSideTitle();
 }
-function setLayer(key){ activeLayer=key; selId=null; renderLayerBar(); redraw(); renderList(); updateSideTitle(); }
+function setLayer(key){ activeLayer=key; selId=null; renderLayerBar(); redraw(); renderList(); updateSideTitle(); updateLayerCue(); }
 function toggleLayerVis(key){ const l=ALL_LAYERS.find(x=>x.key===key); l.visible=!l.visible; renderLayerBar(); redraw(); }
 function updateSideTitle(){
   const l=ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0];
@@ -1532,6 +1760,7 @@ function setTool(t,el){
   if(calibrating){calibrating=false;calibPts=[];}
   setMulti(null); // ออกจากโหมดวาดพื้นที่เพิ่ม
   tool=t;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');
+  cwrapEl.classList.toggle('tool-pan',t==='pan'); updateLayerCue();
   const measMode=(t==='dist'||t==='angle');
   document.getElementById('drawCanvas').style.cursor=t==='pan'?'grab':'crosshair';
   if(t==='dist'&&!getPageScale(pageNum)){
@@ -1555,8 +1784,11 @@ const dc=document.getElementById('drawCanvas');
 let drawing=false,sx,sy,pts=[];
 let polyPts=[],polyHover=null; // polygon-in-progress
 
-// ── POINTER SYSTEM v2 (mouse + stylus + touch) ──
-// pen = วาดด้วยปากกา (palm rejection) / 1 นิ้ว = วาดหรือเลื่อน / 2 นิ้ว = pinch zoom + pan
+// ── POINTER SYSTEM v3 (rev 2) — เมาส์ + ปากกา + นิ้ว ──
+// โหมดเลือกเองตามอุปกรณ์ที่ใช้ล่าสุด (แตะป้ายมุมจอเพื่อล็อกเองได้)
+//   ปากกา: ปากกาวาด · นิ้วยังวาดได้ แต่กันฝ่ามือเข้มขึ้น (ปากกาลอยเหนือจอ / เพิ่งยกปากกา / จุดสัมผัสใหญ่)
+//   นิ้ว  : นิ้วเดียววาด · สองนิ้วซูม+เลื่อนเสมอ
+//   เมาส์ : คลิกซ้ายวาด · ปุ่มกลางลาก หรือกดเว้นวรรคค้างแล้วลาก = เลื่อน · Ctrl+ล้อ = ซูม · ล้อ = เลื่อน
 // การ "แตะ" (tap) ตรวจจับเองในระบบนี้ — ไม่พึ่ง click event ซึ่งเบราว์เซอร์ไม่ยิงให้ pen/touch เมื่อ preventDefault
 const cwrapEl=document.getElementById('cwrap');
 dc.style.touchAction='none';
@@ -1565,79 +1797,58 @@ document.addEventListener('gesturestart',e=>e.preventDefault()); // กัน iO
 const activePtrs=new Map(); // pointerId -> {x,y,type,t0,palm}
 let penDown=false, primaryPtr=null, pinch=null, panning=null;
 let tapStart=null, lastTap=null;
+let inputPref='auto', lastKind=(matchMedia&&matchMedia('(pointer:coarse)').matches)?'touch':'mouse';
+let penNearUntil=0, spaceDown=false, flingRaf=0;
+const PALM_AFTER_PEN=600, PALM_HOVER=500, PALM_SIZE=40;
+function inputMode(){ return inputPref==='auto'?lastKind:inputPref; }
+function setLastKind(k){ if(k!==lastKind){lastKind=k; updateModeChip();} }
 function touchList(){return [...activePtrs.values()].filter(p=>p.type==='touch'&&!p.palm);} // ไม่นับฝ่ามือ
 function inCanvas(p){return p.x>=-8&&p.y>=-8&&p.x<=dc.width+8&&p.y<=dc.height+8;}
-
+function wrapPt(e){const r=cwrapEl.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+function cancelPrimaryDraw(){ // ยกเลิกสิ่งที่นิ้ว/ฝ่ามือทำค้างไว้ (ยังไม่บันทึก)
+  if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
+  primaryPtr=null;
+  if(drawing){drawing=false;redraw();}
+  if(panning){panning=null;cwrapEl.classList.remove('grabbing');}
+  if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
+  tapStart=null;
+}
+function stopFling(){ if(flingRaf){cancelAnimationFrame(flingRaf);flingRaf=0;} }
+function beginPan(e){
+  stopFling(); stopCamAnim();
+  const q=wrapPt(e);
+  panning={x0:q.x,y0:q.y,cx:camX,cy:camY,vx:0,vy:0,lt:performance.now(),lx:q.x,ly:q.y};
+  cwrapEl.classList.add('grabbing');
+}
+function beginPinch(){
+  const [a,b]=touchList(); const r=cwrapEl.getBoundingClientRect();
+  const mx=(a.x+b.x)/2-r.left, my=(a.y+b.y)/2-r.top;
+  stopFling(); stopCamAnim(); clearTimeout(zoomTimer);
+  pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:zoom, ux:(mx-camX)/pxPerUnit(), uy:(my-camY)/pxPerUnit()};
+  stageEl().classList.add('no-anim');
+}
 cwrapEl.addEventListener('pointerdown',e=>{
-  activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType,t0:Date.now(),palm:false});
+  const now=Date.now();
+  activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType,t0:now,palm:false});
   if(e.pointerType==='pen'){
+    setLastKind('pen');
     penDown=true;
-    // ปากกามีสิทธิ์เหนือกว่าเสมอ: ถ้าฝ่ามือ/นิ้วแตะค้างและยึดการวาดอยู่ ให้ยกเลิก (ถือว่าเป็นฝ่ามือ)
-    if(primaryPtr!=null){
-      const prev=activePtrs.get(primaryPtr);
-      if(prev&&prev.type==='touch'){
-        try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}
-        primaryPtr=null;
-        if(drawing){drawing=false;redraw();}
-        if(panning){if(panning.req)cancelAnimationFrame(panning.req);panning=null;dc.style.cursor='crosshair';}
-        if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
-        tapStart=null;
-      }
-    }
-    // ถ้ากำลัง pinch ด้วยนิ้วอยู่ ให้จบ pinch แล้วยกให้ปากกา
-    if(pinch){pinch=null;document.getElementById('cstage').classList.remove('no-anim');if(pdfDoc)renderPage();}
-  }
+    // ปากกามีสิทธิ์เหนือกว่าเสมอ: ฝ่ามือ/นิ้วที่แตะค้างและยึดการวาดอยู่ → ยกเลิก
+    if(primaryPtr!=null){const prev=activePtrs.get(primaryPtr); if(prev&&prev.type==='touch')cancelPrimaryDraw();}
+    if(pinch){pinch=null;settleCam();}
+  }else if(e.pointerType==='mouse'){ setLastKind('mouse'); }
   if(e.pointerType==='touch'){
-    if(penDown)return; // palm rejection (โหมดปากกา)
-    // ── palm rejection โหมดนิ้ว ──
-    // (1) จุดสัมผัสใหญ่ผิดปกติ = ฝ่ามือ/สันมือ → ตัดทิ้งตั้งแต่แตะ (เครื่องที่รายงานขนาดสัมผัสได้)
-    if((e.width&&e.width>40)||(e.height&&e.height>40)){
-      activePtrs.get(e.pointerId).palm=true;
+    const rec=activePtrs.get(e.pointerId);
+    if(penDown){rec.palm=true;return;}                                           // ปากกาแตะจออยู่
+    if(inputMode()==='pen'&&now<penNearUntil){rec.palm=true;e.preventDefault();return;} // ปากกาลอยอยู่/เพิ่งยก
+    if((e.width&&e.width>PALM_SIZE)||(e.height&&e.height>PALM_SIZE)){rec.palm=true;e.preventDefault();return;} // จุดใหญ่ = ฝ่ามือ
+    if(inputPref==='auto'&&lastKind==='mouse')setLastKind('touch');
+    const t=touchList();
+    if(t.length===2){ // สองนิ้ว = ซูม/เลื่อนเสมอ
+      cancelPrimaryDraw();
+      beginPinch();
       e.preventDefault();
       return;
-    }
-    let t=touchList();
-    if(t.length===2){
-      // (2) pinch จริง = สองนิ้ววางเกือบพร้อมกัน — ถ้านิ้วเก่าวางค้างนานแล้ว (>0.28วิ) แสดงว่าเป็นฝ่ามือที่วางพัก
-      //     → ตัดนิ้วเก่าทิ้ง แล้วให้นิ้วใหม่นี้เป็นนิ้ววาดแทน (ไม่เข้าโหมด pinch)
-      const otherEntry=[...activePtrs.entries()].find(([id,p])=>p.type==='touch'&&!p.palm&&id!==e.pointerId);
-      if(otherEntry&&Date.now()-otherEntry[1].t0>280){
-        otherEntry[1].palm=true;
-        const oid=otherEntry[0];
-        if(primaryPtr===oid){ // ฝ่ามือเคยยึดการวาด/แพนอยู่ → เคลียร์ทิ้งให้หมด
-          try{cwrapEl.releasePointerCapture(oid);}catch(_){}
-          primaryPtr=null;
-          if(drawing){drawing=false;redraw();}
-          if(panning){if(panning.req)cancelAnimationFrame(panning.req);panning=null;dc.style.cursor='crosshair';}
-          if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
-          tapStart=null;
-        }
-        t=touchList(); // เหลือนิ้วเดียว → ไหลลงไปทำงานแบบนิ้ววาดปกติข้างล่าง
-      }else{
-      if(drawing){drawing=false;redraw();}
-      if(measDraft&&measDraft.type==='dist'){measDraft=null;redraw();}
-      tapStart=null;
-      clearTimeout(zoomTimer);
-      const [a,b]=t;
-      const st0=document.getElementById('cstage');
-      const wrapRect=cwrapEl.getBoundingClientRect();
-      const cx0=(a.x+b.x)/2, cy0=(a.y+b.y)/2;              // จุดกึ่งกลางนิ้ว (client px)
-      const m0x=cx0-wrapRect.left, m0y=cy0-wrapRect.top;   // เทียบมุมซ้ายบน viewport
-      const s0L=st0.offsetLeft, s0T=st0.offsetTop;         // ตำแหน่ง stage ใน scroll content
-      const fX=cwrapEl.scrollLeft+m0x-s0L, fY=cwrapEl.scrollTop+m0y-s0T; // จุดโฟกัสในพิกัด stage
-      pinch={
-        d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:renderedZoom,
-        sL:cwrapEl.scrollLeft, sT:cwrapEl.scrollTop,
-        s0L, s0T, m0x, m0y, fX, fY,
-        cx0, cy0, tx:0, ty:0
-      };
-      st0.classList.add('no-anim');
-      st0.style.transformOrigin='0 0'; // มุมซ้ายบนคงที่ → คำนวณ translate เอง แม่นทุกเบราว์เซอร์
-      if(primaryPtr!=null){try{cwrapEl.releasePointerCapture(primaryPtr);}catch(_){}}
-      primaryPtr=null;
-      e.preventDefault();
-      return;
-      }
     }
     if(t.length>2)return;
   }
@@ -1646,95 +1857,110 @@ cwrapEl.addEventListener('pointerdown',e=>{
   try{cwrapEl.setPointerCapture(e.pointerId);}catch(_){}
   e.preventDefault();
   tapStart={x:e.clientX,y:e.clientY,t:Date.now(),id:e.pointerId};
-  if(tool==='pan'){
-    panning={x:e.clientX,y:e.clientY,l:cwrapEl.scrollLeft,t:cwrapEl.scrollTop};
-    dc.style.cursor='grabbing';
-    return;
-  }
+  // เมาส์: ปุ่มกลาง หรือเว้นวรรค+ลาก = เลื่อนแบบ
+  if(tool==='pan'||(e.pointerType==='mouse'&&(e.button===1||spaceDown))){ beginPan(e); return; }
+  if(e.pointerType==='mouse'&&e.button!==0){ primaryPtr=null; return; }
   start(e);
 });
 cwrapEl.addEventListener('pointermove',e=>{
+  if(e.pointerType==='pen'){
+    if(e.buttons===0)penNearUntil=Date.now()+PALM_HOVER; // ปากกาลอยเหนือจอ (Samsung S Pen) → กันฝ่ามือล่วงหน้า
+    setLastKind('pen');
+  }
   const rec=activePtrs.get(e.pointerId);
   if(rec){rec.x=e.clientX;rec.y=e.clientY;}
   if(pinch){
     e.preventDefault();
     const t=touchList();
     if(t.length>=2){
-      const [a,b]=t;
-      const d=Math.hypot(a.x-b.x,a.y-b.y);
-      const target=Math.max(0.5,Math.min(5,pinch.z0*(d/pinch.d0)));
-      const st=document.getElementById('cstage');
-      const ratio=target/pinch.z0;
-      // จุดกึ่งกลางนิ้วปัจจุบัน (เทียบมุมซ้ายบน viewport)
-      const wrapRect=cwrapEl.getBoundingClientRect();
-      const mcx=(a.x+b.x)/2-wrapRect.left, mcy=(a.y+b.y)/2-wrapRect.top;
-      pinch.tx=mcx-pinch.m0x; pinch.ty=mcy-pinch.m0y;
-      // ตำแหน่งบนจอ = s0L + fX*ratio - scroll + tr  =>  tr = mcx + scroll - s0L - fX*ratio
-      const trX=mcx+pinch.sL-pinch.s0L-pinch.fX*ratio;
-      const trY=mcy+pinch.sT-pinch.s0T-pinch.fY*ratio;
-      st.style.transform=`translate(${trX}px,${trY}px) scale(${ratio})`;
-      pinch.trX=trX; pinch.trY=trY;
-      pinch.target=target;
-      zoom=Math.round(target/0.05)*0.05;
-      document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
+      const [a,b]=t, r=cwrapEl.getBoundingClientRect();
+      const mx=(a.x+b.x)/2-r.left, my=(a.y+b.y)/2-r.top;
+      let z=pinch.z0*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d0;
+      if(z>ZMAX)z=ZMAX*Math.pow(z/ZMAX,0.25);      // เลยเพดาน → ฝืดขึ้น ไม่หยุดกึก
+      if(z<ZMIN)z=ZMIN*Math.pow(z/ZMIN,0.25);
+      zoom=z;
+      // จุดบนแบบที่อยู่ใต้กึ่งกลางนิ้วตอนเริ่ม ต้องอยู่ใต้กึ่งกลางนิ้วตลอด
+      camX=mx-pinch.ux*pxPerUnit(); camY=my-pinch.uy*pxPerUnit();
+      applyCam();
     }
     return;
   }
+  if(rec&&rec.palm)return;
   if(e.pointerType==='touch'&&penDown)return; // palm
   if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
   if(panning){
-    panning.curX=e.clientX; panning.curY=e.clientY;
-    if(!panning.req){
-      panning.req=requestAnimationFrame(()=>{
-        if(!panning){return;}
-        cwrapEl.scrollLeft=panning.l-(panning.curX-panning.x);
-        cwrapEl.scrollTop=panning.t-(panning.curY-panning.y);
-        panning.req=null;
-      });
-    }
+    const q=wrapPt(e), b=camBounds(zoom), now=performance.now();
+    camX=rubberband(panning.cx+(q.x-panning.x0),b.x[0],b.x[1],b.m);
+    camY=rubberband(panning.cy+(q.y-panning.y0),b.y[0],b.y[1],b.m);
+    const dt=Math.max(1,now-panning.lt);
+    panning.vx=0.8*(q.x-panning.lx)/dt+0.2*panning.vx; panning.vy=0.8*(q.y-panning.ly)/dt+0.2*panning.vy;
+    panning.lt=now; panning.lx=q.x; panning.ly=q.y;
+    applyCam();
     return;
+  }
+  if(e.pointerId!==primaryPtr&&e.pointerType==='mouse'&&!drawing&&tool!=='poly'&&!measDraft)return;
+  // ปากกา/ไฮไลท์: เก็บจุดย่อยระหว่างเฟรม (จอ 120 เฮิรตซ์) เส้นจะไม่หยักตอนลากเร็ว
+  if(drawing&&(tool==='pen'||tool==='highlight')&&e.getCoalescedEvents){
+    const co=e.getCoalescedEvents();
+    for(let i=0;i<co.length-1;i++)pts.push(pos(co[i]));
   }
   move(e);
 });
+function fling(){
+  if(!panning)return false;
+  const v=Math.hypot(panning.vx,panning.vy);
+  if(performance.now()-panning.lt>70||v<0.3)return false;
+  let vx=panning.vx*16, vy=panning.vy*16;
+  stopFling();
+  const step=()=>{
+    vx*=0.93; vy*=0.93;
+    const b=camBounds(zoom);
+    camX+=vx; camY+=vy;
+    if(camX>b.x[1]+b.m*0.3||camX<b.x[0]-b.m*0.3)vx=0;   // ชนขอบ → หยุดไถ แล้วดีดกลับ
+    if(camY>b.y[1]+b.m*0.3||camY<b.y[0]-b.m*0.3)vy=0;
+    applyCam();
+    if(Math.hypot(vx,vy)>0.35)flingRaf=requestAnimationFrame(step); else {flingRaf=0;settleCam();}
+  };
+  flingRaf=requestAnimationFrame(step);
+  return true;
+}
 function ptrUp(e){
+  const rec=activePtrs.get(e.pointerId);
   activePtrs.delete(e.pointerId);
-  if(e.pointerType==='pen')penDown=false;
+  if(e.pointerType==='pen'){penDown=false;penNearUntil=Date.now()+PALM_AFTER_PEN;}
   if(pinch){
-    if(touchList().length<2){
-      const p=pinch; pinch=null;
-      const st=document.getElementById('cstage');
-      const finalZoom=Math.max(0.5,Math.min(5,p.target||zoom));
-      const finalMx=p.m0x+(p.tx||0), finalMy=p.m0y+(p.ty||0); // ตำแหน่งนิ้วสุดท้าย
-      zoom=finalZoom;
-      document.getElementById('zoomInfo').textContent=Math.round(zoom*100)+'%';
-      const panned=Math.abs(p.tx||0)>1||Math.abs(p.ty||0)>1;
-      if(Math.abs(finalZoom-p.z0)<0.02 && !panned){ // ไม่ซูมไม่เลื่อน
-        st.style.transform='';st.style.transformOrigin='';
-        st.classList.remove('no-anim');
-      }else if(Math.abs(finalZoom-p.z0)<0.02){ // เลื่อนอย่างเดียว — ตั้ง scroll ไม่ต้อง render
-        st.style.transform='';st.style.transformOrigin='';
-        cwrapEl.scrollLeft=p.s0L+p.fX*finalZoom/p.z0-finalMx;
-        cwrapEl.scrollTop =p.s0T+p.fY*finalZoom/p.z0-finalMy;
-        st.classList.remove('no-anim');
-      }else{ // มีการซูม — ส่ง focal ให้ renderPage คำนวณ scroll หลัง stage เปลี่ยนขนาด
-        pendingScroll={_focal:{fx:p.fX,fy:p.fY,ratio:finalZoom/p.z0,ox:finalMx,oy:finalMy}};
-        if(pdfDoc)renderPage();
-      }
-    }
+    if(touchList().length<2){ pinch=null; settleCam(); }
     return;
   }
+  if(rec&&rec.palm)return;
   if(e.pointerType==='touch'&&penDown)return;
   if(e.pointerId!==primaryPtr&&e.pointerType!=='mouse')return;
+  if(e.pointerId!==primaryPtr&&e.pointerType==='mouse'&&!drawing&&!panning&&tool!=='poly'&&!measDraft&&!calibrating)return;
   primaryPtr=null;
-  if(panning){if(panning.req)cancelAnimationFrame(panning.req);panning=null;dc.style.cursor='grab';tapStart=null;return;}
   // ── tap detection: ทำงานกับทุกอุปกรณ์ (เมาส์/ปากกา/นิ้ว) ──
   let tapped=false;
   if(tapStart&&tapStart.id===e.pointerId){
     const d=Math.hypot(e.clientX-tapStart.x,e.clientY-tapStart.y);
-    const lim=e.pointerType==='pen'?14:(e.pointerType==='touch'?12:9), tlim=e.pointerType==='pen'?750:600; // ปากกาลื่นบนกระจก/นิ้วสั่นกว่าเมาส์ ให้อะลุ่มอล่วยตามชนิด
+    const lim=e.pointerType==='pen'?14:(e.pointerType==='touch'?12:9), tlim=e.pointerType==='pen'?750:600; // ปากกาลื่นบนกระจก/นิ้วสั่นกว่าเมาส์
     if(d<lim&&(Date.now()-tapStart.t)<tlim)tapped=true;
   }
   tapStart=null;
+  if(panning){
+    cwrapEl.classList.remove('grabbing');
+    // โหมดเลื่อน: แตะสองครั้ง = ซูมเข้า 2 เท่าที่จุดนั้น (ถ้าซูมลึกแล้ว → กลับพอดีจอ)
+    if(tapped&&tool==='pan'){
+      const now=Date.now(), q=wrapPt(e);
+      if(lastTap&&now-lastTap.t<350&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<28){
+        lastTap=null; panning=null;
+        if(zoom>=ZMAX*0.7)zoomReset(); else zoomAt(zoom*2,q.x,q.y,true);
+        return;
+      }
+      lastTap={x:e.clientX,y:e.clientY,t:now};
+    }
+    if(!fling())settleCam();
+    panning=null;
+    return;
+  }
   if(tapped){
     // แตะสองครั้งติด = ปิด polygon
     const now=Date.now();
@@ -1751,6 +1977,40 @@ function ptrUp(e){
 }
 cwrapEl.addEventListener('pointerup',ptrUp);
 cwrapEl.addEventListener('pointercancel',ptrUp);
+cwrapEl.addEventListener('contextmenu',e=>{ if(e.pointerType!=='mouse')e.preventDefault(); });
+cwrapEl.addEventListener('auxclick',e=>{ if(e.button===1)e.preventDefault(); });
+// เว้นวรรคค้าง = มือจับเลื่อนแบบ (เหมือนโปรแกรมแบบทั่วไป)
+document.addEventListener('keydown',e=>{
+  if(e.code!=='Space'||e.repeat)return;
+  if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(document.activeElement?.tagName))return;
+  spaceDown=true; cwrapEl.classList.add('space-pan'); e.preventDefault();
+});
+document.addEventListener('keyup',e=>{ if(e.code==='Space'){spaceDown=false;cwrapEl.classList.remove('space-pan');} });
+window.addEventListener('blur',()=>{spaceDown=false;cwrapEl.classList.remove('space-pan');});
+
+// ── ป้ายมุมจอ: กำลังวาดลงหมวดไหน + โหมดอุปกรณ์ ──
+const MODE_LABEL={pen:'✒️ ปากกา',touch:'👆 นิ้ว',mouse:'🖱 เมาส์'};
+function updateModeChip(){
+  const sel=document.getElementById('inputModeSel'); if(!sel)return;
+  const m=inputMode();
+  sel.options[0].textContent='อัตโนมัติ · '+MODE_LABEL[m];
+  sel.value=inputPref;
+}
+function setInputPref(v){ inputPref=v; try{localStorage.setItem('fmInputPref',v);}catch(_){} updateModeChip(); }
+try{ const v=localStorage.getItem('fmInputPref'); if(v&&/^(auto|pen|touch|mouse)$/.test(v))inputPref=v; }catch(_){}
+function updateLayerCue(){
+  const l=ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0];
+  const cw=document.getElementById('cwrap'), cue=document.getElementById('layerCue');
+  if(cw)cw.style.setProperty('--cue',l.color);
+  if(cue){
+    const nm=l.key==='plan'?(()=>{const p=plans.find(x=>x.id===planSel);return 'แผนงาน'+(p&&p.name?' — '+p.name:'');})():l.name;
+    const verb=tool==='pan'?'หมวดที่เลือก':'กำลังวาดลง';
+    cue.querySelector('.lc-dot').style.background=l.color;
+    cue.querySelector('.lc-t').textContent=`${verb}: ${nm}`;
+    cue.hidden=!pdfDoc;
+  }
+}
+
 
 function pos(e){const r=dc.getBoundingClientRect();return{x:(e.clientX-r.left)*(dc.width/r.width),y:(e.clientY-r.top)*(dc.height/r.height)};}
 
@@ -1828,10 +2088,20 @@ function move(e){
   if(measDraft){measMove(p);return;}
   if(!drawing)return;redraw();
   const lc=(ALL_LAYERS.find(x=>x.key===activeLayer)||LAYERS[0]).color;
-  drawCtx.strokeStyle=lc;drawCtx.lineWidth=tool==='highlight'?14:2.5;drawCtx.lineCap='round';drawCtx.lineJoin='round';
+  drawCtx.strokeStyle=lc;drawCtx.lineWidth=tool==='highlight'?14:(tool==='pen'?2:1.5);drawCtx.lineCap='round';drawCtx.lineJoin='round';
   if(tool==='rect'){drawCtx.fillStyle=lc+'22';drawCtx.fillRect(sx,sy,p.x-sx,p.y-sy);drawCtx.strokeRect(sx,sy,p.x-sx,p.y-sy);}
   else if(tool==='pen'){pts.push(p);stroke(pts);}
   else if(tool==='highlight'){pts.push(p);drawCtx.globalAlpha=.35;stroke(pts);drawCtx.globalAlpha=1;}
+}
+// เกลี่ยเส้นมือ: ตัดจุดที่ซ้อนกันถี่เกิน แล้วเฉลี่ยกับจุดข้างเคียง (คงจุดต้น-ปลาย)
+function smoothStroke(pp){
+  const a=[pp[0]];
+  for(let i=1;i<pp.length;i++){const q=a[a.length-1];if(Math.hypot(pp[i].x-q.x,pp[i].y-q.y)>=0.8)a.push(pp[i]);}
+  if(a.length<4)return a.map(p=>({x:p.x,y:p.y}));
+  const out=[{x:a[0].x,y:a[0].y}];
+  for(let i=1;i<a.length-1;i++)out.push({x:(a[i-1].x+a[i].x*2+a[i+1].x)/4,y:(a[i-1].y+a[i].y*2+a[i+1].y)/4});
+  out.push({x:a[a.length-1].x,y:a[a.length-1].y});
+  return out;
 }
 function stroke(pp){drawCtx.beginPath();drawCtx.moveTo(pp[0].x,pp[0].y);for(let i=1;i<pp.length;i++)drawCtx.lineTo(pp[i].x,pp[i].y);drawCtx.stroke();}
 function end(e){
@@ -1839,7 +2109,7 @@ function end(e){
   if(!drawing)return;drawing=false;const p=pos(e);
   let shape;
   if(tool==='rect'){if(Math.abs(p.x-sx)<8||Math.abs(p.y-sy)<8)return;shape={type:'rect',x:Math.min(sx,p.x),y:Math.min(sy,p.y),w:Math.abs(p.x-sx),h:Math.abs(p.y-sy)};}
-  else if(tool==='pen'||tool==='highlight'){if(pts.length<2)return;shape={type:tool,points:[...pts]};}
+  else if(tool==='pen'||tool==='highlight'){if(pts.length<2)return;shape={type:tool,points:smoothStroke(pts)};}
   else return;
   commitShape(shape);
 }
@@ -1870,8 +2140,8 @@ function commitShape(shape){
     if(!sel||sel.status==='replaced')planSel=(activePlan()||plans[plans.length-1]).id;
   }
   const id=Date.now()+Math.random();
-  const defOpacity=(shape.type==='rect'||shape.type==='poly')?28:13;
-  const defWidth=shape.type==='highlight'?14:2.6;
+  const defOpacity=(shape.type==='rect'||shape.type==='poly')?25:13;
+  const defWidth=shape.type==='highlight'?14:(shape.type==='pen'?2:1);
   markups.push({id,layer:activeLayer,zone:defZone,page:pageNum,shape,planId:activeLayer==='plan'?planSel:null,
     delivId:activeLayer==='deliv'?delivSel:null, hatch:activeLayer==='deliv'?'diag':undefined,
     stroke:col,fill:col,opacity:defOpacity,width:defWidth,note:'',start:'',end:'',area:'',photos:[],
@@ -1888,9 +2158,40 @@ function mkItems(m){ // รายการ item ของ markup → [{id,qty,lo
   if(m.item)return [{id:String(m.item),qty:m.area,locked:true}];
   return [];
 }
+// ── กติกาเดียวทั้งแอป: นับเป็น "เสร็จ" เมื่อลงวันเสร็จแล้ว และวันเสร็จไม่เกินวันที่อ้างอิง (ค่าเริ่มต้น = วันนี้)
+function todayISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
+function isDoneMk(m,cut){cut=cut||todayISO();return !!(m&&m.end&&m.end<=cut);}
+function isWipMk(m,cut){cut=cut||todayISO();return !!(m&&!isDoneMk(m,cut)&&m.start&&m.start<=cut);}
+function isAreaUnit(u){u=String(u||'').trim();return !u||/ตร\.?\s*ม|ตารางเมตร|m2|m²|sq\.?\s*m/i.test(u);}
+// รายการ BOQ ที่เป็นของหมวดงานนี้: ผูกกับ markup ในหมวด หรือชื่อรายการตรงกับหมวด (เฉพาะหน่วยพื้นที่)
+function layerItems(lk){
+  const ids=new Set(), other=new Set();
+  wmk().forEach(m=>mkItems(m).forEach(x=>(m.layer===lk?ids:other).add(String(x.id))));
+  return poItems.filter(it=>parseFloat(it.qty)>0&&isAreaUnit(it.unit)&&
+    (ids.has(String(it.id))||(!other.has(String(it.id))&&poMatchLayer(it.name)===lk)));
+}
+// ความคืบหน้าของหมวดงาน — ใช้ฟังก์ชันนี้ที่เดียวทุกจุด (แถบข้าง, สรุป, ประชุม, รายงาน)
+// ฐานคิด: ปริมาณตาม BOQ ของหมวด → ถ้าไม่มี BOQ ใช้พื้นที่ตามสัญญา → ถ้าไม่มีใช้พื้นที่แผ่นรวม
+function layerProg(lk,cut){
+  cut=cut||todayISO();
+  const mks=wmk().filter(m=>m.layer===lk);
+  const A=arr=>arr.reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+  const doneMk=mks.filter(m=>isDoneMk(m,cut)), wipMk=mks.filter(m=>isWipMk(m,cut));
+  const its=layerItems(lk);
+  if(its.length){
+    const ids=new Set(its.map(i=>String(i.id)));
+    const base=its.reduce((s,i)=>s+(parseFloat(i.qty)||0),0);
+    const done=doneMk.reduce((s,m)=>s+mkItems(m).filter(x=>ids.has(String(x.id))).reduce((a,x)=>a+(parseFloat(x.qty)||0),0),0);
+    return {done,base,pct:base?done/base*100:null,wip:A(wipMk),wipN:wipMk.length,n:doneMk.length,basis:'boq',baseLabel:'ปริมาณตาม BOQ'};
+  }
+  const poA=getPoArea(), base=getProjectArea();
+  return {done:A(doneMk),base,pct:base?A(doneMk)/base*100:null,wip:A(wipMk),wipN:wipMk.length,n:doneMk.length,
+    basis:base?(poA>0?'contract':'sheets'):'none',baseLabel:base?(poA>0?'พื้นที่ตามสัญญา':'พื้นที่ตามแบบรวม'):'—'};
+}
 function doneItem(itemId){ // ยอดทำแล้วของ item = ผลรวม "ปริมาณของ item นั้น" จาก markup งานจริง (ไม่รวมแผนงาน)
   itemId=String(itemId);
   return wmk().reduce((s,m)=>{
+    if(!isDoneMk(m))return s; // นับเฉพาะงานที่ลงวันเสร็จแล้ว
     const it=mkItems(m).find(x=>x.id===itemId);
     return s+(it?(parseFloat(it.qty)||0):0);
   },0);
@@ -2017,7 +2318,7 @@ function renderPoItems(){
     el.innerHTML=html+'<div class="po-empty">ยังไม่มีรายการใน BOQ นี้<br><small>จิ้มบรรทัดจาก PDF ฝั่งซ้าย หรือกด ➕ เพิ่มเอง</small></div>';
     renderPoSum();return;
   }
-  html+='<div class="po-it-head"><span>#</span><span>ชื่อรายการ</span><span style="text-align:right">PO (ตร.ม.)</span><span style="text-align:right">ทำแล้ว</span><span></span></div>';
+  html+='<div class="po-it-head"><span>#</span><span>ชื่อรายการ</span><span style="text-align:right">ตามสัญญา</span><span style="text-align:right">ราคา/หน่วย</span><span style="text-align:right">เสร็จแล้ว</span><span></span></div>';
   list.forEach((it,i)=>{
     const d=doneItem(it.id);
     const pct=parseFloat(it.qty)>0?d/parseFloat(it.qty)*100:null;
@@ -2025,6 +2326,7 @@ function renderPoItems(){
       <span class="no">${i+1}</span>
       <input value="${(it.name||'').replace(/"/g,'&quot;')}" placeholder="ชื่องาน" onchange="updPoItem(${it.id},'name',this.value)">
       <input type="number" inputmode="decimal" value="${it.qty||''}" placeholder="0" style="text-align:right" onchange="updPoItem(${it.id},'qty',this.value)">
+      <input type="number" inputmode="decimal" value="${it.price||''}" placeholder="บาท" title="ราคาต่อหน่วย — ใส่ครบทุกรายการ รายงานจะคิดภาพรวมแบบถ่วงตามมูลค่า" style="text-align:right" onchange="updPoItem(${it.id},'price',this.value)">
       <span class="done" style="color:${pct!=null&&pct>=100?'var(--green)':'var(--text)'}"><b>${d.toLocaleString()}</b>${pct!=null?fmtPct(pct):'-'}</span>
       <button onclick="delPoItem(${it.id})" title="ลบ">✕</button>
     </div>`;
@@ -2697,7 +2999,7 @@ function scanPlacePin(idx){
     shape:{type:'rect',x:cx-w/2,y:cy-h/2,w,h},
     stroke:(LAYERS.find(l=>l.key===m.layer)||{}).color||'#f4a726',
     fill:(LAYERS.find(l=>l.key===m.layer)||{}).color||'#f4a726',
-    opacity:28,width:2.6,note:m.name||'',start:'',end:'',area:'',photos:[],planId:null,
+    opacity:25,width:1,note:m.name||'',start:'',end:'',area:'',photos:[],planId:null,
     roomCode:m.code,                                  // จำรหัสจากแบบ ไว้จับคู่ PO ทีหลังได้แม่นขึ้น
     items:r.item?[{id:String(r.item.id),qty:'',locked:false}]:[],
     canvasW:dc.width,canvasH:dc.height});
@@ -3089,62 +3391,137 @@ function hex2rgba(hex,a){
   return `rgba(${r},${g},${b},${a})`;
 }
 
+// ── วาด markup (ใช้ร่วมกันทั้งบนจอและตอนพิมพ์ → หน้าตาเหมือนกันเป๊ะ) ── rev 2
+// เลขกำกับ: วงกลมเล็กที่มุมพื้นที่ · ป้ายวันที่: ตัวปกติ สีเทาเข้ม พื้นขาวโปร่ง ไม่มีขอบ วางกลางกลุ่ม (หลบป้ายห้องลงล่าง)
+function fmtDateRange(s,e){
+  const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const P=iso=>{if(!iso)return null;const d=new Date(iso+'T00:00:00');return isNaN(d)?null:d;};
+  const a=P(s),b=P(e);
+  if(a&&b){
+    if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear())
+      return a.getDate()===b.getDate()?`${a.getDate()} ${M[a.getMonth()]}`:`${a.getDate()} – ${b.getDate()} ${M[b.getMonth()]}`;
+    return `${a.getDate()} ${M[a.getMonth()]} – ${b.getDate()} ${M[b.getMonth()]}`;
+  }
+  if(a)return `เริ่ม ${a.getDate()} ${M[a.getMonth()]}`;
+  if(b)return `เสร็จ ${b.getDate()} ${M[b.getMonth()]}`;
+  return '';
+}
+function mkShapesBBox(shapes){
+  let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
+  shapes.forEach(s=>{
+    if(!s)return;
+    if(s.type==='rect'){x1=Math.min(x1,s.x);y1=Math.min(y1,s.y);x2=Math.max(x2,s.x+s.w);y2=Math.max(y2,s.y+s.h);}
+    else if(Array.isArray(s.points))s.points.forEach(p=>{x1=Math.min(x1,p.x);y1=Math.min(y1,p.y);x2=Math.max(x2,p.x);y2=Math.max(y2,p.y);});
+  });
+  return isFinite(x1)?{x1,y1,x2,y2,cx:(x1+x2)/2,cy:(y1+y2)/2,w:x2-x1,h:y2-y1}:null;
+}
+function mkNumberBadge(ctx,m,idx,x,y,inv){
+  const r=9*inv;
+  ctx.font=`700 ${10*inv}px Sarabun`;
+  const tw=ctx.measureText(String(idx)).width, hw=Math.max(r,tw/2+5*inv);
+  ctx.fillStyle=m.stroke;ctx.beginPath();
+  if(hw>r+0.5*inv){ctx.moveTo(x-hw+r,y-r);ctx.lineTo(x+hw-r,y-r);ctx.arc(x+hw-r,y,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x-hw+r,y+r);ctx.arc(x-hw+r,y,r,Math.PI/2,Math.PI*1.5);ctx.closePath();}
+  else ctx.arc(x,y,r,0,7);
+  ctx.fill();
+  ctx.lineWidth=1.2*inv;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font=`700 ${10*inv}px Sarabun`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(idx,x,y+0.5*inv);ctx.textAlign='start';ctx.textBaseline='alphabetic';
+}
+function mkDateChipRect(ctx,m,bb,inv){
+  const txt=fmtDateRange(m.start,m.end); if(!txt||!bb)return null;
+  ctx.font=`400 ${11*inv}px Sarabun`;
+  const padL=17*inv,padR=8*inv,h=18*inv,w=ctx.measureText(txt).width+padL+padR;
+  // ป้ายห้องในแบบมักอยู่กลางห้อง → วางป้ายวันที่ใต้จุดกลางเล็กน้อย; ถ้ากลุ่มเตี้ย วางใต้กลุ่ม
+  const cy=bb.h>h*4?bb.cy+h*1.15:bb.y2+h*0.75, cx=bb.cx;
+  return {txt,x:cx-w/2,y:cy-h/2,w,h,padL,inv};
+}
+function mkDateChipDraw(ctx,m,R){
+  const {x,y,w,h,inv}=R, r=h/2, cy=y+h/2;
+  ctx.font=`400 ${11*inv}px Sarabun`;
+  ctx.fillStyle='rgba(255,255,255,.88)';
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();ctx.fill();
+  ctx.fillStyle=m.stroke;ctx.beginPath();ctx.arc(x+9*inv,cy,3.5*inv,0,7);ctx.fill();
+  ctx.fillStyle='#374151';ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillText(R.txt,x+R.padL,cy+0.5*inv);ctx.textAlign='start';ctx.textBaseline='alphabetic';
+}
+function mkDateChip(ctx,m,bb,inv){ const R=mkDateChipRect(ctx,m,bb,inv); if(R)mkDateChipDraw(ctx,m,R); }
+// วางป้ายของหลายหมวดบนแบบเดียวกัน (ตอนพิมพ์) ไม่ให้ทับกัน: ป้ายวันที่เลื่อนลง · เลขกำกับเลื่อนไปทางขวา
+function drawLabelsAvoid(ctx,list){
+  const placed=[], hit=(a)=>placed.some(b=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y);
+  list.forEach(L=>{ const R=mkDateChipRect(ctx,L.m,L.bb,L.k); if(!R)return;
+    for(let i=0;i<8&&hit(R);i++)R.y+=R.h+2*L.k;
+    placed.push(R); mkDateChipDraw(ctx,L.m,R); });
+  list.forEach(L=>L.corners.forEach(([x,y])=>{
+    const r=9*L.k; ctx.font=`700 ${10*L.k}px Sarabun`;
+    const hw=Math.max(r,ctx.measureText(String(L.idx)).width/2+5*L.k);
+    const R={x:x-hw,y:y-r,w:hw*2,h:r*2};
+    for(let i=0;i<8&&hit(R);i++){R.x+=R.w+2*L.k;}
+    placed.push(R); mkNumberBadge(ctx,L.m,L.idx,R.x+hw,y,L.k);
+  }));
+}
+// วาด markup หนึ่งตัวลง ctx — opt.sel = กำลังเลือกอยู่ (เส้นหนาขึ้นเล็กน้อย)
+function drawMarkupShape(ctx,m,idx,opt){
+  opt=opt||{};
+  const W=ctx.canvas&&ctx.canvas.width;
+  const sf=(m.canvasW&&W)?(W/m.canvasW):1;
+  const inv=sf!==1?1/sf:1;
+  ctx.save();
+  if(sf!==1)ctx.scale(sf,sf);
+  const lw=((m.width||2.6)+(opt.sel?1.2:0))*inv;
+  const shapes=[m.shape,...(m.extraShapes||[])].filter(Boolean);
+  const hp=(m.delivId&&m.hatch&&m.hatch!=='solid')?hatchPattern(ctx,m.hatch,m.fill,Math.max(.55,m.opacity/100)):null;
+  const fill=hp||hex2rgba(m.fill,m.opacity/100);
+  const corners=[];
+  shapes.forEach(s=>{
+    ctx.strokeStyle=m.stroke;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';
+    if(s.type==='rect'){
+      ctx.fillStyle=fill;ctx.fillRect(s.x,s.y,s.w,s.h);ctx.strokeRect(s.x,s.y,s.w,s.h);
+      corners.push([s.x,s.y]);
+    }else if(s.type==='poly'){
+      ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(s.points[0].x,s.points[0].y);
+      for(let i=1;i<s.points.length;i++)ctx.lineTo(s.points[i].x,s.points[i].y);
+      ctx.closePath();ctx.fill();ctx.stroke();
+      corners.push([s.points[0].x,s.points[0].y]);
+    }else if(Array.isArray(s.points)&&s.points.length){
+      ctx.globalAlpha=s.type==='highlight'?.35:1;
+      ctx.lineWidth=(s.type==='highlight'?(m.width||14):(m.width||2.6)+(opt.sel?1.2:0))*inv;
+      ctx.beginPath();ctx.moveTo(s.points[0].x,s.points[0].y);for(let i=1;i<s.points.length;i++)ctx.lineTo(s.points[i].x,s.points[i].y);ctx.stroke();
+      ctx.globalAlpha=1;
+      corners.push([s.points[0].x,s.points[0].y]);
+    }
+  });
+  const lk=inv*(opt.k||1), bb=mkShapesBBox(shapes);
+  if(opt.collect){ // ตอนพิมพ์: เก็บตำแหน่งป้ายไว้วางทีหลังแบบไม่ทับกัน (แปลงเป็นพิกัดจริงของผืนวาด)
+    const t=v=>v*sf;
+    opt.collect.push({m,idx,k:lk*sf,bb:bb&&{x1:t(bb.x1),y1:t(bb.y1),x2:t(bb.x2),y2:t(bb.y2),cx:t(bb.cx),cy:t(bb.cy),w:t(bb.w),h:t(bb.h)},corners:corners.map(([x,y])=>[t(x),t(y)])});
+  }else{
+    mkDateChip(ctx,m,bb,lk);
+    corners.forEach(([x,y])=>mkNumberBadge(ctx,m,idx,x,y,lk)); // ทุกพื้นที่ของกลุ่มมีเลขเดียวกันกำกับ
+  }
+  ctx.restore();
+}
+// หมวดที่ไม่ได้เลือกวาดจางลง (ผ่านผืนชั่วคราว จึงจางทั้งชิ้นสม่ำเสมอ ไม่ซ้อนสีกัน)
+let dimCanvas=null, dimCtx=null;
+const DIM_ALPHA=0.4;
 function redraw(){
   if(!drawCtx)return;
   drawCtx.clearRect(0,0,dc.width,dc.height);
-  // draw visible layers; active layer last (on top)
-  const order=[...ALL_LAYERS.filter(l=>l.key!==activeLayer),...ALL_LAYERS.filter(l=>l.key===activeLayer)];
-  order.forEach(l=>{
-    if(!l.visible)return;
-    markups.filter(m=>m.layer===l.key&&m.page===pageNum).forEach(m=>{
-      const idx=mkNo(m);
-      const sf=(m.canvasW&&dc.width)?(dc.width/m.canvasW):1;
-      const inv=sf!==1?1/sf:1;
-      drawCtx.save();
-      if(sf!==1)drawCtx.scale(sf,sf);
-      const bw=((m.width||2.6)+(m.id===selId?1.2:0))*inv;
-      // markup เดียวอาจมีหลายพื้นที่ (shape หลัก + extraShapes) — สไตล์/เลขเดียวกัน
-      const shapes=[m.shape,...(m.extraShapes||[])];
-      let n1=null,c1=null; // จุดวางเลข/ป้ายวันที่ (พื้นที่แรก)
-      // อยู่ในรอบส่งงาน → ใช้ลายแรเงา ให้เห็นบนจอเหมือนที่จะออกในใบส่งงาน
-      const hp=(m.delivId&&m.hatch&&m.hatch!=='solid')?hatchPattern(drawCtx,m.hatch,m.fill,Math.max(.55,m.opacity/100)):null;
-      shapes.forEach((s,si)=>{
-        drawCtx.strokeStyle=m.stroke;drawCtx.lineWidth=bw;drawCtx.lineCap='round';
-        let cornerX,cornerY,cx,cy;
-        if(s.type==='rect'){
-          drawCtx.fillStyle=hp||hex2rgba(m.fill,m.opacity/100);
-          drawCtx.fillRect(s.x,s.y,s.w,s.h);drawCtx.strokeRect(s.x,s.y,s.w,s.h);
-          cornerX=s.x;cornerY=s.y;cx=s.x+s.w/2;cy=s.y+s.h/2;
-        } else if(s.type==='poly'){
-          drawCtx.fillStyle=hp||hex2rgba(m.fill,m.opacity/100);
-          drawCtx.beginPath();drawCtx.moveTo(s.points[0].x,s.points[0].y);
-          for(let i=1;i<s.points.length;i++)drawCtx.lineTo(s.points[i].x,s.points[i].y);
-          drawCtx.closePath();drawCtx.fill();drawCtx.stroke();
-          cornerX=s.points[0].x;cornerY=s.points[0].y;
-          const c=polyCentroid(s.points);cx=c.x;cy=c.y;
-        } else {
-          drawCtx.globalAlpha=s.type==='highlight'?.35:1;
-          drawCtx.lineWidth=(s.type==='highlight'?(m.width||14):(m.width||2.6)+(m.id===selId?1.2:0))*inv;
-          stroke(s.points);drawCtx.globalAlpha=1;
-          cornerX=s.points[0].x;cornerY=s.points[0].y;
-          let X=0,Y=0;s.points.forEach(p=>{X+=p.x;Y+=p.y;});cx=X/s.points.length;cy=Y/s.points.length;
-        }
-        if(si===0){n1=[cornerX,cornerY];c1=[cx,cy];}
-        else drawNumber(idx,m,cornerX,cornerY,inv); // พื้นที่เพิ่มก็มีเลขเดียวกันกำกับ
-      });
-      drawDateLabel(m,c1[0],c1[1],inv);
-      drawNumber(idx,m,n1[0],n1[1],inv);
-      drawCtx.restore();
-    });
-  });
+  const onPage=l=>l.visible?markups.filter(m=>m.layer===l.key&&m.page===pageNum):[];
+  const others=ALL_LAYERS.filter(l=>l.key!==activeLayer).map(onPage).flat();
+  if(others.length){
+    if(!dimCanvas){dimCanvas=document.createElement('canvas');dimCtx=dimCanvas.getContext('2d');}
+    if(dimCanvas.width!==dc.width||dimCanvas.height!==dc.height){dimCanvas.width=dc.width;dimCanvas.height=dc.height;}
+    else dimCtx.clearRect(0,0,dimCanvas.width,dimCanvas.height);
+    others.forEach(m=>drawMarkupShape(dimCtx,m,mkNo(m),{sel:m.id===selId}));
+    drawCtx.save();drawCtx.globalAlpha=DIM_ALPHA;drawCtx.drawImage(dimCanvas,0,0);drawCtx.restore();
+  }else if(dimCanvas&&dimCanvas.width>1){dimCanvas.width=dimCanvas.height=1;} // คืนหน่วยความจำ
+  const act=ALL_LAYERS.find(l=>l.key===activeLayer);
+  if(act)onPage(act).forEach(m=>drawMarkupShape(drawCtx,m,mkNo(m),{sel:m.id===selId}));
   drawMeasures();
 }
-function drawNumber(idx,m,x,y,inv){
-  inv=inv||1;
-  drawCtx.fillStyle=m.stroke;drawCtx.beginPath();drawCtx.arc(x,y,11*inv,0,7);drawCtx.fill();
-  drawCtx.fillStyle='#fff';drawCtx.font=`bold ${12*inv}px Sarabun`;drawCtx.textAlign='center';drawCtx.textBaseline='middle';
-  drawCtx.fillText(idx,x,y);drawCtx.textAlign='start';drawCtx.textBaseline='alphabetic';
-}
+function drawNumber(idx,m,x,y,inv){ mkNumberBadge(drawCtx,m,idx,x,y,inv||1); }
+function drawDateLabel(m,cx,cy,inv){ inv=inv||1; mkDateChip(drawCtx,m,{cx,cy,y2:cy,h:999},inv); }
+
 function polyCentroid(pts){
   // area-weighted centroid; fallback to average if degenerate
   let a=0,cx=0,cy=0;
@@ -3154,19 +3531,6 @@ function polyCentroid(pts){
   }
   if(Math.abs(a)<1e-6){let X=0,Y=0;pts.forEach(p=>{X+=p.x;Y+=p.y;});return{x:X/pts.length,y:Y/pts.length};}
   a*=0.5;return{x:cx/(6*a),y:cy/(6*a)};
-}
-function drawDateLabel(m,cx,cy,inv){
-  inv=inv||1;
-  const ds=fmtShortDate(m.start),de=fmtShortDate(m.end);
-  if(!ds&&!de)return;
-  const txt=ds&&de?`${ds} - ${de}`:(ds||de);
-  drawCtx.font=`700 ${12*inv}px Sarabun`;drawCtx.textAlign='center';drawCtx.textBaseline='middle';
-  const padX=8*inv,chipH=22*inv,txtW=drawCtx.measureText(txt).width,chipW=txtW+padX*2;
-  const chipX=cx-chipW/2,chipY=cy-chipH/2;
-  drawCtx.fillStyle='#fff';drawCtx.strokeStyle=m.stroke;drawCtx.lineWidth=2*inv;
-  roundRect(drawCtx,chipX,chipY,chipW,chipH,5*inv);drawCtx.fill();drawCtx.stroke();
-  drawCtx.fillStyle=m.stroke;drawCtx.fillText(txt,cx,cy);
-  drawCtx.textAlign='start';drawCtx.textBaseline='alphabetic';
 }
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function fmtShortDate(iso){if(!iso)return'';const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const d=new Date(iso);if(isNaN(d))return'';return`${d.getDate()} ${M[d.getMonth()]}`;}
@@ -3199,10 +3563,10 @@ function clearPoArea(){ // ล้างค่าสัญญา → ระบบ
 }
 function getProjectArea(){return getPoArea()||getSheetsSum();}
 // "done" area = sum of markup areas on a page / whole project
-function donePage(pg){return wmk().filter(m=>m.page===pg).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
-function doneProject(){return wmk().reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
-function donePageLayer(pg,layer){return wmk().filter(m=>m.page===pg&&m.layer===layer).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
-function doneLayer(layer){return wmk().filter(m=>m.layer===layer).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function donePage(pg){return wmk().filter(m=>m.page===pg&&isDoneMk(m)).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function doneProject(){return wmk().filter(m=>isDoneMk(m)).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function donePageLayer(pg,layer){return wmk().filter(m=>m.page===pg&&m.layer===layer&&isDoneMk(m)).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function doneLayer(layer){return wmk().filter(m=>m.layer===layer&&isDoneMk(m)).reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
 // percent of a single markup vs the area of the page it sits on
 function areaPct(area,pg){const t=getPageArea(pg);const a=parseFloat(area);if(!t||!a)return null;return a/t*100;}
 function fmtPct(p){return p==null?'':(p>=10?p.toFixed(1):p.toFixed(2))+'%';}
@@ -3355,7 +3719,8 @@ function renderProgress(){
   const box=document.getElementById('progbox');
   const po=getProjectArea();
   const sheetArea=getPageArea(pageNum);
-  if(!po && !sheetArea){box.className='progbox empty';box.innerHTML='';return;}
+  const hasBoq=poItems.some(it=>parseFloat(it.qty)>0);
+  if(!po && !sheetArea && !hasBoq){const ac=auditChipHTML();box.className=ac?'progbox':'progbox empty';box.innerHTML=ac;return;}
   box.className='progbox';
 
   const barCol=pct=>pct>=100?'var(--green)':pct>=50?'var(--accent)':'var(--blue)';
@@ -3380,12 +3745,19 @@ function renderProgress(){
     html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">กรอก "พื้นที่แผ่นนี้" เพื่อดู % ของแผ่น</div>`;
   }
   // whole project — per layer
-  if(po){
+  if(po||hasBoq){
     const sSum=getSheetsSum(), usingPo=getPoArea()>0;
     // บอกให้ชัดว่า % ทั้งโครงการคิดจากฐานไหน — กันเคสพิมพ์ PO ไว้นานแล้วลืม แล้วมันไปทับยอดจากแผ่นเงียบๆ
-    html+=`<div style="font-size:11px;font-weight:600;color:var(--text);margin:11px 0 7px;padding-top:10px;border-top:1px solid var(--border)">ทั้งโครงการ
-      <span style="font-weight:400;color:var(--text2)">(ฐาน: ${usingPo?`สัญญา/PO ${getPoArea().toLocaleString()}`:`รวมจากแผ่น ${sSum.toLocaleString()}`} ตร.ม.)</span></div>`;
-    html+=layerLines(po,(lk)=>doneLayer(lk));
+    html+=`<div style="font-size:11px;font-weight:600;color:var(--text);margin:11px 0 7px;padding-top:10px;border-top:1px solid var(--border)">ทั้งโครงการ ณ วันนี้
+      <span style="font-weight:400;color:var(--text2)">(นับเฉพาะที่ลงวันเสร็จแล้ว)</span></div>`;
+    html+=LAYERS.map(l=>{
+      const lp=layerProg(l.key); if(!lp.base)return '';
+      const raw=lp.pct||0, pct=Math.min(100,raw);
+      return `<div class="prog-line">
+      <div class="prog-top"><span class="lbl"><span class="dot" style="background:${l.color}"></span>${l.name}</span><span class="val" style="color:${barCol(raw)}">${fmtPct(raw)}</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${l.color}"></div></div>
+      <div style="font-size:10px;color:var(--text2);margin-top:3px">เสร็จ ${fmtQ(lp.done)} / ${fmtQ(lp.base)} ตร.ม. · ${lp.baseLabel}${lp.wipN?` · กำลังทำ ${fmtQ(lp.wip)} (${lp.wipN} จุด)`:''}</div>
+    </div>`;}).join('');
     // cross-check: sheets sum vs PO
     if(usingPo && sSum>0){
       const diff=getPoArea()-sSum;
@@ -3414,7 +3786,7 @@ function renderProgress(){
       </div>`;
     }).join('');
   }
-  box.innerHTML=html;
+  box.innerHTML=auditChipHTML()+html;
   renderInsights();
 }
 
@@ -3464,7 +3836,7 @@ function renderInsights(){
 
   // 2) SLOW LAYER / BEHIND — per layer progress vs each other
   if(po){
-    const prog=LAYERS.map(l=>({l,pct:doneLayer(l.key)/po*100}));
+    const prog=LAYERS.map(l=>({l,pct:layerProg(l.key).pct||0})).filter(p=>wmk().some(m=>m.layer===p.l.key));
     const slow=prog.filter(p=>p.pct<100).sort((a,b)=>a.pct-b.pct);
     if(slow.length && prog.some(p=>p.pct>0)){
       const lead=Math.max(...prog.map(p=>p.pct));
@@ -3490,25 +3862,20 @@ function renderInsights(){
     </div>`);
   }
 
-  // 4) MISSING DATA — markups lacking area/photo/date
-  const noArea=wmk().filter(m=>!(parseFloat(m.area)>0));
-  const noPhoto=wmk().filter(m=>!m.photos.length);
-  const noDate=wmk().filter(m=>!m.start||!m.end);
-  const issues=[];
-  if(noArea.length)issues.push(`${noArea.length} จุดยังไม่ใส่พื้นที่ (ตร.ม.)`);
-  if(noDate.length)issues.push(`${noDate.length} จุดยังไม่ครบวันเริ่ม-เสร็จ`);
-  if(noPhoto.length)issues.push(`${noPhoto.length} จุดยังไม่มีรูป`);
+  // 4) MISSING DATA — สรุปจากตัวตรวจข้อมูล (ตัวเดียวกับปุ่ม ⚠ ตรวจข้อมูล)
+  const au=auditData();
+  const issues=au.groups.filter(g=>g.items.length).map(g=>`${g.items.length} จุด — ${g.title}`);
   if(issues.length){
     cards.push(`<div class="ins-card danger">
       <div class="ins-t" style="color:var(--red)">📋 ข้อมูลที่ยังขาด</div>
       <div>${issues.map(i=>'• '+i).join('<br>')}</div>
-      <div class="ins-sub">เติมให้ครบเพื่อรายงานที่สมบูรณ์</div>
+      <div class="ins-sub">เติมให้ครบเพื่อรายงานที่สมบูรณ์ <button class="mini-btn" onclick="openAudit()">ดูรายการ</button></div>
     </div>`);
   }
 
   // 5) HUMAN SUMMARY
   if(po){
-    const parts=LAYERS.map(l=>`${l.name} ${fmtPct(doneLayer(l.key)/po*100)}`).join(' · ');
+    const parts=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).map(l=>`${l.name} ${fmtPct(layerProg(l.key).pct||0)}`).join(' · ');
     cards.push(`<div class="ins-card ok">
       <div class="ins-t">📊 สรุปภาพรวม</div>
       <div>โครงการมี ${wmk().length} จุด, ${sheetsWithArea.length||'-'} แผ่นแบบ</div>
@@ -3989,7 +4356,8 @@ function meetProgressData(m){
     const inLay=wmk().filter(x=>x.layer===l.key);
     if(!inLay.length)return null;
     const d=inLay.filter(done), dp=inLay.filter(donePrev), wp=inLay.filter(wip);
-    return {name:l.name,key:l.key,tot:A(inLay),acc:A(d),accPrev:A(dp),add:A(d)-A(dp),
+    const lp=layerProg(l.key,cut), lpp=pcut?layerProg(l.key,pcut):{done:0};
+    return {name:l.name,key:l.key,tot:lp.base,baseLabel:lp.baseLabel,acc:lp.done,accPrev:lpp.done,add:lp.done-lpp.done,
             n:d.length,nPrev:dp.length,wip:A(wp),wipN:wp.length};
   }).filter(Boolean);
   const rows=poItems.filter(it=>parseFloat(it.qty)>0).map(it=>{
@@ -4029,7 +4397,7 @@ function meetFillProgress(){
     : (notStarted?`อีก ${notStarted} จาก ${D.rows.length} รายการยังไม่เริ่ม`:`เริ่มงานครบทั้ง ${D.rows.length} รายการแล้ว`));
   // ชั้นงาน
   D.layers.forEach(l=>{
-    let line=`• ${l.name}: เสร็จสะสม ${fmtQ(l.acc)} ตร.ม. (${l.n} จุด)`+(l.tot>0?` จาก markup ${fmtQ(l.tot)} ตร.ม. (${pc(l.acc,l.tot)}%)`:'');
+    let line=`• ${l.name}: เสร็จสะสม ${fmtQ(l.acc)} ตร.ม. (${l.n} จุด)`+(l.tot>0?` จาก${l.baseLabel} ${fmtQ(l.tot)} ตร.ม. (${pc(l.acc,l.tot)}%)`:'');
     if(D.prev&&D.pcut&&l.add>0.0001)line+=` · งวดนี้ +${fmtQ(l.add)} ตร.ม.`;
     if(l.wipN)line+=` · กำลังดำเนินการ ${fmtQ(l.wip)} ตร.ม. (${l.wipN} จุด)`;
     L.push(line);
@@ -4044,8 +4412,8 @@ function meetFillProgress(){
     });
   }
   if(D.pend.length)L.push(`คงค้าง ${D.pend.length} จุด บนแผ่นที่ ${D.pendPages.join(', ')}`);
-  else if(wmk().length)L.push('งาน markup ทั้งหมดลงวันเสร็จครบแล้ว');
-  L.push('(รายละเอียดรายรายการ ดูตารางในไฟล์ PDF)');
+  else if(wmk().length)L.push('ทุกพื้นที่ลงวันเสร็จครบแล้ว');
+  L.push('(รายละเอียดรายรายการ ดูตารางในรายงาน)');
   const txt=L.join('\n');
   const el=document.getElementById('meetProgress');
   if(el.value.trim()&&!confirm('มีข้อความอยู่แล้ว — แทนที่ด้วยสรุปอัตโนมัติ?'))return;
@@ -4313,7 +4681,7 @@ const HATCHES=[
 ];
 const DELIV_KINDS=[
   {key:'install', name:'งานติดตั้งกระเบื้องยาง', full:true},   // มี cove / edgetrim / capping ครบ
-  {key:'screed',  name:'งานเทปรับพื้น',        full:false},  // คิดแค่พื้นที่พื้น
+  {key:'screed',  name:'งานเทปรับระดับพื้น',   full:false},  // คิดแค่พื้นที่พื้น
   {key:'other',   name:'งานอื่นๆ',             full:true}
 ];
 function kindOf(d){ return DELIV_KINDS.find(k=>k.key===((d&&d.kind)||'install'))||DELIV_KINDS[0]; }
@@ -4865,10 +5233,22 @@ function saveProject(withPdf){
         `ตกลง = เซฟแบบเบา (แนะนำ)\nยกเลิก = เซฟพร้อมแบบ`);
     }else withPdf=true;
   }
+  const data=buildProjectData(withPdf);
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(data.projName||'markup')+(data.pdfOmitted?'-เบา':'')+'.json';a.click();
+  if(data.pdfOmitted)alert('เซฟแบบเบาแล้ว ✓\n\nไฟล์นี้ไม่มีแบบ PDF อยู่ข้างใน — ตอนเปิดกลับมา\nให้กด 📄 อัพโหลด PDF ใส่แบบชุดเดิมอีกครั้ง (markup จะกลับมาตรงตำแหน่งเดิม)');
+}
+// ข้อมูลโครงการทั้งหมด — ใช้ร่วมกันระหว่างเซฟเป็นไฟล์ และบันทึกลงเครื่องอัตโนมัติ
+// withPdf: true = ฝังแบบเป็นข้อความ base64, false = ไม่ฝัง, 'none' = ไม่ฝังและไม่ติดธงว่าละไว้ (ใช้กับบันทึกอัตโนมัติ)
+function buildProjectData(withPdf){
   const data={
     v:2,
     projName:document.getElementById('projName').value,
     authorName:document.getElementById('authorName').value,
+    clientName:document.getElementById('clientName').value,
+    contractStart:document.getElementById('contractStart').value,
+    contractEnd:document.getElementById('contractEnd').value,
     poArea:poArea,
     pageAreas:pageAreas,
     pageNames:pageNames,
@@ -4882,13 +5262,10 @@ function saveProject(withPdf){
     pageScale:pageScale,
     measures:measures,
     grayscale, layers:LAYERS, planLayerVisible:PLAN_LAYER.visible, markups, pageNum,
-    pdf: (withPdf&&pdfData)?ab2b64(pdfData):null,
-    pdfOmitted: !withPdf&&!!pdfData
+    pdf: (withPdf===true&&pdfData)?ab2b64(pdfData):null,
+    pdfOmitted: withPdf===false&&!!pdfData
   };
-  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=(data.projName||'markup')+(data.pdfOmitted?'-เบา':'')+'.json';a.click();
-  if(data.pdfOmitted)alert('เซฟแบบเบาแล้ว ✓\n\nไฟล์นี้ไม่มีแบบ PDF อยู่ข้างใน — ตอนเปิดกลับมา\nให้กด 📄 อัพโหลด PDF ใส่แบบชุดเดิมอีกครั้ง (markup จะกลับมาตรงตำแหน่งเดิม)');
+  return data;
 }
 
 // ── EXPORT EXCEL (offline, HTML-table .xls — opens in Excel, supports Thai, keeps formatting)
@@ -4928,12 +5305,12 @@ function exportExcel(){
 
   // 2) full markup detail
   let detailRows='';
-  wmk().forEach((m,i)=>{
+  [...wmk()].sort((a,b)=>layerNo(a.layer)-layerNo(b.layer)||mkNo(a)-mkNo(b)).forEach((m,i)=>{
     const ln=LAYERS.find(l=>l.key===m.layer);
     const p=areaPct(m.area,m.page);
     const dd=durDays(m.start,m.end);
     detailRows+=`<tr>
-      <td style="${tdNum}">${i+1}</td>
+      <td style="${td}">${mkCode(m)}</td>
       <td style="${td}">${esc(ln?ln.name:m.layer)}</td>
       <td style="${tdNum}">${m.page}</td>
       <td style="${td}">${esc(m.zone)}</td>
@@ -5043,8 +5420,8 @@ function buildDashboard(){
   const totalMk=wmk().length;
   const totalDone=doneProject();
   const photoCount=wmk().reduce((s,m)=>s+m.photos.length,0);
-  const layerDone=LAYERS.map(l=>({l,done:doneLayer(l.key),pct:po?doneLayer(l.key)/po*100:0}));
-  const overallPct=po?(layerDone.reduce((s,x)=>s+x.pct,0)/LAYERS.length):0;
+  const layerDone=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)).map(l=>{const lp=layerProg(l.key);return {l,done:lp.done,pct:lp.pct||0,base:lp.base,lp};});
+  const overallPct=layerDone.length?(layerDone.reduce((s,x)=>s+x.pct,0)/layerDone.length):0;
 
   const kpis=`<div class="dash-kpis">
     <div class="kpi"><div class="k-label">ความคืบหน้าเฉลี่ย</div><div class="k-val" style="color:var(--green)">${fmtPct(overallPct)}</div><div class="k-sub">เฉลี่ยทุกชั้นงาน</div></div>
@@ -5054,7 +5431,7 @@ function buildDashboard(){
   </div>`;
 
   // Chart 1: per-layer progress (horizontal bars vs PO)
-  const barChart=svgBars(layerDone.map(x=>({label:x.l.name,value:x.pct,color:x.l.color,sub:`${x.done.toLocaleString()} / ${po?po.toLocaleString():'-'} ตร.ม.`})));
+  const barChart=svgBars(layerDone.map(x=>({label:x.l.name,value:x.pct,color:x.l.color,sub:`${fmtQ(x.done)} / ${x.base?fmtQ(x.base):'-'} ตร.ม. (${x.lp.baseLabel})`})));
 
   // Chart 2: progress by sheet (grouped bars per layer)
   const sheetChart=svgSheetBars(sheets);
@@ -5070,7 +5447,7 @@ function buildDashboard(){
 
   body.innerHTML=kpis+`
     <div class="dash-grid">
-      <div class="dash-card"><h3>ความคืบหน้าแต่ละชั้นงาน (เทียบ PO)</h3>${barChart}</div>
+      <div class="dash-card"><h3>ความคืบหน้าแต่ละหมวดงาน ณ วันนี้</h3>${barChart}</div>
       <div class="dash-card"><h3>สัดส่วนพื้นที่ตามประเภทงาน</h3>${donut}</div>
       <div class="dash-card full"><h3>ความคืบหน้ารายชุด BOQ (อาคาร / งานเพิ่ม) — ตามปริมาณสัญญา</h3>${boqPanel()}</div>
       <div class="dash-card full"><h3>ความคืบหน้าแต่ละแผ่น (แยกชั้นงาน)</h3>${sheetChart}</div>
@@ -5211,6 +5588,58 @@ function svgTimeline(){
 }
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+// ใส่ข้อมูลโครงการกลับเข้าแอป — ใช้ทั้งตอนเปิดไฟล์ และตอนกู้งานที่บันทึกไว้ในเครื่อง
+async function applyProjectData(d,opt){
+  opt=opt||{};
+  document.getElementById('projName').value=d.projName||'';
+  document.getElementById('authorName').value=d.authorName||'';
+  document.getElementById('clientName').value=d.clientName||'';
+  document.getElementById('contractStart').value=d.contractStart||'';
+  document.getElementById('contractEnd').value=d.contractEnd||'';
+  pageAreas=d.pageAreas||{};
+  pageNames=d.pageNames||{};
+  pageFloors=d.pageFloors||{};
+  boqs=Array.isArray(d.boqs)?d.boqs:[];
+  delivs=Array.isArray(d.delivs)?d.delivs:[];
+  logoData=d.logo||''; syncLogo();
+  poItems=d.poItems||[];
+  // รองรับไฟล์เก่าที่เก็บบันทึกประชุมครั้งเดียว (object) → แปลงเป็นรายการ
+  meetings=Array.isArray(d.meeting)?d.meeting
+    :(d.meeting&&Object.values(d.meeting).some(v=>String(v||'').trim())
+       ?[Object.assign(newMeeting(),d.meeting,{no:1})]:[]);
+  meetSel=meetings.length?meetings[meetings.length-1].id:null;
+  meetings.forEach(x=>{if(!x.photos)x.photos=[];if(!x.planReview)x.planReview={};if(x.ask===undefined)x.ask='';});
+  if(typeof renumberMeetings==='function')renumberMeetings();
+  plans=(d.plans||[]).map(p=>Object.assign({rows:[],status:'active',supersededBy:null},p));
+  planSel=plans.length?plans[plans.length-1].id:null;
+  pageScale=d.pageScale||{};
+  measures=d.measures||[];
+  if(d.totalArea&&!d.pageAreas){pageAreas={1:d.totalArea};} // backward compat
+  poArea=d.poArea||(d.totalArea&&!d.pageAreas?'':d.poArea)||'';
+  syncPageAreaInput();
+  grayscale=!!d.grayscale; document.getElementById('grayToggle').checked=grayscale;
+  if(d.layers){ // คืนค่าชั้นงานจริง (ชั้นแผนงานเป็นของระบบ ไม่เก็บปนใน LAYERS)
+    const RENAME={'งานเทปรับพื้น':'งานเทปรับระดับพื้น','งานหลังคา':'งานติดตั้งหลังคา'};
+    d.layers.forEach(l=>{ if(RENAME[l.name])l.name=RENAME[l.name]; });
+    LAYERS.splice(0,LAYERS.length,...d.layers.filter(l=>l.key!=='plan'&&l.key!=='deliv'));
+    ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+    if(!ALL_LAYERS.some(l=>l.key===activeLayer))activeLayer=LAYERS[0].key;
+  }
+  if(d.planLayerVisible!==undefined)PLAN_LAYER.visible=d.planLayerVisible;
+  markups=d.markups||[];
+  markups.forEach(m=>{m.zone=layerZone(m.layer);if(m.planId===undefined)m.planId=null;}); // ไฟล์เก่า: บังคับประเภทงานให้ตรงชั้นงาน
+  if(d._pdfBuf){ pdfData=d._pdfBuf; await openPdf(pdfData.slice(0)); if(d.pageNum){pageNum=d.pageNum;await renderPage();} }
+  else if(d.pdf){ pdfData=b642ab(d.pdf); await openPdf(pdfData.slice(0)); if(d.pageNum){pageNum=d.pageNum;await renderPage();} }
+  else if(!opt.quiet&&(d.pdfOmitted||markups.length)){ // ไฟล์เซฟแบบเบา — ข้อมูลครบแต่ไม่มีแบบ
+    setBusy('');
+    alert('เปิดโครงการแล้ว ✓  (ไฟล์นี้ไม่ได้ฝังแบบ PDF ไว้)\n\n'+
+          'กด 📄 อัพโหลด PDF แล้วเลือกไฟล์แบบชุดเดิม — markup ทั้งหมดจะกลับมาตรงตำแหน่งเดิม');
+  }
+  renderLayerBar();renderList();updateSideTitle();
+  undoStack=[];redoStack=[];updHistoryBtns();
+  if(d.activeLayer&&ALL_LAYERS.some(l=>l.key===d.activeLayer)){activeLayer=d.activeLayer;renderLayerBar();updateSideTitle();}
+  renderProgress();
+}
 function loadProject(input){
   const f=input.files[0];if(!f)return;
   const mb=f.size/1048576;
@@ -5225,45 +5654,8 @@ function loadProject(input){
   r.onload=async e=>{
     try{
       const d=JSON.parse(e.target.result);
-      document.getElementById('projName').value=d.projName||'';
-      document.getElementById('authorName').value=d.authorName||'';
-      pageAreas=d.pageAreas||{};
-      pageNames=d.pageNames||{};
-      pageFloors=d.pageFloors||{};
-      boqs=Array.isArray(d.boqs)?d.boqs:[];
-      delivs=Array.isArray(d.delivs)?d.delivs:[];
-      logoData=d.logo||''; syncLogo();
-      poItems=d.poItems||[];
-      // รองรับไฟล์เก่าที่เก็บบันทึกประชุมครั้งเดียว (object) → แปลงเป็นรายการ
-      meetings=Array.isArray(d.meeting)?d.meeting
-        :(d.meeting&&Object.values(d.meeting).some(v=>String(v||'').trim())
-           ?[Object.assign(newMeeting(),d.meeting,{no:1})]:[]);
-      meetSel=meetings.length?meetings[meetings.length-1].id:null;
-      meetings.forEach(x=>{if(!x.photos)x.photos=[];if(!x.planReview)x.planReview={};});
-      plans=(d.plans||[]).map(p=>Object.assign({rows:[],status:'active',supersededBy:null},p));
-      planSel=plans.length?plans[plans.length-1].id:null;
-      pageScale=d.pageScale||{};
-      measures=d.measures||[];
-      if(d.totalArea&&!d.pageAreas){pageAreas={1:d.totalArea};} // backward compat
-      poArea=d.poArea||(d.totalArea&&!d.pageAreas?'':d.poArea)||'';
-      syncPageAreaInput();
-      grayscale=!!d.grayscale; document.getElementById('grayToggle').checked=grayscale;
-      if(d.layers){ // คืนค่าชั้นงานจริง (ชั้นแผนงานเป็นของระบบ ไม่เก็บปนใน LAYERS)
-        LAYERS.splice(0,LAYERS.length,...d.layers.filter(l=>l.key!=='plan'&&l.key!=='deliv'));
-        ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
-        if(!ALL_LAYERS.some(l=>l.key===activeLayer))activeLayer=LAYERS[0].key;
-      }
-      if(d.planLayerVisible!==undefined)PLAN_LAYER.visible=d.planLayerVisible;
-      markups=d.markups||[];
-      markups.forEach(m=>{m.zone=layerZone(m.layer);if(m.planId===undefined)m.planId=null;}); // ไฟล์เก่า: บังคับประเภทงานให้ตรงชั้นงาน
-      if(d.pdf){ pdfData=b642ab(d.pdf); await openPdf(pdfData.slice(0)); if(d.pageNum){pageNum=d.pageNum;await renderPage();} }
-      else if(d.pdfOmitted||markups.length){ // ไฟล์เซฟแบบเบา — ข้อมูลครบแต่ไม่มีแบบ
-        setBusy('');
-        alert('เปิดโครงการแล้ว ✓  (ไฟล์นี้ไม่ได้ฝังแบบ PDF ไว้)\n\n'+
-              'กด 📄 อัพโหลด PDF แล้วเลือกไฟล์แบบชุดเดิม — markup ทั้งหมดจะกลับมาตรงตำแหน่งเดิม');
-      }
-      renderLayerBar();renderList();updateSideTitle();
-      undoStack=[];redoStack=[];updHistoryBtns();
+      await applyProjectData(d);
+      Autosave.afterLoad();
       alert('โหลดงานเรียบร้อย ✓');
     }catch(err){alert('เปิดโครงการไม่สำเร็จ: '+err.message+
       '\n\nถ้าไฟล์ใหญ่และใช้บนแท็บเล็ต ให้เปิดบนคอมแล้วเซฟใหม่แบบเบา (ไม่ฝังแบบ) ก่อน');}
@@ -5283,7 +5675,15 @@ window.addEventListener('resize',()=>{
 });
 document.getElementById('cwrap').addEventListener('wheel',e=>{
   if(!pdfDoc)return;
-  if(e.ctrlKey||e.metaKey){e.preventDefault();applyZoom(zoom*(e.deltaY<0?1.12:0.89),e.clientX,e.clientY);}
+  e.preventDefault(); stopFling(); stopCamAnim();
+  const unit=e.deltaMode===1?16:(e.deltaMode===2?wrapEl().clientHeight:1);
+  if(e.ctrlKey||e.metaKey){
+    const r=wrapEl().getBoundingClientRect();
+    zoomAt(zoom*Math.exp(-e.deltaY*unit*0.0022),e.clientX-r.left,e.clientY-r.top,false);
+  }else{
+    const dx=(e.shiftKey&&!e.deltaX?e.deltaY:e.deltaX)*unit, dy=(e.shiftKey&&!e.deltaX?0:e.deltaY)*unit;
+    [camX,camY]=clampCam(zoom,camX-dx,camY-dy); applyCam();
+  }
 },{passive:false});
 
 // ══════════════ CALENDAR / TIMELINE ══════════════
@@ -5365,53 +5765,7 @@ function toggleAppCal(){
 }
 
 // draw a single markup onto an arbitrary 2d context (used by print)
-function drawMarkupOnCtx(x,m,idx){
-  // scale from the canvas the markup was drawn on, to the current print canvas
-  const sf=(m.canvasW&&x.canvas&&x.canvas.width)?(x.canvas.width/m.canvasW):1;
-  x.save();
-  if(sf!==1)x.scale(sf,sf);
-  const inv=sf!==1?1/sf:1;
-  const shapes=[m.shape,...(m.extraShapes||[])]; // markup เดียวหลายพื้นที่
-  let cx,cy,cox,coy;
-  shapes.forEach((s,si)=>{
-    x.strokeStyle=m.stroke;x.lineWidth=(m.width||2.6)*inv;x.lineCap='round';
-    let _cx,_cy,_cox,_coy;
-    // markup ที่อยู่ในรอบส่งงาน ใช้ลายแรเงาแทนสีทึบ เพื่อให้แยกกลุ่มออกจากกันบนแบบขาวดำได้
-    const hp=(m.delivId&&m.hatch&&m.hatch!=='solid')?hatchPattern(x,m.hatch,m.fill,Math.max(.55,m.opacity/100)):null;
-    if(s.type==='rect'){
-      const r=parseInt(m.fill.slice(1,3),16),g=parseInt(m.fill.slice(3,5),16),b=parseInt(m.fill.slice(5,7),16);
-      x.fillStyle=hp||`rgba(${r},${g},${b},${m.opacity/100})`;x.fillRect(s.x,s.y,s.w,s.h);x.strokeRect(s.x,s.y,s.w,s.h);
-      _cox=s.x;_coy=s.y;_cx=s.x+s.w/2;_cy=s.y+s.h/2;
-    }else if(s.type==='poly'){
-      const r=parseInt(m.fill.slice(1,3),16),g=parseInt(m.fill.slice(3,5),16),b=parseInt(m.fill.slice(5,7),16);
-      x.fillStyle=hp||`rgba(${r},${g},${b},${m.opacity/100})`;
-      x.beginPath();x.moveTo(s.points[0].x,s.points[0].y);for(let i=1;i<s.points.length;i++)x.lineTo(s.points[i].x,s.points[i].y);x.closePath();x.fill();x.stroke();
-      _cox=s.points[0].x;_coy=s.points[0].y;const c=polyCentroid(s.points);_cx=c.x;_cy=c.y;
-    }else{
-      x.globalAlpha=s.type==='highlight'?.35:1;x.lineWidth=(s.type==='highlight'?(m.width||14):(m.width||2.6))*inv;
-      x.beginPath();x.moveTo(s.points[0].x,s.points[0].y);s.points.forEach(p=>x.lineTo(p.x,p.y));x.stroke();x.globalAlpha=1;
-      _cox=s.points[0].x;_coy=s.points[0].y;let X=0,Y=0;s.points.forEach(p=>{X+=p.x;Y+=p.y;});_cx=X/s.points.length;_cy=Y/s.points.length;
-    }
-    if(si===0){cx=_cx;cy=_cy;cox=_cox;coy=_coy;}
-    else{ // พื้นที่เพิ่ม: ใส่เลขกำกับเดียวกัน
-      const numR2=11*inv;
-      x.fillStyle=m.stroke;x.beginPath();x.arc(_cox,_coy,numR2,0,7);x.fill();
-      x.fillStyle='#fff';x.font=`bold ${12*inv}px Sarabun`;x.textAlign='center';x.textBaseline='middle';x.fillText(idx,_cox,_coy);
-      x.textAlign='start';x.textBaseline='alphabetic';
-    }
-  });
-  const ds=fmtShortDate(m.start),de=fmtShortDate(m.end);
-  const fs=12*inv, chipPad=16*inv, chipH=22*inv, rad=5*inv, numR=11*inv;
-  if(ds||de){const t=ds&&de?`${ds} - ${de}`:(ds||de);x.font=`700 ${fs}px Sarabun`;x.textAlign='center';x.textBaseline='middle';
-    const w2=x.measureText(t).width+chipPad,h2=chipH,bx=cx-w2/2,by=cy-h2/2;
-    x.fillStyle='#fff';x.strokeStyle=m.stroke;x.lineWidth=2*inv;
-    x.beginPath();x.moveTo(bx+rad,by);x.arcTo(bx+w2,by,bx+w2,by+h2,rad);x.arcTo(bx+w2,by+h2,bx,by+h2,rad);x.arcTo(bx,by+h2,bx,by,rad);x.arcTo(bx,by,bx+w2,by,rad);x.closePath();x.fill();x.stroke();
-    x.fillStyle=m.stroke;x.fillText(t,cx,cy);}
-  x.fillStyle=m.stroke;x.beginPath();x.arc(cox,coy,numR,0,7);x.fill();
-  x.fillStyle='#fff';x.font=`bold ${fs}px Sarabun`;x.textAlign='center';x.textBaseline='middle';x.fillText(idx,cox,coy);
-  x.textAlign='start';x.textBaseline='alphabetic';
-  x.restore();
-}
+function drawMarkupOnCtx(x,m,idx){ drawMarkupShape(x,m,idx,{}); }
 
 // render one PDF page to an offscreen canvas (with grayscale if enabled)
 async function renderPageToCanvas(pg,scale){
@@ -5465,7 +5819,7 @@ function doPrintPick(){
   // ติ๊กครบทุกหมวด = ไม่ต้องส่งตัวกรอง (หัวเอกสารจะขึ้นว่า "ทุกหมวดงาน")
   printReport(undefined, printSel.length===has.length?null:printSel);
 }
-async function printReport(mode,only){
+async function printReportLegacy(mode,only){
   const planOnly = (mode==='plan'); // โหมดแผนงาน: แบบที่มี markup อย่างเดียว ไม่เอารูปถ่าย
   // only = รายการ key ของหมวดงานที่จะพิมพ์ (ไม่ส่งมา = เอาทุกหมวด)
   // ใช้ PL แทน LAYERS และ WM() แทน wmk() ทุกที่ในฟังก์ชันนี้ เพื่อให้ตัวกรองมีผลทั่วทั้งรายงาน
@@ -5591,8 +5945,8 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
   // per-layer totals across all pages (each layer compared to whole-project area)
   const layerTotals={};
   PL.forEach(l=>{
-    const sum=WM().filter(m=>m.layer===l.key).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
-    layerTotals[l.key]={area:sum,pct:projTotal?sum/projTotal*100:null};
+    const lp=layerProg(l.key);
+    layerTotals[l.key]={area:lp.done,pct:lp.pct,base:lp.base,label:lp.baseLabel};
   });
   const overviewRows=WM().map((m,i)=>{
     const dd=durDays(m.start,m.end);const ln=PL.find(l=>l.key===m.layer);
@@ -5608,7 +5962,7 @@ ${planHist.length?`<div class="meet-log"><b>ประวัติการเป
   const overviewFoot=projTotal?`<tfoot>${PL.filter(l=>WM().some(m=>m.layer===l.key)).map(l=>`<tr style="background:#f9fafb;font-weight:700">
       <td></td>
       <td style="text-align:left"><span class="dot" style="background:${l.color}"></span>${l.name} — รวมทุกหน้า</td>
-      <td style="text-align:left;color:#9ca3af;font-weight:400">เทียบพื้นที่โครงการ ${projTotal.toLocaleString()} ตร.ม.</td>
+      <td style="text-align:left;color:#9ca3af;font-weight:400">เทียบ${layerTotals[l.key].label} ${fmtQ(layerTotals[l.key].base)} ตร.ม. (นับเฉพาะที่ลงวันเสร็จ)</td>
       <td class="num">${layerTotals[l.key].area.toLocaleString()}</td>
       <td class="num" style="color:#16a34a">${fmtPct(layerTotals[l.key].pct)}</td>
       <td colspan="4"></td></tr>`).join('')}</tfoot>`:'';
@@ -5968,7 +6322,7 @@ body{padding-top:56px}
 <div class="meta"><div>วันที่: ${today}</div><div>จำนวน markup: ${RMK.length}</div></div></div>
 <div class="summ" style="grid-template-columns:repeat(${2+(planOnly?0:PL.filter(l=>WM().some(m=>m.layer===l.key)).length)},1fr)">
   <div class="c"><div class="l">จำนวน Markup</div><div class="v">${RMK.length} จุด</div></div>
-  ${projTotal?PL.filter(l=>WM().some(m=>m.layer===l.key)).map(l=>`<div class="c"><div class="l"><span class="dot" style="background:${l.color}"></span>${l.name}</div><div class="v" style="color:${l.color}">${fmtPct(layerTotals[l.key].pct)}</div><div style="font-size:9px;color:#9ca3af;margin-top:1px">${layerTotals[l.key].area.toLocaleString()} / ${projTotal.toLocaleString()} ตร.ม.</div></div>`).join(''):`<div class="c"><div class="l">พื้นที่โครงการ</div><div class="v">— กรอกพื้นที่แต่ละหน้า —</div></div>`}
+  ${projTotal?PL.filter(l=>WM().some(m=>m.layer===l.key)).map(l=>`<div class="c"><div class="l"><span class="dot" style="background:${l.color}"></span>${l.name}</div><div class="v" style="color:${l.color}">${fmtPct(layerTotals[l.key].pct)}</div><div style="font-size:9px;color:#9ca3af;margin-top:1px">${fmtQ(layerTotals[l.key].area)} / ${fmtQ(layerTotals[l.key].base)} ตร.ม. · ${layerTotals[l.key].label}</div></div>`).join(''):`<div class="c"><div class="l">พื้นที่โครงการ</div><div class="v">— กรอกพื้นที่แต่ละหน้า —</div></div>`}
   <div class="c"><div class="l">รูปภาพแนบ</div><div class="v">${(planOnly?pmk():WM()).reduce((s,m)=>s+m.photos.length,0)} รูป</div></div>
 </div>
 ${poTable}
@@ -6008,6 +6362,884 @@ buildSwatches();
 renderLayerBar();
 renderList();
 updateSideTitle();
+
+// ════════════════ rev 1 ════════════════
+const APP_REV='rev 3';
+
+// ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
+const ErrTrap=(()=>{
+  const seen=new Set(); let log=[];
+  function show(msg,where){
+    msg=String(msg||'ไม่ทราบสาเหตุ');
+    if(/ResizeObserver loop|^Script error\.?$/i.test(msg))return; // ไม่ใช่ปัญหาของแอป
+    const key=msg+'|'+where;
+    log.push(`[${new Date().toLocaleString('th-TH')}] ${msg}${where?' @ '+where:''}`); log=log.slice(-12);
+    if(seen.has(key))return; seen.add(key);
+    try{
+      document.getElementById('errDetail').textContent=msg+(where?' ('+where+')':'');
+      document.getElementById('errBar').style.display='block';
+    }catch(_){}
+  }
+  window.addEventListener('error',e=>{
+    if(e.target&&e.target!==window&&(e.target.tagName==='IMG'||e.target.tagName==='LINK'))return; // รูป/ฟอนต์โหลดไม่ได้ ไม่ต้องเตือน
+    show(e.message||(e.error&&e.error.message),e.lineno?('บรรทัด '+e.lineno+(e.colno?':'+e.colno:'')):'');
+  },true);
+  window.addEventListener('unhandledrejection',e=>{
+    const r=e.reason; show((r&&r.message)||String(r),(r&&r.stack||'').split('\n')[1]||'');
+  });
+  document.getElementById('errClose').onclick=()=>{document.getElementById('errBar').style.display='none';};
+  document.getElementById('errCopy').onclick=async()=>{
+    const txt=`Floor Markup Report ${APP_REV}\n${navigator.userAgent}\n\n`+log.join('\n');
+    try{await navigator.clipboard.writeText(txt);document.getElementById('errCopy').textContent='คัดลอกแล้ว ✓';}
+    catch(_){prompt('คัดลอกข้อความนี้',txt);}
+  };
+  return {show,log:()=>log.slice()};
+})();
+
+// ── 1) บันทึกอัตโนมัติลงเครื่อง (IndexedDB) ──
+// เก็บ 2 ชุด: "cur" = งานล่าสุด, "prev" = ชุดก่อนหน้าที่ถูกแทนที่ (กันพลาดกดเริ่มใหม่)
+// แบบ PDF เก็บแยกเป็นไบต์ดิบ (ไม่แปลงเป็นข้อความ) และเขียนใหม่เฉพาะตอนแบบเปลี่ยน
+const Autosave=(()=>{
+  const DB='floorMarkupAutosave', ST='kv';
+  let db=null, dirty=false, timer=null, saving=false, again=false, lastPdfRef=null, sessionOwned=false, disabled=false, lastOk=0;
+  const st=document.getElementById('saveSt');
+  function status(kind,txt){ if(!st)return; st.className='save-st '+(kind||''); st.lastChild.textContent=txt; }
+  function open(){
+    return new Promise((res,rej)=>{
+      let rq; try{rq=indexedDB.open(DB,1);}catch(e){rej(e);return;}
+      rq.onupgradeneeded=()=>rq.result.createObjectStore(ST);
+      rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);
+    });
+  }
+  function tx(mode,fn){
+    return new Promise((res,rej)=>{
+      const t=db.transaction(ST,mode); const os=t.objectStore(ST); let out;
+      Promise.resolve(fn(os)).then(v=>{out=v;});
+      t.oncomplete=()=>res(out); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error||new Error('ยกเลิกการบันทึก'));
+    });
+  }
+  const get=k=>tx('readonly',os=>new Promise(r=>{const q=os.get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(undefined);}));
+  function hasWork(){ return !!(pdfDoc||markups.length||poItems.length||meetings.some(meetHasContent)||plans.some(p=>p.rows&&p.rows.length)); }
+  function mark(){
+    if(disabled||restoring)return;
+    dirty=true;
+    if(hasWork())status('wait','รอบันทึก…');
+    clearTimeout(timer); timer=setTimeout(flush,2000);
+  }
+  let restoring=false;
+  async function flush(force){
+    clearTimeout(timer);
+    if(disabled||!db||restoring)return;
+    if(!dirty&&!force)return;
+    if(!hasWork())return;
+    // กำลังวาด/บีบซูมอยู่ → รอให้ยกนิ้วก่อน กันกระตุก
+    if(!force&&(drawing||pinch||panning||(typeof polyPts!=='undefined'&&polyPts.length))){timer=setTimeout(flush,1200);return;}
+    if(saving){again=true;return;}
+    saving=true; dirty=false;
+    try{
+      // เก็บข้อความในฟอร์มที่เปิดค้างไว้ด้วย (ยังไม่ได้กดบันทึก)
+      try{ if(document.getElementById('meetOverlay').style.display==='flex')collectMeetForm(); }catch(_){}
+      try{ if(document.getElementById('planOverlay').style.display==='flex')collectPlanForm(); }catch(_){}
+      const data=buildProjectData('none');
+      data.activeLayer=activeLayer;
+      const meta={savedAt:Date.now(),projName:data.projName||'',mk:markups.length,pages:pdfDoc?pdfDoc.numPages:0,
+        hasPdf:!!pdfData,pdfBytes:pdfData?pdfData.byteLength:0,rev:APP_REV};
+      const pdfChanged=pdfData!==lastPdfRef;
+      await tx('readwrite',os=>{
+        if(!sessionOwned){ // งานชุดแรกของรอบนี้ → ย้ายของเดิมไปเป็นชุดสำรอง ไม่ลบทิ้ง
+          ['meta','data','pdf'].forEach(k=>{const q=os.get('cur_'+k);q.onsuccess=()=>{if(q.result!==undefined)os.put(q.result,'prev_'+k);};});
+        }
+        os.put(data,'cur_data');
+        if(pdfChanged||!sessionOwned)os.put(pdfData?pdfData.slice(0):null,'cur_pdf');
+        os.put(meta,'cur_meta');
+      });
+      sessionOwned=true; lastPdfRef=pdfData; lastOk=Date.now();
+      status('ok','บันทึกลงเครื่องแล้ว '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
+    }catch(e){
+      dirty=true;
+      const full=/quota/i.test(String(e&&(e.name+e.message)));
+      status('err',full?'เครื่องเต็ม บันทึกไม่ได้ — กด 💾 เซฟ':'บันทึกลงเครื่องไม่ได้ — กด 💾 เซฟ');
+      if(st)st.title=String(e&&e.message||e);
+    }finally{
+      saving=false;
+      if(again){again=false;mark();}
+    }
+  }
+  function ago(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return 'เมื่อสักครู่';if(m<60)return m+' นาทีที่แล้ว';const h=Math.round(m/60);if(h<48)return h+' ชั่วโมงที่แล้ว';return Math.round(h/24)+' วันที่แล้ว';}
+  function describe(meta){
+    const d=new Date(meta.savedAt);
+    return `“${meta.projName||'ไม่มีชื่อโครงการ'}” · markup ${meta.mk} จุด${meta.pages?` · แบบ ${meta.pages} แผ่น`:''}${meta.hasPdf?'':' · ไม่มีไฟล์แบบ'}<br>บันทึกเมื่อ ${d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'})} ${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} (${ago(meta.savedAt)})`;
+  }
+  async function restore(slot){
+    const [data,pdf]=await Promise.all([get(slot+'_data'),get(slot+'_pdf')]);
+    if(!data){alert('ไม่พบข้อมูลชุดนี้แล้ว');return;}
+    restoring=true;
+    try{
+      if(pdf)data._pdfBuf=pdf;
+      await applyProjectData(data,{quiet:true});
+      if(!pdf&&data.markups&&data.markups.length)alert('กู้คืนข้อมูลแล้ว ✓\n\nชุดนี้ไม่มีไฟล์แบบเก็บไว้ — กด 📄 อัพโหลด PDF ใส่แบบชุดเดิม markup จะกลับมาตรงตำแหน่งเดิม');
+      lastPdfRef=pdfData;
+      if(slot==='cur')sessionOwned=true; // ทำต่อบนชุดเดิม ไม่ต้องย้ายไปสำรอง
+    }finally{ restoring=false; }
+    status('ok','กู้คืนแล้ว · บันทึกอัตโนมัติทำงานอยู่');
+    dirty=true; flush(true);
+  }
+  async function offer(){
+    let meta,prev;
+    try{ meta=await get('cur_meta'); prev=await get('prev_meta'); }catch(_){return;}
+    if(!meta&&!prev)return;
+    const bar=document.getElementById('restoreBar'), info=document.getElementById('restoreInfo');
+    const show=(m,slot)=>{
+      info.innerHTML=describe(m);
+      document.getElementById('restoreGo').onclick=async()=>{bar.style.display='none';try{await restore(slot);}catch(e){ErrTrap.show('กู้คืนไม่สำเร็จ: '+e.message,'Autosave');}};
+      const pb=document.getElementById('restorePrev');
+      pb.hidden=!(slot==='cur'&&prev);
+      pb.onclick=()=>show(prev,'prev');
+      document.getElementById('restoreGo').textContent=slot==='prev'?'กู้คืนชุดสำรองนี้':'กู้คืนงานนี้';
+      bar.style.display='block';
+    };
+    document.getElementById('restoreNo').onclick=()=>{bar.style.display='none';status('','เริ่มงานใหม่ · งานเดิมเก็บเป็นชุดสำรอง');};
+    show(meta||prev,meta?'cur':'prev');
+  }
+  async function init(){
+    try{ db=await open(); }
+    catch(e){ disabled=true; status('err','บันทึกลงเครื่องไม่ได้ในโหมดนี้ — กด 💾 เซฟ'); return; }
+    status('','ยังไม่มีงาน');
+    document.addEventListener('input',mark,true);
+    document.addEventListener('change',mark,true);
+    // หลังเปลี่ยนข้อมูล ทุกฟังก์ชันเหล่านี้ถูกเรียกเพื่อวาดหน้าจอใหม่ → ใช้เป็นสัญญาณว่ามีการแก้
+    ['renderList','renderLayerBar','renderPoItems','renderPoSum','renderPlanRows','renderPlanTabs','renderMeetTabs',
+     'renderMeetPhotos','renderPlanReview','syncLogo','renderDelivBody','renderLayerBar','updHistoryBtns','renderMeasList']
+      .forEach(n=>{const f=window[n]; if(typeof f==='function'&&!f.__as){const w=function(){const r=f.apply(this,arguments);mark();return r;};w.__as=true;window[n]=w;}});
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')flush(true); });
+    window.addEventListener('pagehide',()=>flush(true));
+    window.addEventListener('beforeunload',e=>{ if(dirty&&hasWork()){flush(true);} });
+    setInterval(()=>{ if(dirty)flush(); },15000);
+    offer();
+  }
+  return {init,mark,flush,afterLoad(){ dirty=true; flush(true); },restore,status:()=>({dirty,lastOk,disabled})};
+})();
+Autosave.init();
+
+// ── 3) ตรวจข้อมูลไม่ครบ ──
+// แต่ละกลุ่มบอกผลกระทบเป็นภาษาคน และแตะเพื่อไปที่ markup นั้นได้ทันที
+function auditData(){
+  const today=todayISO();
+  const W=wmk();
+  const hasPo=poItems.some(it=>parseFloat(it.qty)>0);
+  const G=(key,title,why,sev)=>({key,title,why,sev,items:[]});
+  const g={
+    area:G('area','ยังไม่ใส่พื้นที่ (ตร.ม.)','ไม่ถูกนับในความคืบหน้าทุกที่',2),
+    end:G('end','ยังไม่ลงวันเสร็จ','ยังไม่นับเป็นงานเสร็จ — ถ้าเสร็จแล้วให้ใส่วันเสร็จ',1),
+    future:G('future','วันเสร็จอยู่ในอนาคต','ยังไม่นับจนถึงวันนั้น — ตรวจว่าพิมพ์วันผิดหรือไม่',1),
+    order:G('order','วันเสร็จก่อนวันเริ่ม','วันที่สลับกัน — ระยะเวลางานและปฏิทินจะผิด',2),
+    po:G('po','ไม่ได้ติ๊กรายการ PO','ไม่ถูกนับในตาราง BOQ และบันทึกประชุม',2),
+    qty:G('qty','ติ๊กรายการ PO แต่ปริมาณเป็น 0','รายการนั้นไม่ได้ยอดจาก markup นี้',1),
+    over:G('over','พื้นที่ใหญ่กว่าพื้นที่ของแผ่น','อาจพิมพ์ตัวเลขผิด — ร้อยละของแผ่นจะเกิน 100%',1),
+  };
+  W.forEach(m=>{
+    const a=parseFloat(m.area);
+    if(!(a>0))g.area.items.push(m);
+    if(!m.end)g.end.items.push(m);
+    else if(m.end>today)g.future.items.push(m);
+    if(m.start&&m.end&&m.end<m.start)g.order.items.push(m);
+    const it=mkItems(m);
+    if(hasPo&&!it.length)g.po.items.push(m);
+    else if(it.some(x=>!(parseFloat(x.qty)>0)))g.qty.items.push(m);
+    const pa=getPageArea(m.page);
+    if(pa&&a>pa*1.001)g.over.items.push(m);
+  });
+  const groups=Object.values(g);
+  const blocking=groups.filter(x=>x.sev>=2).reduce((s,x)=>s+x.items.length,0);
+  const ids=new Set(); groups.forEach(x=>x.items.forEach(m=>ids.add(m.id)));
+  return {groups,count:ids.size,blocking,total:W.length};
+}
+function auditChipHTML(){
+  if(!wmk().length)return '';
+  const a=auditData();
+  if(!a.count)return '';
+  return `<div class="audit-chip ${a.blocking?'bad':''}" onclick="openAudit()" role="button" tabindex="0"><span>⚠ ข้อมูลไม่ครบ <b>${a.count}</b> จาก ${a.total} จุด</span><span style="color:var(--accent)">ดูรายการ ›</span></div>`;
+}
+function openAudit(){ renderAudit(); showOverlay('auditOverlay'); }
+function closeAudit(){ document.getElementById('auditOverlay').style.display='none'; }
+function renderAudit(){
+  const a=auditData();
+  document.getElementById('auditSum').textContent=a.count?`${a.count} จาก ${a.total} จุด`:'ครบทุกจุด';
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const body=document.getElementById('auditBody');
+  if(!a.total){body.innerHTML='<div class="au-ok">ยังไม่มี markup งานจริงให้ตรวจ</div>';return;}
+  if(!a.count){body.innerHTML='<div class="au-ok">✓ ข้อมูลครบทุกจุด — ความคืบหน้านับครบทุก markup</div>';return;}
+  body.innerHTML=a.groups.filter(x=>x.items.length).sort((x,y)=>y.sev-x.sev).map(x=>`<div class="au-grp">
+    <h4>${x.sev>=2?'🔴':'🟡'} ${x.title} <span class="n">${x.items.length}</span></h4>
+    <div class="why">${x.why}</div>
+    ${x.items.map(m=>{const L=ALL_LAYERS.find(l=>l.key===m.layer);
+      return `<div class="au-row" onclick="auditGo(${m.id})"><span class="dot" style="background:${m.stroke}"></span>
+      <span><b>${L?esc(L.name):''} ${mkNo(m)}</b> · ${esc(getPageLabel(m.page))}${m.note?' · '+esc(m.note):''}${m.area?' · '+fmtQ(m.area)+' ตร.ม.':''}</span>
+      <span class="go">แก้ไข ›</span></div>`;}).join('')}
+  </div>`).join('');
+}
+async function auditGo(id){
+  const m=markups.find(x=>x.id===id); if(!m)return;
+  closeAudit();
+  if(activeLayer!==m.layer)setLayer(m.layer);
+  if(pdfDoc&&pageNum!==m.page){pageNum=m.page;await renderPage();}
+  selId=id; redraw(); renderList();
+  if(typeof openMkPopup==='function')openMkPopup(id);
+}
+
+// ════════════════ rev 2: เมนูบนหัว + ป้ายหมวด ════════════════
+function closeMenus(except){ document.querySelectorAll('.hmenu').forEach(m=>{ if(m.id!==except)m.hidden=true; }); }
+function toggleMenu(id,btn){ const m=document.getElementById(id); const open=m.hidden; closeMenus(); m.hidden=!open; }
+document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.menu-wrap')&&!e.target.closest('.hmenu'))closeMenus(); },true);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeMenus(); });
+// ใส่แบบ PDF: ยังไม่มีแบบ → เลือกไฟล์เลย · มีแบบแล้ว → ถามว่าเพิ่มต่อท้ายหรือแทนที่
+function choosePdf(){
+  if(!pdfDoc){ document.getElementById('pdfIn').click(); return; }
+  document.getElementById('pdfMenuN').textContent=pdfDoc.numPages;
+  document.getElementById('pdfMenu').hidden=false;
+}
+// เรียกป้ายหมวดทุกครั้งที่แถบหมวดถูกวาดใหม่ (เปลี่ยนหมวด/เปลี่ยนแผน/โหลดงาน)
+(function(){ const f=window.renderLayerBar; window.renderLayerBar=function(){ const r=f.apply(this,arguments); try{updateLayerCue();}catch(_){} return r; }; })();
+(function(){ const f=window.openPdf; window.openPdf=async function(){ camReady=false; const r=await f.apply(this,arguments); updateLayerCue(); return r; }; })();
+
+// ════════════════ rev 3: บันทึกประชุม 5 ขั้น · ผูกแผน · "ครั้งก่อน" แบบเดียว ════════════════
+// ฟังก์ชันชื่อเดิมด้านล่างประกาศซ้ำเพื่อแทนของเก่า (ตัวที่อยู่ท้ายไฟล์มีผลเสมอ)
+const MEET_F3=['no','type','month','date','place','sub','people','progress','plan','issue','safety','ask','signFore','signLead','signExec'];
+const MEET_EL3={no:'meetNo',type:'meetType',month:'meetMonth',date:'meetDate',place:'meetPlace',sub:'meetSub',people:'meetPeople',
+  progress:'meetProgress',plan:'meetPlan',issue:'meetIssue',safety:'meetSafety',ask:'meetAsk',signFore:'meetSignFore',signLead:'meetSignLead',signExec:'meetSignExec'};
+const MEET_STEPS=['ข้อมูลประชุม','ทบทวนแผนเดิม','ความคืบหน้า','แผนถัดไป','ปัญหา · ลงนาม'];
+let meetStep=1;
+const mEsc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function newMeeting(){ // สร้างครั้งใหม่: ยกชื่อผู้ลงนาม/ผรม./สถานที่จากครั้งล่าสุด
+  const last=meetSorted().slice(-1)[0];
+  const d=todayISO();
+  return {id:Date.now()+Math.random(),no:0,type:last?last.type:'monthly',month:d.slice(0,7),date:d,place:last?last.place:'',
+    sub:last?last.sub:'',people:last?last.people:'',progress:'',plan:'',issue:'',safety:'',ask:'',photos:[],planId:null,planReview:{},
+    signFore:last?last.signFore:'',signLead:last?last.signLead:'',signExec:last?last.signExec:''};
+}
+// เรียงตามวันที่ประชุม (ไม่มีวันที่ไว้ท้าย ตามลำดับที่สร้าง) แล้วรันเลขครั้งใหม่ทุกครั้ง
+function meetSorted(){
+  return meetings.map((m,i)=>({m,i})).sort((a,b)=>{
+    const da=a.m.date||'9999', db=b.m.date||'9999';
+    return da<db?-1:da>db?1:a.i-b.i;
+  }).map(x=>x.m);
+}
+function renumberMeetings(){
+  meetSorted().forEach((m,i)=>{ m.no=i+1; if(m.date)m.month=m.date.slice(0,7); });
+}
+// "ครั้งก่อน" มีความหมายเดียวทั้งแอป = ครั้งที่วันที่ประชุมก่อนหน้าครั้งนี้ใกล้ที่สุด
+function prevMeetingByDate(m){
+  if(!m)return null;
+  const arr=meetSorted(); const i=arr.findIndex(x=>x.id===m.id);
+  if(i>0)return arr[i-1];
+  return null;
+}
+function prevMeeting(m){ // ครั้งก่อน (ถ้าครั้งนั้นแนบแผนไว้) — ใช้ทบทวนแผน
+  const p=prevMeetingByDate(m);
+  return (p&&p.planSnapshot&&p.planSnapshot.rows&&p.planSnapshot.rows.length)?p:null;
+}
+function meetHasContent(m){ return !!m&&(['progress','plan','issue','safety','ask'].some(k=>(m[k]||'').trim())||(m.photos&&m.photos.length)||!!m.planId); }
+
+// ── แผนที่ผูกกับประชุม ──
+function planSig(p){ return p?JSON.stringify([p.name||'',p.start||'',p.end||'',p.owner||'',p.note||'',(p.rows||[]).map(r=>[r.task||'',r.zone||'',String(r.qty||''),r.start||'',r.end||''])]):''; }
+function planSnap(p){ return {planId:p.id,planName:p.name||('แผนที่ '+p.no),note:p.note||'',start:p.start||'',end:p.end||'',
+  rows:p.rows.map(r=>({task:r.task||'',zone:r.zone||'',qty:r.qty||'',start:r.start||'',end:r.end||'',mkId:r.mkId||null})),sig:planSig(p),at:Date.now()}; }
+function meetPlanState(m){ // {plan, snap, changed, missing}
+  if(!m||!m.planId)return {};
+  const p=plans.find(x=>x.id===m.planId), sn=m.planSnapshot;
+  if(!p)return {snap:sn,missing:true};
+  return {plan:p,snap:sn,changed:!!(sn&&sn.sig&&sn.sig!==planSig(p))};
+}
+function planDiff(sn,p){
+  const key=r=>(r.task||'')+'|'+(r.zone||'');
+  const A=new Map((sn.rows||[]).map(r=>[key(r),r])), B=new Map((p.rows||[]).map(r=>[key(r),r]));
+  const out=[];
+  B.forEach((r,k)=>{ if(!A.has(k))out.push('เพิ่ม: '+[r.task,r.zone].filter(Boolean).join(' — ')); });
+  A.forEach((r,k)=>{ if(!B.has(k))out.push('ตัดออก: '+[r.task,r.zone].filter(Boolean).join(' — ')); });
+  A.forEach((r,k)=>{ const n=B.get(k); if(!n)return; const ch=[];
+    if(String(r.qty||'')!==String(n.qty||''))ch.push(`ปริมาณ ${r.qty||'-'} → ${n.qty||'-'}`);
+    if((r.start||'')!==(n.start||'')||(r.end||'')!==(n.end||''))ch.push(`ช่วงเวลา ${meetThDate(r.start)||'-'}–${meetThDate(r.end)||'-'} → ${meetThDate(n.start)||'-'}–${meetThDate(n.end)||'-'}`);
+    if(ch.length)out.push('แก้: '+[r.task,r.zone].filter(Boolean).join(' — ')+' ('+ch.join(', ')+')'); });
+  if((sn.name||sn.planName||'')!==(p.name||'')&&p.name)out.push('เปลี่ยนชื่อแผนเป็น '+p.name);
+  if((sn.note||'')!==(p.note||''))out.push('แก้หมายเหตุแผน');
+  if((sn.start||'')!==(p.start||'')||(sn.end||'')!==(p.end||''))out.push('แก้ช่วงเวลาแผน');
+  return out;
+}
+function meetLinkPlan(id){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  id=id?Number(id):null;
+  const p=id?plans.find(x=>x.id===id):null;
+  m.planId=p?p.id:null; m.planSnapshot=p?planSnap(p):null;
+  renderMeetStep4(); renderMeetSteps(); Autosave.mark();
+}
+function meetUsePlanLatest(){ const m=meetings.find(x=>x.id===meetSel); if(m&&m.planId)meetLinkPlan(m.planId); }
+function meetEditPlan(){
+  const m=collectMeetForm(); if(!m)return;
+  if(m.planId&&plans.some(p=>p.id===m.planId))planSel=m.planId;
+  openPlans();
+}
+function meetNewPlan(){
+  const m=collectMeetForm(); if(!m)return;
+  const p=newPlan(); plans.push(p); planSel=p.id;
+  m.planId=p.id; m.planSnapshot=planSnap(p);
+  openPlans();
+}
+// จากหน้าแผนงาน: "ใส่ในบันทึกประชุม" = ผูกแผนเข้ากับประชุมครั้งที่เลือก แล้วเปิดขั้นแผนถัดไป
+function planToMeeting(){
+  const p=collectPlanForm()||activePlan(); if(!p)return;
+  if(!meetings.length){meetings.push(newMeeting());renumberMeetings();}
+  if(!meetings.some(x=>x.id===meetSel))meetSel=meetSorted().slice(-1)[0].id;
+  const m=meetings.find(x=>x.id===meetSel);
+  m.planId=p.id; m.planSnapshot=planSnap(p);
+  document.getElementById('planOverlay').style.display='none';
+  renderLayerBar(); updateSideTitle();
+  meetStep=4;
+  if(document.getElementById('meetOverlay').style.display!=='flex')openMeeting(4); else {meetGo(4);}
+}
+
+// ── สถานะแต่ละขั้น: done / warn / '' ──
+function mkSigMap(){ const o={}; wmk().forEach(m=>{o[m.id]=JSON.stringify([m.layer,m.page,m.area,m.start,m.end,mkItems(m).map(x=>[x.id,x.qty])]);}); return o; }
+function meetStaleCount(m){
+  if(!m||!m.snap||!m.snap.mk)return 0;
+  const a=m.snap.mk,b=mkSigMap(); let n=0;
+  Object.keys(b).forEach(k=>{ if(a[k]!==b[k])n++; });
+  Object.keys(a).forEach(k=>{ if(!(k in b))n++; });
+  return n;
+}
+function meetStepState(m,i){
+  if(!m)return '';
+  if(i===1){ const f=[m.date,m.place,m.sub].filter(v=>(v||'').trim()).length; return f===3?'done':(f?'warn':''); }
+  if(i===2){ const pv=prevMeeting(m); if(!pv)return 'done';
+    const rows=pv.planSnapshot.rows; const n=rows.filter((r,k)=>m.planReview&&m.planReview[k]&&m.planReview[k].status).length;
+    return n===rows.length?'done':(n?'warn':'warn'); }
+  if(i===3){ if(!(m.progress||'').trim())return ''; return meetStaleCount(m)?'warn':'done'; }
+  if(i===4){ const st=meetPlanState(m); if(!m.planId)return ''; return (st.changed||st.missing)?'warn':'done'; }
+  if(i===5){ const s=[m.signFore,m.signLead].filter(v=>(v||'').trim()).length; return s===2?'done':(s||(m.issue||'').trim()||(m.safety||'').trim()?'warn':''); }
+  return '';
+}
+function stepProblems(m){
+  const P=[];
+  if(meetStepState(m,1)!=='done')P.push('① ข้อมูลประชุมยังไม่ครบ (วันที่ / สถานที่ / ผรม.)');
+  if(meetStepState(m,2)==='warn')P.push('② ยังเลือกผลทบทวนแผนเดิมไม่ครบ');
+  const s3=meetStepState(m,3); if(s3==='')P.push('③ ยังไม่มีสรุปความคืบหน้า'); else if(s3==='warn')P.push('③ ตัวเลขความคืบหน้าเก่ากว่ากรอบมาร์กอัปล่าสุด');
+  const s4=meetStepState(m,4); if(s4==='')P.push('④ ยังไม่ได้เลือกแผนถัดไป'); else if(s4==='warn')P.push('④ แผนถูกแก้หลังจากแนบเข้าประชุม');
+  if(meetStepState(m,5)!=='done')P.push('⑤ ยังไม่ได้ใส่ชื่อผู้ลงนามครบ');
+  return P;
+}
+function renderMeetSteps(){
+  const m=meetings.find(x=>x.id===meetSel);
+  document.getElementById('meetSteps').innerHTML=MEET_STEPS.map((t,k)=>{const i=k+1,st=meetStepState(m,i);
+    return `<button type="button" role="tab" class="mst ${st} ${i===meetStep?'on':''}" onclick="meetGo(${i})" aria-selected="${i===meetStep}"><span class="n">${st==='done'?'✓':(st==='warn'?'!':i)}</span><span class="t">${t}</span></button>`;}).join('');
+  document.querySelectorAll('#meetForm .mstep').forEach(s=>s.hidden=+s.dataset.step!==meetStep);
+  document.getElementById('meetPrev').style.visibility=meetStep>1?'visible':'hidden';
+  document.getElementById('meetNext').textContent=meetStep<5?'ถัดไป ▶':'✓ เสร็จ';
+}
+function meetGo(i){
+  i=Math.max(1,Math.min(5,i));
+  const m=collectMeetForm();
+  meetStep=i;
+  if(i===2)renderPlanReview();
+  if(i===3)meetRefreshProgress(false);
+  if(i===4)renderMeetStep4();
+  renderMeetSteps();
+  document.getElementById('meetForm').scrollTop=0;
+}
+function meetNextStep(){ if(meetStep<5)meetGo(meetStep+1); else saveMeeting(); }
+
+// ── ฟอร์ม ──
+function openMeeting(step){
+  if(!meetings.length){meetings.push(newMeeting());}
+  renumberMeetings();
+  if(!meetings.some(x=>x.id===meetSel))meetSel=meetSorted().slice(-1)[0].id;
+  meetStep=step||1;
+  renderMeetTabs(); loadMeetForm(); renderMeetPhotos();
+  showOverlay('meetOverlay');
+  meetGo(meetStep);
+}
+function renderMeetTabs(){
+  document.getElementById('meetCount').textContent=`ทั้งหมด ${meetings.length} ครั้ง · ครั้งที่เลือกจะแนบในรายงาน`;
+  document.getElementById('meetTabs').innerHTML=meetSorted().map(x=>`<button class="meet-tab ${x.id===meetSel?'active':''}" onclick="switchMeeting(${x.id})">ครั้งที่ ${x.no||'-'}<small>${meetThMonth(x.month)||meetThDate(x.date)||'—'}</small></button>`).join('')
+    +`<button class="meet-tab new" onclick="addMeeting()">➕ ครั้งใหม่<small>เพิ่มรอบประชุม</small></button>`;
+}
+function loadMeetForm(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!m.photos)m.photos=[]; if(!m.planReview)m.planReview={};
+  MEET_F3.forEach(k=>{const el=document.getElementById(MEET_EL3[k]); if(el)el.value=m[k]||'';});
+  document.getElementById('meetMonthHint').textContent=m.date?('ประจำเดือน: '+meetThMonth(m.date.slice(0,7))+' (คิดจากวันที่ให้เอง)'):'';
+  renderMeetPhotos();
+}
+function collectMeetForm(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return null;
+  MEET_F3.forEach(k=>{ if(k==='no'||k==='month')return; const el=document.getElementById(MEET_EL3[k]); if(el)m[k]=el.value; });
+  const oldNo=m.no; renumberMeetings();
+  const noEl=document.getElementById('meetNo'); if(noEl)noEl.value=m.no;
+  const mh=document.getElementById('meetMonthHint'); if(mh)mh.textContent=m.date?('ประจำเดือน: '+meetThMonth(m.date.slice(0,7))+' (คิดจากวันที่ให้เอง)'):'';
+  if(oldNo!==m.no)renderMeetTabs();
+  return m;
+}
+function switchMeeting(id){ collectMeetForm(); meetSel=id; renderMeetTabs(); loadMeetForm(); meetGo(1); }
+function addMeeting(){ collectMeetForm(); const m=newMeeting(); meetings.push(m); renumberMeetings(); meetSel=m.id; renderMeetTabs(); loadMeetForm(); meetGo(1); }
+function delMeeting(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!confirm(`ลบบันทึกประชุมครั้งที่ ${m.no||'-'} (${meetThMonth(m.month)||meetThDate(m.date)||'ไม่มีวันที่'})?`))return;
+  meetings=meetings.filter(x=>x.id!==meetSel);
+  if(!meetings.length)meetings.push(newMeeting());
+  renumberMeetings(); meetSel=meetSorted().slice(-1)[0].id;
+  renderMeetTabs(); loadMeetForm(); meetGo(1);
+}
+function saveMeeting(){ collectMeetForm(); document.getElementById('meetOverlay').style.display='none'; Autosave.mark(); }
+function closeMeeting(){ saveMeeting(); }
+document.getElementById('meetDate').addEventListener('change',()=>{ collectMeetForm(); renderMeetSteps(); });
+['meetPlace','meetSub','meetSignFore','meetSignLead','meetIssue','meetSafety','meetProgress'].forEach(id=>{
+  const el=document.getElementById(id); if(el)el.addEventListener('input',()=>{ const m=meetings.find(x=>x.id===meetSel); if(m){m[ {meetPlace:'place',meetSub:'sub',meetSignFore:'signFore',meetSignLead:'signLead',meetIssue:'issue',meetSafety:'safety',meetProgress:'progress'}[id] ]=el.value; renderMeetSteps();} });
+});
+
+// ── ② ทบทวนแผนเดิม ──
+function renderPlanReview(){
+  const m=meetings.find(x=>x.id===meetSel);
+  const box=document.getElementById('planReviewBox'), btn=document.getElementById('meetAutoBtn');
+  if(!m||!box)return;
+  const any=prevMeetingByDate(m), prev=prevMeeting(m);
+  if(!any){ box.innerHTML='<div class="m-empty">ยังไม่มีการประชุมครั้งก่อน — ขั้นนี้ข้ามได้</div>'; btn.hidden=true; return; }
+  if(!prev){ box.innerHTML=`<div class="m-empty">ประชุมครั้งที่ ${any.no} (${meetThDate(any.date)||'-'}) ไม่ได้แนบแผนไว้ จึงไม่มีรายการให้ทบทวน</div>`; btn.hidden=true; return; }
+  btn.hidden=false;
+  if(m.planReviewFrom&&m.planReviewFrom!==prev.id){ m.planReview={}; } // ครั้งก่อนเปลี่ยน (เช่น แก้วันที่) → ล้างผลเดิมที่อ้างคนละแผน
+  m.planReviewFrom=prev.id;
+  if(!m.planReview)m.planReview={};
+  const snap=prev.planSnapshot;
+  const STATUS=[['done','✓ ตามแผน'],['partial','↻ เปลี่ยน/เลื่อน'],['miss','✗ ไม่ได้ตามแผน']];
+  box.innerHTML=`<div class="pr-head">อ้างอิง <b>${mEsc(snap.planName||'แผน')}</b> ที่แนบไว้กับประชุมครั้งที่ ${prev.no} (${meetThDate(prev.date)||'-'})</div>`
+    +snap.rows.map((r,i)=>{
+      const rv=m.planReview[i]||{status:'',note:''};
+      const seg=[r.task,r.zone].filter(Boolean).join(' — ')||'(ไม่มีชื่อ)';
+      const q=r.qty?` · ${isNaN(parseFloat(r.qty))?mEsc(r.qty):fmtQ(r.qty)+' ตร.ม.'}`:'';
+      return `<div class="pr-row">
+        <div class="pr-task">${(i+1)+'. '+mEsc(seg)}<span style="color:var(--text2)">${q}</span>${rv.auto?'<span class="m-auto">ประเมินให้</span>':''}</div>
+        <div class="pr-btns">${STATUS.map(([k,lb])=>`<button type="button" class="pr-s ${rv.status===k?'on '+k:''}" onclick="setPlanReview(${i},'${k}')">${lb}</button>`).join('')}</div>
+        <input class="pr-note" placeholder="หมายเหตุ (เช่น ได้ 620 ตร.ม. รอพื้นแห้ง)" value="${mEsc(rv.note||'')}" onchange="setPlanReviewNote(${i},this.value)">
+      </div>`;
+    }).join('');
+}
+function setPlanReview(i,status){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  if(!m.planReview)m.planReview={};
+  if(!m.planReview[i])m.planReview[i]={status:'',note:''};
+  m.planReview[i].status=(m.planReview[i].status===status)?'':status; m.planReview[i].auto=false;
+  renderPlanReview(); renderMeetSteps(); Autosave.mark();
+}
+
+// ── ③ ความคืบหน้า ──
+function meetRefreshProgress(force){
+  const m=collectMeetForm(); if(!m)return;
+  const ta=document.getElementById('meetProgress');
+  if(force||!(m.progress||'').trim()){
+    if(force&&(m.progress||'').trim()&&!confirm('แทนที่ข้อความสรุปเดิมด้วยตัวเลขล่าสุด?'))return renderMeetStep3();
+    ta.value=''; meetFillProgress();
+    if(m.snap)m.snap.mk=mkSigMap();
+  }
+  renderMeetStep3(); renderMeetSteps();
+}
+function renderMeetStep3(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  const D=meetProgressData(m), stale=meetStaleCount(m);
+  document.getElementById('meetProgBanner').innerHTML=stale?`<div class="m-banner warn"><span>มีการแก้กรอบมาร์กอัป ${stale} จุด หลังดึงตัวเลขล่าสุด${m.snap&&m.snap.at?' (เมื่อ '+new Date(m.snap.at).toLocaleDateString('th-TH',{day:'numeric',month:'short'})+')':''}</span><button type="button" class="mini-btn" onclick="meetRefreshProgress(true)">↻ อัปเดตตัวเลข</button></div>`:'';
+  document.getElementById('meetProgInfo').textContent=`ณ วันประชุม ${meetThDate(D.cut)}`+(D.prev?` · งวดนี้เทียบกับครั้งที่ ${D.prev.no} (${meetThDate(D.pcut)})`:' · ยังไม่มีครั้งก่อนให้เทียบ')+' · นับเฉพาะงานที่ลงวันเสร็จแล้ว';
+  const add=D.layers.reduce((s,l)=>s+Math.max(0,l.add),0), wip=D.layers.reduce((s,l)=>s+l.wip,0), wipN=D.layers.reduce((s,l)=>s+l.wipN,0);
+  const au=auditData();
+  document.getElementById('meetKpis').innerHTML=`<div class="m-k"><small>งานเสร็จงวดนี้</small><b>${D.prev?'+'+fmtQ(add):'—'}</b><small>ตร.ม.</small></div>
+    <div class="m-k"><small>กำลังทำ (ยังไม่ลงวันเสร็จ)</small><b>${fmtQ(wip)}</b><small>ตร.ม. · ${wipN} จุด</small></div>
+    <div class="m-k ${au.count?'warn':''}"><small>ข้อมูลไม่ครบ</small><b>${au.count}</b><small>จุด${au.count?' · <a href="#" onclick="event.preventDefault();openAudit()">ดูรายการ</a>':''}</small></div>`;
+  const lt=D.layers.length?`<table class="m-tbl"><tr><th>หมวด</th><th>ครั้งก่อน</th><th>งวดนี้</th><th>สะสม</th><th>ร้อยละ</th></tr>${D.layers.map(l=>{const L=LAYERS.find(x=>x.key===l.key);const pc=l.tot?l.acc/l.tot*100:null;
+    return `<tr><td><span class="dot" style="background:${L?L.color:'#888'}"></span>หมวดที่ ${layerNo(l.key)} ${mEsc(l.name)}</td><td class="n">${D.prev?fmtQ(l.accPrev):'—'}</td><td class="n">${D.prev?(l.add>0?'+':'')+fmtQ(l.add):'—'}</td><td class="n">${fmtQ(l.acc)}</td><td class="n">${pc==null?'—':fmtPct(pc)}<div class="m-bar"><i style="width:${Math.min(100,pc||0)}%;background:${L?L.color:'#888'}"></i></div></td></tr>`;}).join('')}</table><div class="m-hint">ฐานคิด: ${mEsc(D.layers.map(l=>l.baseLabel).filter((v,i,a)=>a.indexOf(v)===i).join(' / '))} — ตัวเลขชุดเดียวกับแถบข้างและรายงาน</div>`:'<div class="m-empty">ยังไม่มีกรอบงานจริงให้สรุป</div>';
+  document.getElementById('meetProgTbl').innerHTML=lt;
+}
+
+// ── ④ แผนถัดไป ──
+function renderMeetStep4(){
+  const m=meetings.find(x=>x.id===meetSel); if(!m)return;
+  const sel=document.getElementById('meetPlanSel');
+  const act=activePlan();
+  sel.innerHTML='<option value="">— ยังไม่เลือกแผน —</option>'+plans.map(p=>`<option value="${p.id}" ${p.id===m.planId?'selected':''}>${mEsc(p.name||('แผนที่ '+p.no))}${p.start||p.end?` · ${meetThDate(p.start)||'-'} – ${meetThDate(p.end)||'-'}`:''}${p.status==='replaced'?' (ถูกแทนที่แล้ว)':(act&&p.id===act.id?' (ใช้อยู่)':'')}</option>`).join('');
+  const st=meetPlanState(m), bn=document.getElementById('meetPlanBanner');
+  if(st.missing)bn.innerHTML=`<div class="m-banner warn"><span>แผนต้นทาง "${mEsc(st.snap&&st.snap.planName||'')}" ถูกลบไปแล้ว — ใช้สำเนาที่บันทึกไว้ตอนแนบ</span></div>`;
+  else if(st.changed){const d=planDiff(st.snap,st.plan);bn.innerHTML=`<div class="m-banner warn"><span>แผนนี้ถูกแก้หลังจากแนบเข้าประชุม</span><span style="display:flex;gap:6px"><button type="button" class="mini-btn" onclick="this.closest('.m-banner').querySelector('.m-diff').hidden^=1">ดูว่าแก้อะไร</button><button type="button" class="mini-btn" onclick="meetUsePlanLatest()">ใช้แผนล่าสุด</button></span><ul class="m-diff" hidden>${(d.length?d:['แก้รายละเอียดเล็กน้อย']).map(x=>'<li>'+mEsc(x)+'</li>').join('')}</ul></div>`;}
+  else bn.innerHTML='';
+  const rows=(st.snap&&st.snap.rows)||[];
+  document.getElementById('meetPlanTbl').innerHTML=m.planId?(rows.length?`<table class="m-tbl"><tr><th>ลำดับ</th><th>งาน</th><th>ตำแหน่ง</th><th>ปริมาณ</th><th>ช่วงเวลา</th></tr>${rows.map((r,i)=>`<tr><td class="n">${i+1}</td><td>${mEsc(r.task)||'-'}</td><td>${mEsc(r.zone)||'-'}</td><td class="n">${r.qty?(isNaN(parseFloat(r.qty))?mEsc(r.qty):fmtQ(r.qty)+' ตร.ม.'):'-'}</td><td>${meetThDate(r.start)||'-'} – ${meetThDate(r.end)||'-'}</td></tr>`).join('')}</table>`:'<div class="m-empty">แผนนี้ยังไม่มีรายการงาน — กด ✏️ แก้แผนนี้ เพื่อเพิ่มรายการ</div>'):'<div class="m-empty">เลือกแผนจากรายการด้านบน หรือกด ➕ สร้างแผนใหม่</div>';
+}
+// ปิดหน้าแผนงานแล้วกลับมาหน้าประชุม → อัปเดตขั้นแผนถัดไป
+(function(){ const f=window.savePlans; window.savePlans=function(){ const r=f.apply(this,arguments);
+  if(document.getElementById('meetOverlay').style.display==='flex'){ const m=meetings.find(x=>x.id===meetSel);
+    if(m&&m.planId&&m.planSnapshot&&!m.planSnapshot.rows.length){ const p=plans.find(x=>x.id===m.planId); if(p)m.planSnapshot=planSnap(p); } // แผนเพิ่งสร้าง → ใช้รายการที่เพิ่งกรอก
+    renderMeetStep4(); renderMeetSteps(); }
+  return r; }; })();
+
+// ── เลขหมวด (ใช้ทั้งรายงาน เอ็กเซล และหน้าประชุม): ตามลำดับหมวดในแอป ไม่ขึ้นกับว่าพิมพ์หมวดไหน ──
+function layerNo(key){ const i=LAYERS.findIndex(l=>l.key===key); return i>=0?i+1:LAYERS.length+1; }
+function mkCode(m){ return (m.layer==='plan'||m.layer==='deliv')?String(mkNo(m)):`${layerNo(m.layer)}.${mkNo(m)}`; }
+function thDate(iso,long){ if(!iso)return ''; const d=new Date(iso+'T00:00:00'); if(isNaN(d))return '';
+  return d.toLocaleDateString('th-TH',{day:'numeric',month:long?'long':'short',year:'numeric'}); }
+
+// ════════════════ rev 3: รายงานความคืบหน้า 5 ส่วน (สีเทาอ่อน) + บันทึกประชุมฉบับพิมพ์ ════════════════
+function meetAutoReview(){ // ประเมินจากงานจริงแบบระมัดระวัง (ไม่ทับที่เลือกเอง) — ติดป้าย "ประเมินให้"
+  const m=collectMeetForm(); if(!m)return;
+  const prev=prevMeeting(m); if(!prev)return;
+  const cut=m.date||todayISO();
+  if(!m.planReview)m.planReview={};
+  let guessed=0, ambiguous=0;
+  prev.planSnapshot.rows.forEach((r,i)=>{
+    if(!m.planReview[i])m.planReview[i]={status:'',note:''};
+    if(m.planReview[i].status)return;
+    const planMk=r.mkId?markups.find(x=>x.id===r.mkId):null;
+    if(!planMk){ambiguous++;return;}
+    const overlaps=wmk().filter(x=>x.page===planMk.page&&isDoneMk(x,cut)&&shapesOverlap(x,planMk));
+    const doneArea=overlaps.reduce((s,x)=>s+(parseFloat(x.area)||0),0);
+    const target=parseFloat(r.qty)||parseFloat(planMk.area)||0;
+    m.planReview[i].status=!overlaps.length?'miss':(target>0&&doneArea>=target*0.9?'done':'partial');
+    m.planReview[i].auto=true;
+    if(m.planReview[i].status==='partial'&&!m.planReview[i].note&&doneArea)m.planReview[i].note=`ได้ ${fmtQ(doneArea)} ตร.ม.`;
+    guessed++;
+  });
+  renderPlanReview(); renderMeetSteps(); Autosave.mark();
+  if(ambiguous)alert(`ประเมินให้ ${guessed} รายการ\nอีก ${ambiguous} รายการไม่มีพื้นที่อ้างอิงบนแบบ — เลือกผลเอง`);
+}
+
+const RPT_CSS=`
+:root{--ink:#1f2933;--mut:#66717d;--ln:#d5dae0;--brand:#5f6b7a;--tint:#eceff3;--tint2:#f6f7f9;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#9aa1a9}
+body{font-family:'Sarabun',sans-serif;color:var(--ink);font-size:10pt;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.tb{position:sticky;top:0;z-index:9;display:flex;gap:10px;align-items:center;justify-content:center;background:#2b3138;color:#e8ecf0;padding:9px 12px;font-size:13px;flex-wrap:wrap}
+.tb button{font:inherit;font-weight:700;background:#f4a726;color:#111;border:0;border-radius:7px;padding:7px 16px;cursor:pointer}
+.tb span{color:#b9c1c9}
+.page{width:210mm;min-height:297mm;margin:14px auto;background:#fff;padding:12mm 13mm 13mm;box-shadow:0 2px 10px rgba(0,0,0,.25);position:relative;break-after:page;page-break-after:always}
+.page:last-child{break-after:auto;page-break-after:auto}
+@page{size:A4;margin:12mm 13mm 13mm}
+@media print{html,body{background:#fff}.tb{display:none}.page{margin:0;box-shadow:none;width:auto;min-height:0;padding:0}}
+.rh{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:1.5px solid var(--brand);padding-bottom:4px;margin-bottom:4mm;font-size:8.5pt;color:var(--mut)}
+.rh b{color:var(--brand)}
+.rh img{height:22px;width:auto;margin-right:6px;vertical-align:middle}
+.cover{display:flex;gap:12px;align-items:center;margin:1mm 0 3mm}
+.cover img{height:46px;width:auto}
+.cover h1{font-size:16.5pt;color:var(--brand);line-height:1.25;font-weight:700}
+.cover .s{font-size:10pt;color:var(--mut)}
+table{width:100%;border-collapse:collapse}
+.info{font-size:9pt;margin:1mm 0 3mm}
+.info th{width:19%;text-align:left;background:var(--tint2);font-weight:600;color:#374151}
+.info th,.info td{border:1px solid var(--ln);padding:3px 7px;vertical-align:top}
+h2{font-size:11.5pt;color:var(--brand);margin:4.5mm 0 2mm;padding:1.3mm 3mm;background:var(--tint2);border-left:3px solid var(--brand);border-radius:2px;break-after:avoid;page-break-after:avoid}
+h2 .no{display:inline-block;min-width:20px;margin-right:4px}
+h3{font-size:10pt;color:var(--brand);margin:0 0 1.2mm}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(48mm,1fr));gap:3mm}
+.kp{border:1px solid var(--ln);border-radius:4px;padding:2.6mm 3mm}
+.kp .t{font-size:8.8pt;color:var(--mut);display:flex;align-items:center;gap:5px}
+.kp .v{font-size:19pt;font-weight:700;line-height:1.15}
+.kp .d{font-size:8.3pt;color:var(--mut)}
+.bar{height:6px;background:#e5e7eb;border-radius:3px;margin:3px 0;position:relative}
+.bar i{display:block;height:100%;border-radius:3px}
+.bar u{position:absolute;top:-3px;width:2px;height:12px;background:#111;border-radius:1px}
+.st{display:inline-block;font-size:7.8pt;font-weight:600;padding:0 6px;border-radius:9px;margin-top:2px}
+.st.ok{background:#dcfce7;color:var(--ok)}.st.warn{background:#fef3c7;color:var(--warn)}.st.bad{background:#fee2e2;color:var(--bad)}.st.na{background:var(--tint);color:var(--mut)}
+ul.kp-list{margin:1mm 0 0;padding-left:5mm}ul.kp-list li{margin:.6mm 0}
+.t{font-size:8.8pt}
+.t th{background:var(--tint);color:#374151;font-weight:600;padding:3px 5px;border:1px solid var(--ln);border-bottom:1.5px solid var(--brand);text-align:center}
+.t td{border:1px solid var(--ln);padding:3px 5px;vertical-align:middle}
+.t td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.t td.c{text-align:center;white-space:nowrap}
+.t tr.g td{background:var(--tint2);font-weight:700}
+.t tr.sum td{border-top:1.5px solid var(--ink);font-weight:700}
+.t tr{break-inside:avoid;page-break-inside:avoid}
+.t td .bar{margin:2px 0 0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.note{font-size:8.2pt;color:var(--mut);margin-top:1.2mm}
+.box{border:1px solid var(--ln);border-radius:4px;padding:2.4mm 3.4mm;margin-bottom:2.6mm;break-inside:avoid;page-break-inside:avoid}
+.box .tx{white-space:pre-wrap;word-break:break-word}
+.sign{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:7mm;text-align:center;font-size:8.8pt;break-inside:avoid;page-break-inside:avoid}
+.sign .l{border-bottom:1px dotted #555;height:11mm;margin-bottom:1.5mm}
+.sign small{color:var(--mut);display:block;line-height:1.35}
+.fig{margin:0 0 2mm;border:1px solid var(--ln);border-radius:3px;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
+.fig img{display:block;width:100%;height:auto}
+.legend{display:flex;gap:4mm;font-size:8.3pt;flex-wrap:wrap;margin:1.5mm 0 2.5mm;color:#374151}
+.legend span{display:flex;align-items:center;gap:4px}
+.ph-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+.ph-grid figure{border:1px solid var(--ln);border-radius:3px;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
+.ph-grid img{display:block;width:100%;height:52mm;object-fit:cover}
+.ph-grid figcaption{font-size:8.2pt;padding:1.2mm 2mm;color:#374151}
+.chart text{font-family:'Sarabun',sans-serif}
+.empty{color:var(--mut);font-style:italic;padding:2mm 0}
+.no-photo{padding:10px;text-align:center;color:#9ca3af;font-style:italic;font-size:9pt}
+.cal-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;align-items:start}
+.cal{margin-bottom:4px;break-inside:avoid;page-break-inside:avoid}
+.cal-mon{font-size:10pt;font-weight:700;color:#111827;margin-bottom:3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.cal-dow{font-size:7.5px;color:#9ca3af;text-align:center;font-weight:600;padding:1px 0}
+.cal-cell{border:1px solid #eef0f3;border-radius:2px;min-height:20px;padding:1px 2px;position:relative}
+.cal-blank{border:none;background:transparent}
+.cal-d{font-size:7.5px;color:#6b7280;line-height:1}
+.cal-bars{display:flex;flex-direction:column;gap:.5px;margin-top:1px}
+.cal-bar{height:3px;opacity:.85;border-radius:1px}
+.cal-bar.bs{border-top-left-radius:3px;border-bottom-left-radius:3px;margin-left:1px}
+.cal-bar.be{border-top-right-radius:3px;border-bottom-right-radius:3px;margin-right:1px}
+.cal-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:7px;font-size:8pt;color:#4b5563}
+.cal-lg{display:flex;align-items:center}
+.cal-lg .dot{border-radius:50%}
+.pl-imgs{display:grid;gap:2mm;margin-top:2mm}.pl-fig{margin:0;border:1px solid var(--ln);border-radius:3px;overflow:hidden;break-inside:avoid;page-break-inside:avoid}.pl-fig img{display:block;width:100%;max-height:62mm;object-fit:contain;background:#fff}.pl-fig figcaption{font-size:8.2pt;padding:1.2mm 2mm;background:var(--tint2)}
+.rv-ok{color:var(--ok);font-weight:600}.rv-part{color:var(--warn);font-weight:600}.rv-miss{color:var(--bad);font-weight:600}
+`;
+
+// ── ข้อมูลโครงการเพิ่มเติม (ผู้ว่าจ้าง / ระยะเวลาสัญญา) ──
+function projInfo(){
+  const g=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+  return {name:g('projName')||'โครงการ',author:g('authorName'),client:g('clientName'),cs:g('contractStart'),ce:g('contractEnd')};
+}
+function contractElapsed(cut){
+  const P=projInfo(); if(!P.cs||!P.ce||P.ce<P.cs)return null;
+  const D=s=>new Date(s+'T00:00:00').getTime();
+  const tot=Math.round((D(P.ce)-D(P.cs))/86400000)+1, gone=Math.max(0,Math.min(tot,Math.round((D(cut)-D(P.cs))/86400000)+1));
+  return {tot,gone,pct:gone/tot*100,cs:P.cs,ce:P.ce};
+}
+// เทียบกับแผนเฉลี่ยตามเวลาสัญญา (เส้นตรง) — ใช้ได้เมื่อกรอกวันเริ่ม/สิ้นสุดสัญญา
+function planStatus(pct,el){
+  if(!el||pct==null)return {cls:'na',txt:'ยังไม่ได้กรอกระยะเวลาสัญญา'};
+  const gap=pct-el.pct;
+  if(gap>=-5)return {cls:'ok',txt:'● ตามแผน'};
+  if(gap>=-15)return {cls:'warn',txt:`● ช้ากว่าแผนเฉลี่ย ${fmtPct(-gap)}`};
+  return {cls:'bad',txt:`● ล่าช้า ${fmtPct(-gap)}`};
+}
+// รายการ BOQ แบ่งตามหมวด: หมวดที่ markup ใช้รายการนั้นมากที่สุด → ถ้าไม่มีใช้ชื่อรายการเดา
+function itemLayerMap(){
+  const cnt={};
+  wmk().forEach(m=>mkItems(m).forEach(x=>{const k=String(x.id);(cnt[k]=cnt[k]||{})[m.layer]=(cnt[k][m.layer]||0)+1;}));
+  const out={};
+  poItems.forEach(it=>{const c=cnt[String(it.id)];
+    out[it.id]=c?Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]:(poMatchLayer(it.name)||null);});
+  return out;
+}
+function weightedOverall(cut,prevCut){
+  const its=poItems.filter(it=>parseFloat(it.qty)>0);
+  if(!its.length||its.some(it=>!(parseFloat(it.price)>0)))return null;
+  const doneAt=(id,c)=>wmk().reduce((s,m)=>{if(!isDoneMk(m,c))return s;const x=mkItems(m).find(y=>y.id===String(id));return s+(x?(parseFloat(x.qty)||0):0);},0);
+  let tot=0,done=0,prev=0;
+  its.forEach(it=>{const p=parseFloat(it.price),q=parseFloat(it.qty);tot+=p*q;done+=p*Math.min(q,doneAt(it.id,cut));if(prevCut)prev+=p*Math.min(q,doneAt(it.id,prevCut));});
+  return {pct:tot?done/tot*100:0,prev:prevCut&&tot?prev/tot*100:null,value:tot};
+}
+async function sheetImage(pg,mks,scale){
+  const base=await renderPageToCanvas(pg,scale||1.5);
+  const c=document.createElement('canvas');c.width=base.width;c.height=base.height;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(base,0,0);
+  const lab=[]; mks.forEach(m=>drawMarkupShape(x,m,mkCode(m),{k:2,collect:lab})); drawLabelsAvoid(x,lab);
+  const url=c.toDataURL('image/jpeg',0.8); c.width=c.height=0; base.width=base.height=0;
+  return url;
+}
+function rptHead(P,title){
+  return `<div class="rh"><span>${logoData?`<img src="${logoData}" alt="">`:''}<b>${prEsc(P.name)}</b> · ${prEsc(title)}</span><span>หน้า <span class="pg"></span></span></div>`;
+}
+function rptSign(m){
+  const n=v=>v&&v.trim()?prEsc(v):'&nbsp;'.repeat(26);
+  return `<div class="sign"><div><div class="l"></div>( ${n(m&&m.signFore)} )<small>โฟร์แมน</small><small>วันที่ ....../....../......</small></div>
+  <div><div class="l"></div>( ${n(m&&m.signLead)} )<small>หัวหน้าทีม / ผู้ช่วยผู้จัดการฝ่ายติดตั้ง</small><small>วันที่ ....../....../......</small></div>
+  <div><div class="l"></div>( ${n(m&&m.signExec)} )<small>ผู้ช่วยกรรมการผู้จัดการ สายงานก่อสร้าง (รับทราบ)</small><small>วันที่ ....../....../......</small></div></div>`;
+}
+function rptPlanTable(rows){
+  if(!rows||!rows.length)return '<div class="empty">— ยังไม่มีแผนงานช่วงถัดไป —</div>';
+  return `<table class="t"><tr><th style="width:9%">ลำดับ</th><th>งาน</th><th>ตำแหน่ง</th><th style="width:15%">ปริมาณ</th><th style="width:24%">ช่วงเวลา</th></tr>${rows.map((r,i)=>`<tr><td class="c">${i+1}</td><td>${prEsc(r.task)||'-'}</td><td>${prEsc(r.zone)||'-'}</td><td class="n">${r.qty?(isNaN(parseFloat(r.qty))?prEsc(r.qty):fmtQ(r.qty)+' ตร.ม.'):'-'}</td><td class="c">${thDate(r.start)||'-'} – ${thDate(r.end)||'-'}</td></tr>`).join('')}</table>`;
+}
+function rptReviewTable(m){
+  const prev=prevMeeting(m); if(!prev)return '';
+  const rows=prev.planSnapshot.rows, R=m.planReview||{};
+  const LB={done:['rv-ok','ตามแผน'],partial:['rv-part','เปลี่ยน/เลื่อน'],miss:['rv-miss','ไม่ได้ตามแผน']};
+  return `<table class="t"><tr><th style="width:9%">ลำดับ</th><th>งานตามแผน</th><th style="width:15%">ปริมาณ</th><th style="width:15%">ผล</th><th>หมายเหตุ</th></tr>${rows.map((r,i)=>{const v=R[i]||{};const lb=LB[v.status];
+    return `<tr><td class="c">${i+1}</td><td>${prEsc([r.task,r.zone].filter(Boolean).join(' — '))||'-'}</td><td class="n">${r.qty?(isNaN(parseFloat(r.qty))?prEsc(r.qty):fmtQ(r.qty)+' ตร.ม.'):'-'}</td><td class="c ${lb?lb[0]:''}">${lb?lb[1]:'—'}</td><td>${prEsc(v.note)||''}</td></tr>`;}).join('')}</table>
+  <div class="note">อ้างอิงแผนที่แนบไว้กับประชุมครั้งที่ ${prev.no} (${thDate(prev.date)||'-'})</div>`;
+}
+function rptMeetPhotos(m){
+  const ph=(m&&m.photos)||[]; if(!ph.length)return '';
+  return `<div class="ph-grid" style="margin-top:2mm">${ph.map((s,i)=>`<figure><img src="${s}" alt=""><figcaption><b>รูปที่ ${i+1}</b></figcaption></figure>`).join('')}</div>`;
+}
+// หน้าบันทึกประชุม — ใช้ทั้งในรายงานรวม และพิมพ์แยก
+function rptMeetingPage(P,m,secNo,planImgs){
+  const D=meetProgressData(m);
+  const sn=m.planSnapshot, rows=sn&&sn.rows;
+  const N=secNo?secNo+'.':'';
+  return `<section class="page">${rptHead(P,'บันทึกการประชุมติดตามความคืบหน้างาน')}
+  <h2><span class="no">${secNo||''}</span>บันทึกการประชุมติดตามความคืบหน้างาน ครั้งที่ ${m.no||'-'}</h2>
+  <table class="info"><tr><th>วันที่ประชุม</th><td>${thDate(m.date,true)||'-'}</td><th>ประเภท</th><td>${m.type==='onsite'?'หารือหน้างาน (โครงการไม่เกิน 1 เดือน)':'ประชุมประจำเดือน'}</td></tr>
+  <tr><th>สถานที่</th><td>${prEsc(m.place)||'-'}</td><th>ผู้รับเหมาช่วง</th><td>${prEsc(m.sub)||'-'}</td></tr>
+  <tr><th>ผู้เข้าร่วม</th><td colspan="3">${prEsc(m.people)||'-'}</td></tr></table>
+  ${prevMeeting(m)?`<div class="box"><h3>${N}1 ทบทวนแผนงานจากการประชุมครั้งก่อน</h3>${rptReviewTable(m)}</div>`:''}
+  <div class="box"><h3>${N}${prevMeeting(m)?2:1} ความคืบหน้างาน</h3><div class="tx">${prEsc((m.progress||'').trim())||'<span class="empty">— ไม่มี —</span>'}</div>${secNo?'':meetProgressTableV3(D)}</div>
+  <div class="box"><h3>${N}${prevMeeting(m)?3:2} แผนงานช่วงถัดไป${sn?` — ${prEsc(sn.planName||'')}`:''}</h3>${rows?rptPlanTable(rows):'<div class="empty">— ยังไม่ได้เลือกแผน —</div>'}${(m.plan||'').trim()?`<div class="note">หมายเหตุ: ${prEsc(m.plan)}</div>`:''}${planImgs||''}</div>
+  <div class="box"><h3>${N}${prevMeeting(m)?4:3} ปัญหาอุปสรรค</h3><div class="tx">${prEsc((m.issue||'').trim())||'<span class="empty">— ไม่มี —</span>'}</div>${rptMeetPhotos(m)}</div>
+  <div class="box"><h3>${N}${prevMeeting(m)?5:4} ด้านความปลอดภัย</h3><div class="tx">${prEsc((m.safety||'').trim())||'<span class="empty">— ไม่มี —</span>'}</div></div>
+  ${rptSign(m)}</section>`;
+}
+// ตารางความคืบหน้าตาม BOQ แบ่งหมวด (ใช้ทั้งรายงานและบันทึกประชุม)
+function meetProgressTableV3(D,only){
+  if(!D.rows.length)return '<div class="empty">— ยังไม่มีรายการ BOQ —</div>';
+  const hasPrev=!!(D.prev&&D.pcut), map=itemLayerMap();
+  const PL=LAYERS.filter(l=>!only||only.includes(l.key));
+  const groups=PL.map(l=>({l,rows:D.rows.filter(r=>map[r.it.id]===l.key)})).filter(g=>g.rows.length);
+  const rest=D.rows.filter(r=>!map[r.it.id]||!PL.some(l=>l.key===map[r.it.id])&&!only);
+  if(rest.length)groups.push({l:null,rows:rest});
+  let body='';
+  groups.forEach(g=>{
+    const no=g.l?layerNo(g.l.key):'–';
+    body+=`<tr class="g"><td class="c">${no}</td><td colspan="${hasPrev?8:6}">${g.l?`<span class="dot" style="background:${g.l.color}"></span>หมวดที่ ${no} ${prEsc(g.l.name)}`:'รายการอื่น ๆ'}</td></tr>`;
+    g.rows.forEach((r,i)=>{body+=`<tr><td class="c">${g.l?no+'.'+(i+1):i+1}</td><td>${prEsc(r.name)}</td><td class="c">${prEsc(r.unit)}</td><td class="n">${fmtQ(r.boqQty)}</td>
+      ${hasPrev?`<td class="n">${fmtQ(r.accPrev)}</td><td class="n">${r.add>0.0001?'+'+fmtQ(r.add):'–'}</td>`:''}<td class="n"><b>${fmtQ(r.acc)}</b></td><td class="n">${fmtQ(r.remain)}</td>
+      <td class="n">${r.pct==null?'–':fmtPct(r.pct)}<div class="bar"><i style="width:${Math.min(100,r.pct||0)}%;background:${g.l?g.l.color:'#5f6b7a'}"></i></div></td></tr>`;});
+  });
+  return `<table class="t"><tr><th style="width:7%">ลำดับ</th><th>รายการ</th><th>หน่วย</th><th>ตามสัญญา</th>${hasPrev?'<th>ครั้งก่อน</th><th>งวดนี้</th>':''}<th>สะสม</th><th>คงเหลือ</th><th style="width:14%">ร้อยละ</th></tr>${body}</table>
+  <div class="note">ยอดสะสม ณ ${thDate(D.cut,true)}${hasPrev?` · งวดนี้ = ${thDate(D.pcut)} – ${thDate(D.cut)} (เทียบกับประชุมครั้งที่ ${D.prev.no})`:''} · นับเฉพาะงานที่ลงวันเสร็จแล้ว</div>`;
+}
+function rptChart(el,PL,cut){
+  if(!el)return '<div class="note">กรอกวันเริ่ม/สิ้นสุดสัญญาในเมนู ⚙ เพื่อแสดงกราฟเทียบแผนกับผลงานจริง</div>';
+  const W=640,H=210,X0=42,X1=628,Y0=180,Y1=20;
+  const D=s=>new Date(s+'T00:00:00').getTime(), t0=D(el.cs), t1=D(el.ce);
+  const xs=t=>X0+(X1-X0)*Math.max(0,Math.min(1,(t-t0)/(t1-t0||1))), ys=p=>Y0-(Y0-Y1)*Math.max(0,Math.min(100,p))/100;
+  let g=`<g stroke="#e5e7eb">${[0,25,50,75,100].map(p=>`<line x1="${X0}" y1="${ys(p)}" x2="${X1}" y2="${ys(p)}"/>`).join('')}</g>`;
+  g+=`<g fill="#66717d" font-size="10" text-anchor="end">${[0,25,50,75,100].map(p=>`<text x="${X0-6}" y="${ys(p)+3}">${p}%</text>`).join('')}</g>`;
+  // เดือนบนแกนนอน
+  const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  let d=new Date(t0); d=new Date(d.getFullYear(),d.getMonth()+1,1);
+  while(d.getTime()<t1){g+=`<text x="${xs(d.getTime())}" y="${Y0+14}" font-size="9.5" fill="#66717d" text-anchor="middle">${M[d.getMonth()]}</text><line x1="${xs(d.getTime())}" y1="${Y0}" x2="${xs(d.getTime())}" y2="${Y0+3}" stroke="#9ca3af"/>`;d.setMonth(d.getMonth()+1);}
+  g+=`<line x1="${X0}" y1="${Y0}" x2="${X1}" y2="${Y0}" stroke="#9ca3af"/>`;
+  g+=`<line x1="${xs(t0)}" y1="${ys(0)}" x2="${xs(t1)}" y2="${ys(100)}" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>`;
+  const cx=xs(D(cut)); g+=`<line x1="${cx}" y1="${Y1}" x2="${cx}" y2="${Y0}" stroke="#c2410c" stroke-dasharray="3 3"/><text x="${cx+4}" y="${Y1+10}" font-size="9.5" fill="#c2410c">วันรายงาน ${thDate(cut)}</text>`;
+  PL.forEach(l=>{
+    const mks=wmk().filter(m=>m.layer===l.key&&m.end&&m.end<=cut).sort((a,b)=>a.end<b.end?-1:1);
+    const ends=[...new Set(mks.map(m=>m.end))];
+    let pts=[[xs(t0),ys(0)]];
+    ends.forEach(e=>{const p=layerProg(l.key,e).pct||0;pts.push([xs(D(e)),pts[pts.length-1][1]],[xs(D(e)),ys(p)]);});
+    const last=layerProg(l.key,cut).pct||0; pts.push([cx,ys(last)]);
+    g+=`<path d="M${pts.map(p=>p.map(v=>v.toFixed(1)).join(' ')).join(' L')}" fill="none" stroke="${l.color}" stroke-width="2.2"/><circle cx="${cx}" cy="${ys(last)}" r="3.5" fill="${l.color}"/>`;
+  });
+  const legend=`<div class="legend"><span><svg width="22" height="6"><line x1="0" y1="3" x2="22" y2="3" stroke="#9ca3af" stroke-width="2" stroke-dasharray="5 3"/></svg>แผนเฉลี่ยตามระยะเวลาสัญญา</span>${PL.map(l=>`<span><svg width="22" height="6"><line x1="0" y1="3" x2="22" y2="3" stroke="${l.color}" stroke-width="2.5"/></svg>${prEsc(l.name)} (ผลงานจริงสะสม)</span>`).join('')}</div>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" style="width:100%">${g}</svg>${legend}<div class="note">เส้นแผนเป็นเส้นตรงจากวันเริ่มถึงวันสิ้นสุดสัญญา (ยังไม่ใช่แผนรายวันของงานจริง)</div>`;
+}
+
+async function printReport(mode,only){
+  if(mode==='plan')return printReportLegacy(mode,only);
+  const sel=Array.isArray(only)&&only.length?only.slice():null;
+  const PL=sel?LAYERS.filter(l=>sel.includes(l.key)):LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
+  const WM=()=>sel?wmk().filter(m=>sel.includes(m.layer)):wmk();
+  if(!WM().length){alert('ไม่มี markup ในหมวดงานที่เลือก');return;}
+  try{collectMeetForm();}catch(_){}
+  const mSel=meetings.find(x=>x.id===meetSel)||meetSorted().slice(-1)[0];
+  const hasMeet=meetHasContent(mSel);
+  // เตือนก่อนพิมพ์ ถ้ายังมีข้อมูลที่ทำให้ตัวเลขไม่ครบ
+  const au=auditData(), probs=hasMeet?stepProblems(mSel):[];
+  if((au.count||probs.length)&&!confirm(`ก่อนพิมพ์ ยังมีเรื่องที่ควรตรวจ:\n${au.count?`• ข้อมูลไม่ครบ ${au.count} จุด (ตัวเลขอาจนับไม่ครบ)\n`:''}${probs.map(p=>'• '+p).join('\n')}\n\nตกลง = พิมพ์ต่อ · ยกเลิก = กลับไปแก้`))return;
+  // เปิดหน้าต่างทันทีตอนกด (กันเบราว์เซอร์บล็อก)
+  const w=window.open('','_blank');
+  if(w)w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังสร้างรายงาน...</title><style>body{font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#eceff3;color:#1f2933}.spin{width:40px;height:40px;border:4px solid #d5dae0;border-top-color:#5f6b7a;border-radius:50%;animation:s .8s linear infinite;margin-bottom:16px}@keyframes s{to{transform:rotate(360deg)}}#pp{color:#66717d;font-size:14px;margin-top:6px}</style></head><body><div class="spin"></div><div style="font-weight:600">กำลังเตรียมรายงาน</div><div id="pp">เริ่มต้น...</div></body></html>');
+  const say=t=>{try{const el=w&&w.document.getElementById('pp');if(el)el.textContent=t;}catch(_){}};
+  await new Promise(r=>setTimeout(r,30));
+  const P=projInfo();
+  const cut=(hasMeet&&mSel.date)?mSel.date:todayISO();
+  const D=meetProgressData(Object.assign({},mSel||{},{id:mSel?mSel.id:-1,date:cut}));
+  const el=contractElapsed(cut);
+  const mon=new Date(cut+'T00:00:00').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  const title=`รายงานความคืบหน้างานประจำเดือน ${mon}`;
+  const LP=PL.map(l=>({l,lp:layerProg(l.key,cut),pp:D.pcut?layerProg(l.key,D.pcut):null}));
+  const WO=weightedOverall(cut,D.pcut);
+  const esc=prEsc;
+  // ── หน้า 1: สรุปสำหรับผู้บริหาร ──
+  const cards=LP.map(({l,lp,pp})=>{const st=planStatus(lp.pct,el);return `<div class="kp"><div class="t"><span class="dot" style="background:${l.color}"></span>หมวดที่ ${layerNo(l.key)} ${esc(l.name)}</div>
+    <div class="v" style="color:${l.color}">${lp.pct==null?'—':fmtPct(lp.pct)}</div><div class="bar"><i style="width:${Math.min(100,lp.pct||0)}%;background:${l.color}"></i>${el?`<u style="left:${Math.min(100,el.pct)}%"></u>`:''}</div>
+    <div class="d">${fmtQ(lp.done)} / ${fmtQ(lp.base)} ตร.ม.${pp?` · งวดนี้ +${fmtQ(Math.max(0,lp.done-pp.done))}`:''}${lp.wipN?` · กำลังทำ ${fmtQ(lp.wip)}`:''}</div><span class="st ${st.cls}">${st.txt}</span></div>`;}).join('')
+    +(WO?(()=>{const st=planStatus(WO.pct,el);return `<div class="kp"><div class="t">ภาพรวมโครงการ (ถ่วงตามมูลค่า)</div><div class="v">${fmtPct(WO.pct)}</div><div class="bar"><i style="width:${Math.min(100,WO.pct)}%;background:#5f6b7a"></i>${el?`<u style="left:${Math.min(100,el.pct)}%"></u>`:''}</div><div class="d">${el?`แผนเฉลี่ย ${fmtPct(el.pct)} · ต่างจากแผน ${(WO.pct-el.pct>=0?'+':'')+fmtPct(WO.pct-el.pct)}`:'มูลค่างานรวม '+fmtQ(WO.value)+' บาท'}</div><span class="st ${st.cls}">${st.txt}</span></div>`;})():'');
+  const pts=[];
+  LP.forEach(({l,lp,pp})=>{ pts.push(`${esc(l.name)} สะสม ${fmtQ(lp.done)} ตร.ม. (${lp.pct==null?'—':fmtPct(lp.pct)})${pp?` งวดนี้ทำเพิ่ม ${fmtQ(Math.max(0,lp.done-pp.done))} ตร.ม.`:''}${lp.wipN?` · กำลังดำเนินการอีก ${fmtQ(lp.wip)} ตร.ม.`:''}`); });
+  if(hasMeet){ (mSel.issue||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,2).forEach(s=>pts.push('<b>ปัญหา:</b> '+esc(s)));
+    const sf=(mSel.safety||'').split('\n').map(s=>s.trim()).filter(Boolean)[0]; if(sf)pts.push('<b>ความปลอดภัย:</b> '+esc(sf)); }
+  const nextRows=(hasMeet&&mSel.planSnapshot&&mSel.planSnapshot.rows)||((activePlan()||{}).rows)||[];
+  const periodTxt=D.pcut?`${thDate(addDays(D.pcut,1))} – ${thDate(cut)}`:`ถึง ${thDate(cut)}`;
+  let sec=0; const S=()=>++sec;
+  const page1=`<section class="page">${rptHead(P,title)}
+    <div class="cover">${logoData?`<img src="${logoData}" alt="">`:''}<div><h1>${esc(title)}</h1><div class="s">${esc(P.name)}${sel?` · เฉพาะ${PL.map(l=>esc(l.name)).join(', ')}`:''}</div></div></div>
+    <table class="info"><tr><th>ผู้ว่าจ้าง</th><td>${esc(P.client)||'-'}</td><th>ช่วงรายงาน</th><td>${periodTxt}</td></tr>
+    <tr><th>ระยะเวลาสัญญา</th><td>${el?`${thDate(el.cs)} – ${thDate(el.ce)} (${el.tot} วัน)`:'-'}</td><th>ผ่านไปแล้ว</th><td>${el?`${el.gone} วัน (${fmtPct(el.pct)})`:'-'}</td></tr>
+    <tr><th>จัดทำโดย</th><td>${esc(P.author)||'-'}</td><th>วันที่ออกรายงาน</th><td>${thDate(todayISO(),true)}</td></tr></table>
+    <h2><span class="no">${S()}.</span>สรุปภาพรวม</h2><div class="kpis">${cards}</div>
+    <div class="note">${el?'ขีดดำบนแถบ = ตำแหน่งตามแผนเฉลี่ย ณ วันรายงาน · ':''}นับเป็น "เสร็จ" เฉพาะพื้นที่ที่ลงวันเสร็จแล้ว · ฐานคิดคือปริมาณตาม BOQ (ถ้าไม่มี BOQ ใช้พื้นที่ตามสัญญา/ตามแบบ)</div>
+    <h2><span class="no">${S()}.</span>ประเด็นสำคัญ</h2><ul class="kp-list">${pts.map(p=>`<li>${p}</li>`).join('')}</ul>
+    ${hasMeet&&(mSel.ask||'').trim()?`<h2><span class="no">${S()}.</span>สิ่งที่ต้องการให้ช่วยพิจารณา</h2><ul class="kp-list">${mSel.ask.split('\n').map(s=>s.trim()).filter(Boolean).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`:''}
+    <h2><span class="no">${S()}.</span>แผนงานช่วงถัดไป${hasMeet&&mSel.planSnapshot?` — ${esc(mSel.planSnapshot.planName||'')}`:''}</h2>${rptPlanTable(nextRows)}
+    ${rptSign(hasMeet?mSel:null)}</section>`;
+  // ── หน้า 2: ความคืบหน้าตาม BOQ + แยกแผ่น + กราฟ ──
+  const sheets=[...new Set([...Object.keys(pageAreas).map(Number).filter(pg=>getPageArea(pg)>0),...WM().map(m=>m.page)])].sort((a,b)=>a-b);
+  const dpl=(pg,lk)=>wmk().filter(m=>m.page===pg&&m.layer===lk&&isDoneMk(m,cut)).reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+  const sheetRows=sheets.map(pg=>{const pa=getPageArea(pg);return `<tr><td>${esc(getPageLabel(pg))}</td><td class="n">${pa?fmtQ(pa):'-'}</td>${PL.map(l=>{const d=dpl(pg,l.key);return `<td class="n">${d?fmtQ(d):'–'}</td><td class="n">${pa&&d?fmtPct(d/pa*100):'–'}</td>`;}).join('')}</tr>`;}).join('');
+  const sumA=sheets.reduce((s,pg)=>s+getPageArea(pg),0);
+  const sheetTbl=sheets.length?`<table class="t"><tr><th rowspan="2">แผ่นแบบ</th><th rowspan="2">พื้นที่ตามแบบ<br>(ตร.ม.)</th>${PL.map(l=>`<th colspan="2"><span class="dot" style="background:${l.color}"></span>${esc(l.name)}</th>`).join('')}</tr><tr>${PL.map(()=>'<th>เสร็จ (ตร.ม.)</th><th>ร้อยละ</th>').join('')}</tr>${sheetRows}
+    <tr class="sum"><td>รวม</td><td class="n">${sumA?fmtQ(sumA):'-'}</td>${PL.map(l=>{const d=sheets.reduce((s,pg)=>s+dpl(pg,l.key),0);return `<td class="n">${fmtQ(d)}</td><td class="n">${sumA?fmtPct(d/sumA*100):'–'}</td>`;}).join('')}</tr></table>
+    <div class="note">ร้อยละในตารางนี้เทียบกับพื้นที่ตามแบบของแต่ละแผ่น จึงอาจต่างจากตาราง BOQ ที่เทียบกับปริมาณตามสัญญา</div>`:'<div class="empty">— ยังไม่ได้กรอกพื้นที่แผ่น —</div>';
+  const page2=`<section class="page">${rptHead(P,title)}
+    <h2><span class="no">${S()}.</span>ความคืบหน้าตามรายการ BOQ</h2>${meetProgressTableV3(D,sel)}
+    <h2><span class="no">${S()}.</span>ความคืบหน้าแยกตามแผ่นแบบ</h2>${sheetTbl}
+    <h2><span class="no">${S()}.</span>เปรียบเทียบแผนกับผลงานจริง</h2>${rptChart(el,PL,cut)}</section>`;
+  // ── หน้า 3: แบบแสดงพื้นที่ (แผ่นละหน้า) ──
+  const pagesMk=[...new Set(WM().map(m=>m.page))].sort((a,b)=>a-b);
+  let page3='';
+  const drawSec=S();
+  for(let k=0;k<pagesMk.length;k++){
+    const pg=pagesMk[k]; say(`กำลังเตรียมแบบแผ่นที่ ${k+1}/${pagesMk.length}...`);
+    const mks=WM().filter(m=>m.page===pg);
+    let img='';
+    if(pdfDoc){try{img=await sheetImage(pg,mks,1.5);}catch(e){console.warn('แผ่น',pg,e);}}
+    await new Promise(r=>setTimeout(r,0));
+    const rows=PL.filter(l=>mks.some(m=>m.layer===l.key)).map(l=>{const ls=mks.filter(m=>m.layer===l.key).sort((a,b)=>mkNo(a)-mkNo(b));
+      return `<tr class="g"><td class="c">${layerNo(l.key)}</td><td colspan="5"><span class="dot" style="background:${l.color}"></span>หมวดที่ ${layerNo(l.key)} ${esc(l.name)}</td></tr>`+ls.map(m=>{const dd=durDays(m.start,m.end);
+        return `<tr><td class="c">${mkCode(m)}</td><td>${esc(m.note)||'-'}</td><td class="n">${m.area?fmtQ(m.area):'-'}</td><td class="c">${thDate(m.start)||'-'}</td><td class="c">${isDoneMk(m,cut)?thDate(m.end):(m.end?thDate(m.end)+' (ยังไม่ถึง)':'กำลังดำเนินการ')}</td><td class="n">${dd?dd+' วัน':'–'}</td></tr>`;}).join('');}).join('');
+    page3+=`<section class="page">${rptHead(P,title)}
+      <h2><span class="no">${drawSec}${pagesMk.length>1?'.'+(k+1):''}.</span>แบบแสดงพื้นที่ดำเนินการ — ${esc(getPageLabel(pg))}</h2>
+      ${img?`<div class="fig"><img src="${img}" alt=""></div>`:'<div class="empty">— ไม่มีไฟล์แบบในโครงการนี้ —</div>'}
+      <div class="legend">${PL.filter(l=>mks.some(m=>m.layer===l.key)).map(l=>`<span><span class="dot" style="background:${l.color};opacity:.6"></span>${esc(l.name)}</span>`).join('')}<span>เลขในวงกลม = ลำดับในตารางด้านล่าง</span></div>
+      <table class="t"><tr><th style="width:9%">ลำดับ</th><th>ตำแหน่ง</th><th style="width:14%">พื้นที่ (ตร.ม.)</th><th style="width:15%">วันเริ่ม</th><th style="width:19%">วันเสร็จ</th><th style="width:11%">ระยะเวลา</th></tr>${rows}</table></section>`;
+  }
+  // ── หน้า 4: บันทึกประชุม ──
+  let page4='';
+  if(hasMeet){ say('กำลังเตรียมบันทึกประชุม...'); let pim=''; try{pim=await planImagesHTML(mSel.planId);}catch(_){} page4=rptMeetingPage(P,mSel,S(),pim); }
+  // ── หน้า 5: ภาคผนวก ──
+  const phs=WM().filter(m=>m.photos&&m.photos.length).sort((a,b)=>layerNo(a.layer)-layerNo(b.layer)||mkNo(a)-mkNo(b));
+  let n=0;
+  const phHTML=phs.length?`<div class="ph-grid">${phs.map(m=>m.photos.map(src=>`<figure><img src="${src}" alt=""><figcaption><b>ภาพที่ ${++n}</b> ${mkCode(m)} ${esc(layerZone(m.layer))}${m.note?' · '+esc(m.note):''}${m.end?' ('+thDate(m.end)+')':''}</figcaption></figure>`).join('')).join('')}</div>`:'<div class="empty">— ไม่มีภาพถ่ายแนบ —</div>';
+  const page5=`<section class="page">${rptHead(P,title)}
+    <h2><span class="no">ก</span>ภาคผนวก ก ภาพถ่ายหน้างาน</h2>${phHTML}
+    <h2><span class="no">ข</span>ภาคผนวก ข ปฏิทินระยะเวลางาน</h2>${buildCalendarHTML(true,sel)}</section>`;
+  const fileName=`${P.name}-รายงานความคืบหน้า-${cut}`.replace(/[\\/:*?"<>|]/g,'-');
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(fileName)}</title><style>${appFontCSS()}${RPT_CSS}</style></head><body>
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 · ตั้งค่าขอบกระดาษเป็น "ไม่มี" หรือ "ค่าเริ่มต้น" · เปิดพื้นหลังกราฟิก</span></div>
+    ${page1}${page2}${page3}${page4}${page5}
+    <script>(function(){var mm=96/25.4,H=271*mm;function pagesOf(sec){var used=0,n=1;[].slice.call(sec.children).forEach(function(c){var cs=getComputedStyle(c);var h=c.getBoundingClientRect().height+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);var avoid=/avoid/.test(cs.breakInside)||/avoid/.test(cs.pageBreakInside);if(used+h<=H){used+=h;return;} if(avoid&&h<=H){n++;used=h;return;} var rem=h-(H-used);n+=Math.ceil(rem/H);used=rem%H||H;});return n;}var s=[].slice.call(document.querySelectorAll('.page')),st=[],t=0;s.forEach(function(p){st.push(t+1);t+=pagesOf(p);});s.forEach(function(p,i){var e=p.querySelector('.pg');if(e)e.textContent=st[i]+' / '+t;});})();<\/script></body></html>`;
+  if(w){w.document.open();w.document.write(html);w.document.close();}
+  else alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');
+}
+function addDays(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
+
+async function printMeeting(){ // พิมพ์เฉพาะบันทึกประชุมครั้งนี้ → PDF สำหรับเก็บเข้าระบบ EPR-Mango
+  const m=collectMeetForm(); if(!m)return;
+  if(!meetHasContent(m)){alert('ยังไม่ได้กรอกเนื้อหาการประชุม');return;}
+  const probs=stepProblems(m);
+  if(probs.length&&!confirm('บันทึกประชุมยังไม่ครบ:\n'+probs.map(p=>'• '+p).join('\n')+'\n\nตกลง = พิมพ์ต่อ · ยกเลิก = กลับไปแก้'))return;
+  const w=window.open('','_blank');
+  if(w)w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังเตรียม...</title></head><body style="font-family:sans-serif;padding:40px;color:#555">กำลังเตรียมบันทึกประชุม…</body></html>');
+  const P=projInfo();
+  const planImgs=await planImagesHTML(m.planId);
+  const fileName=`${P.name}-บันทึกประชุม-ครั้งที่${m.no||''}${m.month?'-'+m.month:''}`.replace(/[\\/:*?"<>|]/g,'-');
+  const extraCSS='';
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${prEsc(fileName)}</title><style>${appFontCSS()}${RPT_CSS}${extraCSS}</style></head><body>
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>เก็บเข้าระบบ EPR-Mango รูปแบบ PDF</span></div>
+    ${rptMeetingPage(P,m,0,planImgs)}
+    <script>(function(){var mm=96/25.4,H=271*mm;function pagesOf(sec){var used=0,n=1;[].slice.call(sec.children).forEach(function(c){var cs=getComputedStyle(c);var h=c.getBoundingClientRect().height+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);var avoid=/avoid/.test(cs.breakInside)||/avoid/.test(cs.pageBreakInside);if(used+h<=H){used+=h;return;} if(avoid&&h<=H){n++;used=h;return;} var rem=h-(H-used);n+=Math.ceil(rem/H);used=rem%H||H;});return n;}var s=[].slice.call(document.querySelectorAll('.page')),st=[],t=0;s.forEach(function(p){st.push(t+1);t+=pagesOf(p);});s.forEach(function(p,i){var e=p.querySelector('.pg');if(e)e.textContent=st[i]+' / '+t;});})();<\/script></body></html>`;
+  if(w){w.document.open();w.document.write(html);w.document.close();}
+  else alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');
+}
+
+updateModeChip(); updateLayerCue();
+renderProgress();
 </script>
 </body>
 </html>
