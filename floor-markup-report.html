@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report · rev 4</title>
+<title>Floor Markup Report · rev 5</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -744,7 +744,7 @@ input.ro{opacity:.75;pointer-events:none}
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report <span class="rev-tag">rev 4</span>
+    Markup Report <span class="rev-tag">rev 5</span>
   </div>
   <div class="hd-fields">
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
@@ -758,7 +758,7 @@ input.ro{opacity:.75;pointer-events:none}
         <button class="hbtn" type="button" title="ไฟล์" onclick="toggleMenu('fileMenu',this)" aria-haspopup="true">📁<span class="t"> ไฟล์</span> ▾</button>
         <div class="hmenu" id="fileMenu" role="menu" hidden>
           <button type="button" onclick="closeMenus();saveProject()">💾 เซฟเป็นไฟล์</button>
-          <label for="loadIn" onclick="closeMenus()">📂 เปิดโครงการ</label>
+          <button type="button" data-pick="loadIn" onclick="pickFile('loadIn')">📂 เปิดโครงการ</button>
           <button type="button" onclick="closeMenus();choosePdf()">📄 ใส่แบบ PDF…</button>
           <button type="button" onclick="closeMenus();openScan()">🔍 สแกนแบบ / BOQ</button>
         </div>
@@ -787,8 +787,8 @@ input.ro{opacity:.75;pointer-events:none}
 </header>
 <div class="hmenu pdf-choice" id="pdfMenu" role="menu" hidden>
   <div class="hm-t">แบบที่เปิดอยู่มี <b id="pdfMenuN">0</b> แผ่น — จะทำอะไรกับไฟล์ใหม่</div>
-  <label for="addSheetIn" onclick="closeMenus()">➕ เพิ่มแผ่นต่อท้าย<small>markup เดิมอยู่ที่เดิม</small></label>
-  <label for="pdfIn" onclick="closeMenus()">🔄 แทนที่แบบทั้งชุด<small>ใช้เมื่อได้แบบชุดใหม่ที่หน้าเรียงเหมือนเดิม</small></label>
+  <button type="button" data-pick="addSheetIn" onclick="pickFile('addSheetIn')">➕ เพิ่มแผ่นต่อท้าย<small>กรอบที่วาดไว้อยู่ที่เดิม</small></button>
+  <button type="button" data-pick="pdfIn" onclick="pickFile('pdfIn')">🔄 แทนที่แบบทั้งชุด<small>ใช้เมื่อได้แบบชุดใหม่ที่หน้าเรียงเหมือนเดิม</small></button>
   <button type="button" onclick="closeMenus()">ยกเลิก</button>
 </div>
 
@@ -845,7 +845,7 @@ input.ro{opacity:.75;pointer-events:none}
       <div class="ph" id="ph">
         <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
         <p>เริ่มงานด้วยแบบ PDF หรือเปิดโครงการที่เซฟไว้</p>
-        <div class="ph-btns"><label class="ph-btn pri" for="pdfIn">📄 เลือกไฟล์แบบ PDF</label><label class="ph-btn" for="loadIn">📂 เปิดโครงการ</label></div>
+        <div class="ph-btns"><button type="button" class="ph-btn pri" data-pick="pdfIn" onclick="pickFile('pdfIn')">📄 เลือกไฟล์แบบ PDF</button><button type="button" class="ph-btn" data-pick="loadIn" onclick="pickFile('loadIn')">📂 เปิดโครงการ</button></div>
       </div>
       <div class="layer-cue" id="layerCue" hidden><span class="lc-dot"></span><span class="lc-t"></span>
         <select id="inputModeSel" class="lc-mode" aria-label="โหมดอุปกรณ์" onchange="setInputPref(this.value)" onpointerdown="event.stopPropagation()">
@@ -1827,7 +1827,9 @@ function beginPinch(){
   pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1, z0:zoom, ux:(mx-camX)/pxPerUnit(), uy:(my-camY)/pxPerUnit()};
   stageEl().classList.add('no-anim');
 }
+const onCanvasUI=e=>!!(e.target&&e.target.closest&&e.target.closest('#ph,.layer-cue'));
 cwrapEl.addEventListener('pointerdown',e=>{
+  if(onCanvasUI(e))return; // ปุ่มกลางจอ / ป้ายมุมจอ — ปล่อยให้ปุ่มทำงานเอง
   const now=Date.now();
   activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType,t0:now,palm:false});
   if(e.pointerType==='pen'){
@@ -1988,7 +1990,7 @@ function beginTouchPinch(t){
   stageEl().classList.add('no-anim');
 }
 cwrapEl.addEventListener('touchstart',e=>{
-  if(e.touches.length<2||penDown)return;
+  if(onCanvasUI(e)||e.touches.length<2||penDown)return;
   e.preventDefault();
   if(!pinch||pinch.src!=='touch')cancelPrimaryDraw();
   tapStart=null; lastTap=null;
@@ -6399,7 +6401,7 @@ renderList();
 updateSideTitle();
 
 // ════════════════ rev 1 ════════════════
-const APP_REV='rev 4';
+const APP_REV='rev 5';
 
 // ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
 const ErrTrap=(()=>{
@@ -6628,8 +6630,14 @@ function toggleMenu(id,btn){ const m=document.getElementById(id); const open=m.h
 document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.menu-wrap')&&!e.target.closest('.hmenu'))closeMenus(); },true);
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeMenus(); });
 // ใส่แบบ PDF: ยังไม่มีแบบ → เลือกไฟล์เลย · มีแบบแล้ว → ถามว่าเพิ่มต่อท้ายหรือแทนที่
+function pickFile(id){ // เปิดตัวเลือกไฟล์ในจังหวะที่ผู้ใช้กด (เบราว์เซอร์บนแท็บเล็ตยอมเฉพาะจังหวะนี้) แล้วค่อยปิดเมนู
+  const el=document.getElementById(id); if(!el)return;
+  try{el.value='';}catch(_){}
+  el.click();
+  setTimeout(closeMenus,0);
+}
 function choosePdf(){
-  if(!pdfDoc){ document.getElementById('pdfIn').click(); return; }
+  if(!pdfDoc){ pickFile('pdfIn'); return; }
   document.getElementById('pdfMenuN').textContent=pdfDoc.numPages;
   document.getElementById('pdfMenu').hidden=false;
 }
