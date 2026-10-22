@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report · rev 5</title>
+<title>Floor Markup Report · rev 6</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -715,6 +715,12 @@ input.ro{opacity:.75;pointer-events:none}
 .po-it,.po-it-head{grid-template-columns:26px 1fr 84px 84px 84px 36px!important}
 #meetProgTbl .m-tbl th:not(:first-child){text-align:right}
 .set-row{display:flex;gap:6px;padding:0 6px}.set-row .set-fld{flex:1;padding:4px 5px}
+#printFallback{position:fixed;inset:0;z-index:10060;background:rgba(8,10,15,.85);display:none;flex-direction:column}
+#printFallback .pf-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px max(12px,env(safe-area-inset-left,0px));background:var(--bg2);border-bottom:1px solid var(--border);color:var(--text);font-family:'Sarabun';font-size:13px}
+#printFallback .pf-note{color:var(--text2);flex:1;min-width:160px}
+#printFallback button,#printFallback a{font-family:'Sarabun';font-size:13.5px;border-radius:7px;padding:7px 12px;cursor:pointer;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text);text-decoration:none}
+#printFallback button.pri{background:var(--accent);border-color:var(--accent);color:#111;font-weight:700}
+#printFallback iframe{flex:1;width:100%;border:0;background:#9aa1a9}
 </style>
 </head>
 <body>
@@ -744,7 +750,7 @@ input.ro{opacity:.75;pointer-events:none}
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report <span class="rev-tag">rev 5</span>
+    Markup Report <span class="rev-tag">rev 6</span>
   </div>
   <div class="hd-fields">
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
@@ -1405,7 +1411,7 @@ async function getPageImage(pg,neededScale){
   if(s>maxS)s=maxS;
   const areaS=Math.sqrt(MAX_PX/(base.width*base.height)); // เพดานพื้นที่รวม สำคัญกว่าเพดานด้านสำหรับแบบแนวนอน
   if(s>areaS)s=areaS;
-  if(cached && cached.scale>=s*0.999) return cached; // ชนเพดานแล้ว ของเดิมดีพอ
+  if(cached && cached.scale>=s*0.999){ cached.maxed=true; return cached; } // ชนเพดานแล้ว ของเดิมดีพอ
   // ลองเรนเดอร์ แล้วถ้าไม่ไหวค่อยลดขนาดลงเรื่อยๆ (iOS เวลาหน่วยความจำไม่พอมักคืน canvas ว่างเงียบๆ ไม่โยน error)
   let bmp=null, used=s, lastErr=null, fails=0, blankTries=0;
   while(!bmp && fails<4 && used>=0.15){
@@ -1433,7 +1439,7 @@ async function getPageImage(pg,neededScale){
   }
   if(!bmp)throw lastErr||new Error('เรนเดอร์หน้านี้ไม่สำเร็จ (หน่วยความจำไม่พอ)');
   const old=pageImg.get(pg); if(old&&old.bmp&&old.bmp.close)old.bmp.close();
-  const rec={bmp,scale:used};   // สเกลที่ทำได้จริง (อาจต่ำกว่าที่ขอ ถ้าเครื่องไม่ไหว)
+  const rec={bmp,scale:used,maxed:used<neededScale*0.999};   // สเกลที่ทำได้จริง (อาจต่ำกว่าที่ขอ ถ้าเครื่องไม่ไหว)
   pageImg.set(pg,rec);
   evictCache(pg);
   return rec;
@@ -1615,11 +1621,12 @@ async function renderPage(){
     drawCtx=dc.getContext('2d');
     redraw();
     // ถ้าซูมเกินความละเอียดที่เก็บไว้ ค่อยอัปเกรดเบื้องหลัง (ภาพเดิมยังโชว์อยู่ ไม่กระพริบ)
-    if(scale>rec.scale*1.02 && !upgrading){
+    if(scale>rec.scale*1.02 && !upgrading && !rec.maxed){
       upgrading=true;
-      getPageImage(pageNum,Math.max(scale,currentFitScale*HIRES))
-        .then(()=>{upgrading=false;renderPage();})
-        .catch(()=>{upgrading=false;});
+      const before=rec.scale, pg=pageNum;
+      getPageImage(pg,Math.max(scale,currentFitScale*HIRES))
+        .then(r2=>{upgrading=false; if(r2&&r2.scale>before*1.01&&pg===pageNum)setTimeout(()=>{if(!pinch)renderPage();},30);}) // วาดใหม่เฉพาะเมื่อได้ภาพคมขึ้นจริง
+        .catch(()=>{upgrading=false; const r=pageImg.get(pg); if(r)r.maxed=true;});
     }
     renderedZoom=zoom;
     if(!camReady||lastRenderPage!==pageNum){ fitCam(); camReady=true; }
@@ -4692,8 +4699,7 @@ table.hd td{border:1px solid #e5e7eb;padding:6px 9px;color:#111827}
 <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>
 </body></html>`;
   const w=window.open('','_blank');
-  if(w){w.document.open();w.document.write(html);w.document.close();}
-  else alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');
+  showPrintResult(w,html);
 }
 
 // ── SAVE / LOAD
@@ -4945,8 +4951,7 @@ async function printDelivery(){
   const all=dmk().filter(m=>m.delivId);
   if(!all.length){alert('ยังไม่มี markup ที่ระบุรอบส่งงาน\n\nเปิดการ์ด markup → หัวข้อ 📋 ใบส่งงาน → เลือกรอบส่งงาน');return;}
   const pages=[...new Set(all.map(m=>m.page))].sort((a,b)=>a-b);
-  const w=window.open('','_blank');
-  if(!w){alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');return;}
+  const w=window.open('','_blank')||fallbackWin();
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังสร้างใบส่งงาน…</title></head><body style="font-family:sans-serif;padding:40px">กำลังสร้างใบส่งงาน…</body></html>');
   const pn=document.getElementById('projName').value||'ใบส่งงาน';
   const au=document.getElementById('authorName').value||'';
@@ -6390,7 +6395,7 @@ ${sheetSection}`}
   }else{
     outHtml=outHtml.replace('<!--PLANIMGS-M-->',planImgsHTML).replace('<!--PLANIMGS-->','');
   }
-  if(w){w.document.open();w.document.write(outHtml);w.document.close();}else{alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');}
+  showPrintResult(w,outHtml);
 }
 
 // ── INIT
@@ -6401,7 +6406,7 @@ renderList();
 updateSideTitle();
 
 // ════════════════ rev 1 ════════════════
-const APP_REV='rev 5';
+const APP_REV='rev 6';
 
 // ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
 const ErrTrap=(()=>{
@@ -6956,6 +6961,8 @@ body{font-family:'Sarabun',sans-serif;color:var(--ink);font-size:10pt;line-heigh
 .tb{position:sticky;top:0;z-index:9;display:flex;gap:10px;align-items:center;justify-content:center;background:#2b3138;color:#e8ecf0;padding:9px 12px;font-size:13px;flex-wrap:wrap}
 .tb button{font:inherit;font-weight:700;background:#f4a726;color:#111;border:0;border-radius:7px;padding:7px 16px;cursor:pointer}
 .tb span{color:#b9c1c9}
+.tb-warn{background:#fef3c7;color:#78350f;font-size:13px;padding:7px 14px;text-align:center;border-bottom:1px solid #f4d58d}
+@media print{.tb-warn{display:none}}
 .page{width:210mm;min-height:297mm;margin:14px auto;background:#fff;padding:12mm 13mm 13mm;box-shadow:0 2px 10px rgba(0,0,0,.25);position:relative;break-after:page;page-break-after:always}
 .page:last-child{break-after:auto;page-break-after:auto}
 @page{size:A4;margin:12mm 13mm 13mm}
@@ -7164,19 +7171,19 @@ function rptChart(el,PL,cut){
 
 async function printReport(mode,only){
   if(mode==='plan')return printReportLegacy(mode,only);
+  const w=openPrintWin('กำลังสร้างรายงาน...');
   const sel=Array.isArray(only)&&only.length?only.slice():null;
   const PL=sel?LAYERS.filter(l=>sel.includes(l.key)):LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
   const WM=()=>sel?wmk().filter(m=>sel.includes(m.layer)):wmk();
-  if(!WM().length){alert('ไม่มี markup ในหมวดงานที่เลือก');return;}
+  if(!WM().length){closePrintWin(w);alert('ไม่มีกรอบงานในหมวดที่เลือก');return;}
   try{collectMeetForm();}catch(_){}
   const mSel=meetings.find(x=>x.id===meetSel)||meetSorted().slice(-1)[0];
   const hasMeet=meetHasContent(mSel);
   // เตือนก่อนพิมพ์ ถ้ายังมีข้อมูลที่ทำให้ตัวเลขไม่ครบ
   const au=auditData(), probs=hasMeet?stepProblems(mSel):[];
-  if((au.count||probs.length)&&!confirm(`ก่อนพิมพ์ ยังมีเรื่องที่ควรตรวจ:\n${au.count?`• ข้อมูลไม่ครบ ${au.count} จุด (ตัวเลขอาจนับไม่ครบ)\n`:''}${probs.map(p=>'• '+p).join('\n')}\n\nตกลง = พิมพ์ต่อ · ยกเลิก = กลับไปแก้`))return;
-  // เปิดหน้าต่างทันทีตอนกด (กันเบราว์เซอร์บล็อก)
-  const w=window.open('','_blank');
-  if(w)w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังสร้างรายงาน...</title><style>body{font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#eceff3;color:#1f2933}.spin{width:40px;height:40px;border:4px solid #d5dae0;border-top-color:#5f6b7a;border-radius:50%;animation:s .8s linear infinite;margin-bottom:16px}@keyframes s{to{transform:rotate(360deg)}}#pp{color:#66717d;font-size:14px;margin-top:6px}</style></head><body><div class="spin"></div><div style="font-weight:600">กำลังเตรียมรายงาน</div><div id="pp">เริ่มต้น...</div></body></html>');
+  // เรื่องที่ควรตรวจ → แสดงเป็นแถบเตือนบนหน้ารายงาน (ไม่ใช้กล่องยืนยัน)
+  const warns=[...(au.count?[`ข้อมูลไม่ครบ ${au.count} จุด — ตัวเลขอาจนับไม่ครบ (ดูปุ่ม ⚠ ข้อมูลไม่ครบ ในแอป)`]:[]),...probs];
+  if(w&&!w._fb)w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังสร้างรายงาน...</title><style>body{font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#eceff3;color:#1f2933}.spin{width:40px;height:40px;border:4px solid #d5dae0;border-top-color:#5f6b7a;border-radius:50%;animation:s .8s linear infinite;margin-bottom:16px}@keyframes s{to{transform:rotate(360deg)}}#pp{color:#66717d;font-size:14px;margin-top:6px}</style></head><body><div class="spin"></div><div style="font-weight:600">กำลังเตรียมรายงาน</div><div id="pp">เริ่มต้น...</div></body></html>');
   const say=t=>{try{const el=w&&w.document.getElementById('pp');if(el)el.textContent=t;}catch(_){}};
   await new Promise(r=>setTimeout(r,30));
   const P=projInfo();
@@ -7254,11 +7261,10 @@ async function printReport(mode,only){
     <h2><span class="no">ข</span>ภาคผนวก ข ปฏิทินระยะเวลางาน</h2>${buildCalendarHTML(true,sel)}</section>`;
   const fileName=`${P.name}-รายงานความคืบหน้า-${cut}`.replace(/[\\/:*?"<>|]/g,'-');
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(fileName)}</title><style>${appFontCSS()}${RPT_CSS}</style></head><body>
-    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 · ตั้งค่าขอบกระดาษเป็น "ไม่มี" หรือ "ค่าเริ่มต้น" · เปิดพื้นหลังกราฟิก</span></div>
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 · ขอบกระดาษ "ค่าเริ่มต้น" · เปิดพื้นหลังกราฟิก</span></div>${warns.length?`<div class="tb-warn">⚠ ควรตรวจก่อนส่ง: ${warns.map(esc).join(' · ')}</div>`:''}
     ${page1}${page2}${page3}${page4}${page5}
     <script>(function(){var mm=96/25.4,H=271*mm;function pagesOf(sec){var used=0,n=1;[].slice.call(sec.children).forEach(function(c){var cs=getComputedStyle(c);var h=c.getBoundingClientRect().height+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);var avoid=/avoid/.test(cs.breakInside)||/avoid/.test(cs.pageBreakInside);if(used+h<=H){used+=h;return;} if(avoid&&h<=H){n++;used=h;return;} var rem=h-(H-used);n+=Math.ceil(rem/H);used=rem%H||H;});return n;}var s=[].slice.call(document.querySelectorAll('.page')),st=[],t=0;s.forEach(function(p){st.push(t+1);t+=pagesOf(p);});s.forEach(function(p,i){var e=p.querySelector('.pg');if(e)e.textContent=st[i]+' / '+t;});})();<\/script></body></html>`;
-  if(w){w.document.open();w.document.write(html);w.document.close();}
-  else alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');
+  showPrintResult(w,html);
 }
 function addDays(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
 
@@ -7266,21 +7272,50 @@ async function printMeeting(){ // พิมพ์เฉพาะบันทึ�
   const m=collectMeetForm(); if(!m)return;
   if(!meetHasContent(m)){alert('ยังไม่ได้กรอกเนื้อหาการประชุม');return;}
   const probs=stepProblems(m);
-  if(probs.length&&!confirm('บันทึกประชุมยังไม่ครบ:\n'+probs.map(p=>'• '+p).join('\n')+'\n\nตกลง = พิมพ์ต่อ · ยกเลิก = กลับไปแก้'))return;
-  const w=window.open('','_blank');
-  if(w)w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังเตรียม...</title></head><body style="font-family:sans-serif;padding:40px;color:#555">กำลังเตรียมบันทึกประชุม…</body></html>');
+  const w=openPrintWin('กำลังเตรียมบันทึกประชุม...');
+  if(w&&!w._fb)w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>กำลังเตรียม...</title></head><body style="font-family:sans-serif;padding:40px;color:#555">กำลังเตรียมบันทึกประชุม…</body></html>');
   const P=projInfo();
   const planImgs=await planImagesHTML(m.planId);
   const fileName=`${P.name}-บันทึกประชุม-ครั้งที่${m.no||''}${m.month?'-'+m.month:''}`.replace(/[\\/:*?"<>|]/g,'-');
   const extraCSS='';
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${prEsc(fileName)}</title><style>${appFontCSS()}${RPT_CSS}${extraCSS}</style></head><body>
-    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>เก็บเข้าระบบ EPR-Mango รูปแบบ PDF</span></div>
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>เก็บเข้าระบบ EPR-Mango รูปแบบ PDF</span></div>${probs.length?`<div class="tb-warn">⚠ ยังไม่ครบ: ${probs.map(prEsc).join(' · ')}</div>`:''}
     ${rptMeetingPage(P,m,0,planImgs)}
     <script>(function(){var mm=96/25.4,H=271*mm;function pagesOf(sec){var used=0,n=1;[].slice.call(sec.children).forEach(function(c){var cs=getComputedStyle(c);var h=c.getBoundingClientRect().height+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);var avoid=/avoid/.test(cs.breakInside)||/avoid/.test(cs.pageBreakInside);if(used+h<=H){used+=h;return;} if(avoid&&h<=H){n++;used=h;return;} var rem=h-(H-used);n+=Math.ceil(rem/H);used=rem%H||H;});return n;}var s=[].slice.call(document.querySelectorAll('.page')),st=[],t=0;s.forEach(function(p){st.push(t+1);t+=pagesOf(p);});s.forEach(function(p,i){var e=p.querySelector('.pg');if(e)e.textContent=st[i]+' / '+t;});})();<\/script></body></html>`;
-  if(w){w.document.open();w.document.write(html);w.document.close();}
-  else alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต popup');
+  showPrintResult(w,html);
 }
 
+
+// ════════════════ rev 6: หน้าต่างพิมพ์ที่เปิดได้แน่นอน ════════════════
+// ไอแพด/แท็บเล็ตบล็อกหน้าต่างใหม่ที่ไม่ได้เปิดในจังหวะกดปุ่มพอดี → ถ้าเปิดไม่ได้ แสดงตัวอย่างก่อนพิมพ์ในแอปแทน
+function fallbackWin(){ const buf=[]; return {_fb:true,closed:false,
+  document:{open(){buf.length=0;},write(x){buf.push(x);},close(){showPrintFallback(buf.join(''));},getElementById(){return null;}},
+  focus(){},print(){},close(){}}; }
+function openPrintWin(msg){
+  let w=null; try{ w=window.open('','_blank'); }catch(_){}
+  if(!w)return fallbackWin();
+  try{ w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+msg+'</title></head><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:90vh;color:#555">'+msg+'</body></html>'); }catch(_){}
+  return w;
+}
+function closePrintWin(w){ try{ if(w&&!w._fb)w.close(); }catch(_){} }
+function showPrintResult(w,html){
+  if(w&&!w._fb&&!w.closed){ try{ w.document.open(); w.document.write(html); w.document.close(); return; }catch(_){} }
+  showPrintFallback(html);
+}
+function showPrintFallback(html){
+  let ov=document.getElementById('printFallback');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='printFallback';
+    ov.innerHTML=`<div class="pf-bar"><b>ตัวอย่างก่อนพิมพ์</b><span class="pf-note">เบราว์เซอร์ไม่ยอมเปิดหน้าต่างใหม่ จึงแสดงในแอปแทน</span>
+      <button type="button" id="pfPrint" class="pri">🖨 พิมพ์ / บันทึกเป็น PDF</button><a id="pfOpen" target="_blank" rel="noopener">เปิดในแท็บใหม่</a><button type="button" id="pfClose">✕ ปิด</button></div><iframe id="pfFrame" title="ตัวอย่างก่อนพิมพ์"></iframe>`;
+    document.body.appendChild(ov);
+    ov.querySelector('#pfClose').onclick=()=>{ ov.style.display='none'; ov.querySelector('#pfFrame').srcdoc=''; };
+    ov.querySelector('#pfPrint').onclick=()=>{ const f=ov.querySelector('#pfFrame'); try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ alert('พิมพ์จากหน้านี้ไม่ได้ — กด "เปิดในแท็บใหม่" แล้วพิมพ์จากแท็บนั้น'); } };
+  }
+  ov.querySelector('#pfFrame').srcdoc=html;
+  const a=ov.querySelector('#pfOpen'); try{ if(a.href)URL.revokeObjectURL(a.href); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); }catch(_){}
+  ov.style.display='flex';
+}
 updateModeChip(); updateLayerCue();
 renderProgress();
 </script>
