@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report · rev 6</title>
+<title>Floor Markup Report · rev 9</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -139,6 +139,8 @@ body.side-hidden .cwrap{height:calc(100vh - 54px) !important;height:calc(100dvh 
   color:var(--accent);padding:14px 8px;cursor:pointer;font-size:15px;box-shadow:-4px 0 14px rgba(0,0,0,.4)}
 .side-reopen:hover{background:var(--bg);border-color:var(--accent)}
 body.side-hidden .side-reopen{display:block}
+.side-x{margin-left:8px;flex-shrink:0;width:36px;height:36px;border:1px solid var(--border2);border-radius:9px;background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.side-x:hover{border-color:var(--accent);color:var(--accent)}
 .canvas-side{display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0;min-height:0;position:relative}
 .ctools{background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 14px;
   display:flex;gap:7px;align-items:center;flex-wrap:wrap}
@@ -750,7 +752,7 @@ input.ro{opacity:.75;pointer-events:none}
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report <span class="rev-tag">rev 6</span>
+    Markup Report <span class="rev-tag">rev 9</span>
   </div>
   <div class="hd-fields">
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
@@ -759,6 +761,9 @@ input.ro{opacity:.75;pointer-events:none}
   </div>
   <div class="hd-actions">
     <span class="save-st" id="saveSt" title="สถานะบันทึกลงเครื่องอัตโนมัติ"><i></i><span>ยังไม่มีงาน</span></span>
+    <span class="hgrp">
+      <button class="hbtn dw-go" type="button" onclick="dwEnter()" title="โหมดหน้างาน: แบบเต็มจอ มาร์คงานแต่ละวัน คิด % ของขอบเขตให้เอง">📍<span class="t"> งานรายวัน</span></button>
+    </span>
     <span class="hgrp">
       <span class="menu-wrap">
         <button class="hbtn" type="button" title="ไฟล์" onclick="toggleMenu('fileMenu',this)" aria-haspopup="true">📁<span class="t"> ไฟล์</span> ▾</button>
@@ -880,6 +885,7 @@ input.ro{opacity:.75;pointer-events:none}
     <div class="side-head">
       <h2 id="sideTitle">รายการ Markup</h2>
       <span class="mk-no" id="mkCount">0 รายการ</span>
+      <button type="button" class="side-x" onclick="toggleSide()" aria-label="ซ่อนแถบนี้" title="ซ่อนแถบนี้ (เปิดกลับที่แท็บ ⏴ ขอบขวาจอ)">✕</button>
     </div>
 
     <!-- PROGRESS SUMMARY -->
@@ -1841,7 +1847,7 @@ cwrapEl.addEventListener('pointerdown',e=>{
   activePtrs.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType,t0:now,palm:false});
   if(e.pointerType==='pen'){
     setLastKind('pen');
-    penDown=true;
+    penDown=true; dwPenSeen=true;
     // ปากกามีสิทธิ์เหนือกว่าเสมอ: ฝ่ามือ/นิ้วที่แตะค้างและยึดการวาดอยู่ → ยกเลิก
     if(primaryPtr!=null){const prev=activePtrs.get(primaryPtr); if(prev&&prev.type==='touch')cancelPrimaryDraw();}
     if(pinch){pinch=null;settleCam();}
@@ -1867,7 +1873,7 @@ cwrapEl.addEventListener('pointerdown',e=>{
   e.preventDefault();
   tapStart={x:e.clientX,y:e.clientY,t:Date.now(),id:e.pointerId};
   // เมาส์: ปุ่มกลาง หรือเว้นวรรค+ลาก = เลื่อนแบบ
-  if(tool==='pan'||(e.pointerType==='mouse'&&(e.button===1||spaceDown))){ beginPan(e); return; }
+  if(tool==='pan'||(e.pointerType==='mouse'&&(e.button===1||spaceDown))||(e.pointerType==='touch'&&dwFingerPan())){ beginPan(e); return; }
   if(e.pointerType==='mouse'&&e.button!==0){ primaryPtr=null; return; }
   start(e);
 });
@@ -1957,6 +1963,7 @@ function ptrUp(e){
   tapStart=null;
   if(panning){
     cwrapEl.classList.remove('grabbing');
+    if(tapped&&dwOn&&tool!=='pan'){panning=null;const p=pos(e);if(inCanvas(p))dwTapAt(p);return;} // งานรายวัน: นิ้วแตะห้อง
     // โหมดเลื่อน: แตะสองครั้ง = ซูมเข้า 2 เท่าที่จุดนั้น (ถ้าซูมลึกแล้ว → กลับพอดีจอ)
     if(tapped&&tool==='pan'){
       const now=Date.now(), q=wrapPt(e);
@@ -1981,6 +1988,7 @@ function ptrUp(e){
       lastTap={x:e.clientX,y:e.clientY,t:now};
     }
     const p=pos(e);
+    if(dwOn&&inCanvas(p)&&dwTool!=='rect'){drawing=false;dwTapAt(p);return;}
     if(inCanvas(p)&&(calibrating||tool==='poly'||tool==='angle')){polyClick(e);return;}
   }
   if(drawing||(measDraft&&measDraft.type==='dist'))end(e);
@@ -6406,7 +6414,7 @@ renderList();
 updateSideTitle();
 
 // ════════════════ rev 1 ════════════════
-const APP_REV='rev 6';
+const APP_REV='rev 9';
 
 // ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
 const ErrTrap=(()=>{
@@ -7318,6 +7326,849 @@ function showPrintFallback(html){
 }
 updateModeChip(); updateLayerCue();
 renderProgress();
+</script>
+<!-- ══════════════ งานรายวัน (โหมดหน้างาน) ══════════════ -->
+<style>
+#dwUI{display:none}
+body.dw-on #dwUI{display:block}
+body.dw-on .hd,body.dw-on .ctools,body.dw-on .layer-bar,body.dw-on .warn-bar,body.dw-on .multi-hint,
+body.dw-on .side,body.dw-on .side-reopen,body.dw-on .insight-wrap,body.dw-on .layer-cue,body.dw-on #restoreBar{display:none!important}
+body.dw-on .main{display:block!important;height:100vh!important;height:100dvh!important}
+body.dw-on .canvas-side{height:100%;border:0}
+body.dw-on .cwrap{height:100vh!important;height:100dvh!important;background:#dcd8d0}
+
+#dwUI,#dwUI button,#dwUI select,#dwUI input{font-family:'Sarabun',sans-serif}
+#dwUI svg{display:block}
+.dw-top{position:fixed;left:0;right:0;top:0;z-index:900;height:56px;display:flex;align-items:center;gap:8px;
+  padding:0 10px;background:rgba(255,255,255,.97);color:#1b1e22;border-bottom:1px solid #d6d1c8}
+.dw-ib{width:44px;height:44px;flex-shrink:0;border:0;border-radius:12px;background:transparent;color:#1b1e22;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dw-ib:active{background:#ece8e1}
+.dw-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.dw-title b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dw-title span{font-size:12px;color:#5b6168;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dw-chip{height:40px;padding:0 10px;flex-shrink:0;border:1px solid #d6d1c8;border-radius:10px;background:#fff;color:#1b1e22;font-size:14px;font-weight:600;cursor:pointer}
+.dw-sel{height:40px;max-width:150px;flex-shrink:1;min-width:0;padding:0 6px;border:1px solid #d6d1c8;border-radius:10px;background:#fff;color:#1b1e22;font-size:14px;font-weight:600}
+.dw-pri{height:40px;padding:0 12px;flex-shrink:0;border:0;border-radius:10px;background:#1f4e79;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.dw-hide-in{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;right:120px;top:40px}
+.dw-menu{position:fixed;right:10px;top:62px;z-index:905;width:260px;background:#fff;color:#1b1e22;border-radius:12px;box-shadow:0 8px 24px rgba(27,30,34,.22);padding:6px;display:none;flex-direction:column}
+.dw-menu.open{display:flex}
+.dw-menu button{min-height:48px;padding:6px 12px;border:0;border-radius:8px;background:transparent;text-align:left;font-size:15px;color:#1b1e22;cursor:pointer;display:flex;flex-direction:column}
+.dw-menu button small{font-size:12px;color:#5b6168}
+.dw-menu button:active{background:#f2efea}
+.dw-menu hr{border:0;border-top:1px solid #ece8e1;margin:4px 0}
+.dw-menu label{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;font-size:14px}
+.dw-menu label select{height:38px;border:1px solid #d6d1c8;border-radius:8px;padding:0 6px;font-size:14px}
+.dw-pal{position:fixed;right:10px;top:68px;z-index:900;display:flex;flex-direction:column;gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(27,30,34,.16)}
+.dw-pal button{width:50px;height:50px;border:0;border-radius:10px;background:transparent;color:#1b1e22;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:10px;cursor:pointer}
+.dw-pal button.on{background:#1f4e79;color:#fff}
+.dw-pal button:active{background:#ece8e1}
+.dw-pal button.on:active{background:#163a5a}
+.dw-pal hr{border:0;border-top:1px solid #e2ddd5;margin:2px 4px}
+.dw-sum{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom));z-index:900;width:min(560px,calc(100% - 24px));
+  border:0;border-radius:18px;background:rgba(255,255,255,.97);color:#1b1e22;box-shadow:0 6px 20px rgba(27,30,34,.2);padding:6px 16px 9px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.dw-sum .dw-grab{align-self:center;width:36px;height:4px;border-radius:2px;background:#cfc9bf}
+.dw-sum .dw-nums{display:flex;justify-content:space-between;align-items:flex-end}
+.dw-sum .dw-nums span{display:flex;flex-direction:column;font-size:12px;color:#5b6168}
+.dw-sum .dw-nums b{font-size:21px;line-height:1.15;color:#1b1e22}
+.dw-sum .dw-nums span:nth-child(2){align-items:center}
+.dw-sum .dw-nums span:nth-child(3){align-items:flex-end}
+.dw-sum .dw-line{font-size:12px;color:#5b6168;text-align:center}
+.dw-scopebar{position:fixed;left:10px;right:72px;top:64px;z-index:899;display:none;background:#163a5a;color:#fff;border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.45}
+.dw-scopebar.open{display:block}
+.dw-scopebar b{font-size:15px}
+.dw-scopebar button{margin:6px 6px 0 0;height:34px;padding:0 10px;border:1px solid rgba(255,255,255,.5);border-radius:8px;background:transparent;color:#fff;font-size:13px;cursor:pointer}
+.dw-back{position:fixed;inset:0;z-index:910;background:rgba(27,30,34,.35);display:none}
+.dw-back.open{display:block}
+.dw-sheet{position:fixed;left:0;right:0;bottom:0;z-index:911;max-height:72vh;overflow:auto;background:#fff;color:#1b1e22;border-radius:22px 22px 0 0;
+  padding:8px 18px max(20px,env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(27,30,34,.18);display:none;flex-direction:column;gap:10px;max-width:640px;margin:0 auto}
+.dw-sheet.open{display:flex}
+.dw-sheet .dw-grab{align-self:center;width:40px;height:5px;border-radius:3px;background:#cfc9bf;margin:2px 0 4px}
+.dw-sheet h3{font-size:17px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dw-sheet h3 small{font-size:13px;font-weight:400;color:#5b6168}
+.dw-row{display:flex;align-items:center;gap:10px;min-height:46px;border-bottom:1px solid #ece8e1;font-size:15px}
+.dw-row .dw-n{width:24px;height:24px;flex-shrink:0;border-radius:12px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.dw-row .dw-t{flex:1;min-width:0}
+.dw-row .dw-a{font-weight:700;white-space:nowrap}
+.dw-row button{width:40px;height:40px;border:0;border-radius:10px;background:transparent;color:#5b6168;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dw-row button:active{background:#f2efea}
+.dw-tot{display:flex;justify-content:space-between;font-weight:700;font-size:15px}
+.dw-note{font-size:13px;color:#5b6168}
+.dw-empty{padding:14px 0;color:#5b6168;font-size:14px;text-align:center}
+.dw-btn2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dw-btn2 button,.dw-big{height:52px;border:0;border-radius:14px;background:#1f4e79;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.dw-btn2 button.sec{background:#fff;color:#1f4e79;border:1px solid #1f4e79}
+.dw-ph{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.dw-ph figure{position:relative;margin:0}
+.dw-ph img{width:100%;height:96px;object-fit:cover;border-radius:10px;display:block;background:#ece8e1}
+.dw-ph figcaption{font-size:12px;color:#5b6168}
+.dw-ph button{position:absolute;right:4px;top:4px;width:30px;height:30px;border:0;border-radius:15px;background:rgba(27,30,34,.7);color:#fff;font-size:15px;cursor:pointer}
+.dw-ask{position:fixed;inset:0;z-index:920;background:rgba(27,30,34,.4);display:none;align-items:center;justify-content:center;padding:16px}
+.dw-ask.open{display:flex}
+.dw-ask>div{width:min(400px,100%);background:#fff;color:#1b1e22;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.dw-ask h4{font-size:17px}
+.dw-ask p{font-size:14px;color:#3a3f45}
+.dw-ask input{height:52px;border:2px solid #1f4e79;border-radius:10px;padding:0 12px;font-size:22px;font-weight:700;color:#1b1e22;width:100%}
+.dw-ask .dw-q{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.dw-ask .dw-q button{height:42px;border:1px solid #d6d1c8;border-radius:10px;background:#fff;font-size:14px;cursor:pointer;color:#1b1e22}
+.dw-toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);z-index:930;max-width:calc(100% - 32px);background:rgba(27,30,34,.92);color:#fff;border-radius:12px;padding:10px 16px;font-size:14px;display:none;text-align:center}
+.dw-toast.open{display:block}
+.hbtn.dw-go{background:#ea580c;border-color:#ea580c;color:#fff}
+@media (max-width:420px){.dw-pri{padding:0 9px;font-size:14px}.dw-chip{padding:0 7px}.dw-sel{max-width:108px}}
+</style>
+
+<div id="dwUI">
+  <div class="dw-top">
+    <button class="dw-ib" onclick="dwExit()" aria-label="ออกจากโหมดงานรายวัน" title="ออก">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="dw-title"><b id="dwPgLbl">-</b><span id="dwSub">งานรายวัน</span></div>
+    <button class="dw-chip" id="dwDateBtn" onclick="dwPickDate()" title="เปลี่ยนวันที่บันทึก">-</button>
+    <input type="date" id="dwDateIn" class="dw-hide-in" onchange="dwSetDate(this.value)" aria-label="วันที่บันทึก">
+    <select id="dwCat" class="dw-sel" onchange="dwSetCat(this.value)" aria-label="หมวดงาน"></select>
+    <button class="dw-pri" onclick="dwToggleMenu()" aria-haspopup="menu">รายงาน</button>
+  </div>
+  <div class="dw-menu" id="dwMenu" role="menu">
+    <button role="menuitem" onclick="dwToggleMenu(false);dwPrint('day')">รายงานรายวัน<small id="dwMenuDay"></small></button>
+    <button role="menuitem" onclick="dwToggleMenu(false);dwPrint('week')">รายงานรายสัปดาห์<small id="dwMenuWeek"></small></button>
+    <hr>
+    <label>ตัดยอดสัปดาห์ทุกวัน
+      <select id="dwCut" onchange="dwSetCut(this.value)">
+        <option value="1">จันทร์</option><option value="2">อังคาร</option><option value="3">พุธ</option>
+        <option value="4">พฤหัสบดี</option><option value="5">ศุกร์</option><option value="6">เสาร์</option><option value="0">อาทิตย์</option>
+      </select>
+    </label>
+  </div>
+  <div class="dw-scopebar" id="dwScopeBar"></div>
+
+  <div class="dw-pal" role="toolbar" aria-label="เครื่องมือ">
+    <button data-t="room" onclick="dwSetTool('room')" aria-label="แตะห้อง ทั้งห้อง" title="แตะเลขห้อง = ทำครบทั้งห้อง">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10a2 2 0 0 1 4 0v4a6 6 0 0 1-12 0v-2a2 2 0 0 1 4 0"/></svg>แตะห้อง</button>
+    <button data-t="rect" onclick="dwSetTool('rect')" aria-label="ลากกรอบ บางส่วน" title="ลากกรอบ = ทำได้บางส่วน">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="6" width="16" height="12" stroke-dasharray="3 2"/></svg>ลากกรอบ</button>
+    <button data-t="scope" onclick="dwSetTool('scope')" aria-label="ตั้งขอบเขต 100%" title="ตั้งขอบเขต 100%">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 9h5V4M15 20v-5h5"/></svg>ขอบเขต</button>
+    <hr>
+    <button onclick="doUndo()" aria-label="ย้อนการวาด" title="ย้อน">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>ย้อน</button>
+    <button onclick="dwOpenPhotos()" aria-label="รูปหน้างาน" title="รูปหน้างานวันนี้">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>รูป</button>
+    <hr>
+    <button onclick="dwPage(-1)" aria-label="แผ่นก่อนหน้า" title="แผ่นก่อนหน้า">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>แผ่นก่อน</button>
+    <button onclick="dwPage(1)" aria-label="แผ่นถัดไป" title="แผ่นถัดไป">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>แผ่นถัดไป</button>
+    <button id="dwFingerBtn" onclick="dwToggleFinger()" aria-label="นิ้ววาดได้" title="ปกติ: ปากกาวาด นิ้วเลื่อน/ซูม · กดเพื่อให้นิ้ววาดได้">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l3-1 10-10-2-2L6 16z"/><path d="M14 6l2 2"/></svg><span id="dwFingerLbl">นิ้วเลื่อน</span></button>
+  </div>
+
+  <button class="dw-sum" id="dwSum" onclick="dwOpenList()" aria-label="สรุปงาน แตะเพื่อดูรายการจุด"></button>
+
+  <div class="dw-back" id="dwBack" onclick="dwCloseSheets()"></div>
+  <div class="dw-sheet" id="dwList" role="dialog" aria-label="จุดที่มาร์ควันนี้"></div>
+  <div class="dw-sheet" id="dwPhotos" role="dialog" aria-label="รูปหน้างาน"></div>
+
+  <div class="dw-ask" id="dwAsk" role="dialog" aria-modal="true">
+    <div>
+      <h4 id="dwAskT"></h4>
+      <p id="dwAskM"></p>
+      <label for="dwAskIn" class="dw-note">พื้นที่ (ตร.ม.)</label>
+      <input id="dwAskIn" type="number" inputmode="decimal" step="any">
+      <div class="dw-q" id="dwAskQ"></div>
+      <div class="dw-btn2">
+        <button class="sec" onclick="dwAskDone(false)">ยกเลิก</button>
+        <button onclick="dwAskDone(true)">บันทึก</button>
+      </div>
+    </div>
+  </div>
+  <div class="dw-toast" id="dwToast" role="status"></div>
+  <input type="file" id="dwCamIn" accept="image/*" capture="environment" onchange="dwAddPhotos(this)">
+  <input type="file" id="dwGalIn" accept="image/*" multiple onchange="dwAddPhotos(this)">
+</div>
+
+<script>
+// ══════════════ งานรายวัน ══════════════
+// โฟร์แมนมาร์คงานแต่ละวันบนแบบ (แตะเลขห้อง = ทั้งห้อง / ลากกรอบ = บางส่วน)
+// งานแต่ละจุดเก็บเป็น markup ปกติของหมวดงานนั้น (วันเริ่ม=วันเสร็จ=วันที่บันทึก) → ยอดเข้าระบบเดิมทุกที่
+// ขอบเขต 100% = ห้องที่อ่านได้จากแบบ (ตัดห้องที่ไม่ทำออกได้) + ส่วนที่วาดเพิ่มเอง แยกตามหมวดงาน+แผ่น
+let dwOn=false, dwPenSeen=false, dwFinger=false;
+let dwTool='room';
+let dwDate=dwISO(new Date());
+let dw={cut:0, scopes:{}, rooms:{}, photos:[]};
+const dwLoading={};
+const DW_TODAY='#ea580c';
+const DW_PAL=['#0d9488','#7c3aed','#2563eb','#db2777','#65a30d','#0891b2','#a16207','#9333ea'];
+const DW_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const DW_D=['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+const DW_DL=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+function dwDirty(){try{Autosave.mark();}catch(e){}}
+function dwISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dwD(iso){return new Date(iso+'T00:00:00');}
+function dwAddDays(iso,n){const d=dwD(iso);d.setDate(d.getDate()+n);return dwISO(d);}
+function dwTh(iso,y){if(!iso)return'';const d=dwD(iso);if(isNaN(d))return'';return d.getDate()+' '+DW_M[d.getMonth()]+(y?' '+(d.getFullYear()+543):'');}
+function dwThLong(iso){const d=dwD(iso);return DW_DL[d.getDay()]+' '+dwTh(iso,true);}
+function dwWeek(iso){const d=dwD(iso);const off=((+dw.cut)-d.getDay()+7)%7;const end=dwAddDays(iso,off);return{start:dwAddDays(end,-6),end};}
+function dwP(v){v=+v||0;return (Math.round(v*10)/10).toFixed(1)+'%';}
+function dwPct(v,t){return t>0?v/t*100:0;}
+function dwEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── ห้องจากแบบ (เลขห้อง + พื้นที่) ต่อแผ่น — อ่านใหม่ได้เสมอจากแบบ จึงไม่เก็บลงไฟล์
+async function dwEnsureRooms(pg){
+  if(dw.rooms[pg])return dw.rooms[pg];
+  if(!pdfDoc||pg<1||pg>pdfDoc.numPages)return [];
+  try{
+    const page=await pdfDoc.getPage(pg);
+    const vp=page.getViewport({scale:1});
+    const tc=await page.getTextContent();
+    const items=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str.trim(),x:i.transform[4],y:i.transform[5],
+      w:i.width||0,h:Math.abs(i.transform[3])||Math.abs(i.height)||0}));
+    const rs=scanRoomAreas(items);
+    // ป้ายในแบบอ้างจากมุมซ้ายล่างของตัวหนังสือ → เลื่อนจุดกลางไปไว้กลางเลขห้อง (ค่อนลงมาทางป้ายพื้นที่)
+    const pts=rs.map(r=>{
+      const it=items.find(i=>i.s===r.code&&i.x===r.x&&i.y===r.y)||{w:0,h:0};
+      const v=vp.convertToViewportPoint(r.x+it.w/2,r.y-it.h*0.35);
+      return{code:r.code,name:r.name||'',area:r.area,vx:v[0],vy:v[1]};});
+    pts.forEach(p=>{
+      let nn=1e9;
+      pts.forEach(q=>{if(q!==p){const d=Math.hypot(q.vx-p.vx,q.vy-p.vy);if(d>1&&d<nn)nn=d;}});
+      p.h=Math.max(7,Math.min(70,(nn<1e8?nn:50)*0.42));
+    });
+    const seen={};
+    dw.rooms[pg]=pts.map(p=>{
+      const k=p.code; seen[k]=(seen[k]||0)+1;
+      return{id:k+'@'+seen[k],code:p.code,name:p.name,area:p.area,
+        nx:p.vx/vp.width,ny:p.vy/vp.height,hx:p.h/vp.width,hy:p.h/vp.height};
+    });
+  }catch(e){ console.warn('อ่านเลขห้องไม่สำเร็จ',e); dw.rooms[pg]=[]; }
+  return dw.rooms[pg];
+}
+
+// ── ขอบเขต 100% ต่อหมวดงาน + แผ่น
+function dwScope(L,pg,create){
+  let a=dw.scopes[L]; if(!a){if(!create)return null;a=dw.scopes[L]={};}
+  let s=a[pg]; if(!s&&create)s=a[pg]={ex:{},shapes:[]};
+  if(s){s.ex=s.ex||{};s.shapes=s.shapes||[];}
+  return s;
+}
+const DW_EMPTY={ex:{},shapes:[]};
+function dwScopeRooms(L,pg){const s=dwScope(L,pg)||DW_EMPTY;return (dw.rooms[pg]||[]).filter(r=>!s.ex[r.id]);}
+function dwScopeParts(L,pg){
+  const s=dwScope(L,pg)||DW_EMPTY;
+  const rooms=dwScopeRooms(L,pg), ra=rooms.reduce((a,r)=>a+r.area,0);
+  const sa=s.shapes.reduce((a,x)=>a+(parseFloat(x.area)||0),0);
+  return{rooms,ra,sa,shapes:s.shapes,total:ra+sa};
+}
+function dwScopeTotal(L,pg){const p=dwScopeParts(L,pg);return p.total>0?p.total:getPageArea(pg);}
+
+// ── งานที่ทำแล้ว (นับเฉพาะงานจริงที่มีวันเสร็จ)
+function dwMarks(L,pg){return wmk().filter(m=>m.layer===L&&m.page===pg&&m.end);}
+function dwSum(a){return a.reduce((s,m)=>s+(parseFloat(m.area)||0),0);}
+function dwDay(L,pg,d){return dwMarks(L,pg).filter(m=>m.end===d);}
+function dwUpto(L,pg,d){return dwMarks(L,pg).filter(m=>m.end<=d);}
+function dwRange(L,pg,a,b){return dwMarks(L,pg).filter(m=>m.end>=a&&m.end<=b);}
+function dwRoomDone(L,pg,rid,except){
+  return wmk().filter(m=>m.layer===L&&m.page===pg&&m.dw&&m.dw.room===rid&&m.id!==except)
+    .reduce((s,m)=>s+(parseFloat(m.area)||0),0);
+}
+function dwStats(L,pg,d){
+  const tot=dwScopeTotal(L,pg), wk=dwWeek(d);
+  const dayM=dwDay(L,pg,d);
+  return{tot,wk,n:dayM.length,day:dwSum(dayM),week:dwSum(dwRange(L,pg,wk.start,d)),cum:dwSum(dwUpto(L,pg,d))};
+}
+function dwColor(L,pg,d,today){
+  if(d===today)return DW_TODAY;
+  const ds=[...new Set(dwMarks(L,pg).map(m=>m.end))].filter(x=>x!==today).sort();
+  const i=ds.indexOf(d); return i<0?'#6b7280':DW_PAL[i%DW_PAL.length];
+}
+
+// ── วาดขอบเขต + งานบนแบบ (ใช้ทั้งบนจอและตอนพิมพ์)
+function dwShapePath(ctx,s,f){
+  ctx.beginPath();
+  if(s.type==='rect'){ctx.rect(s.x*f,s.y*f,s.w*f,s.h*f);}
+  else if(s.points&&s.points.length){ctx.moveTo(s.points[0].x*f,s.points[0].y*f);for(let i=1;i<s.points.length;i++)ctx.lineTo(s.points[i].x*f,s.points[i].y*f);if(s.type==='poly')ctx.closePath();}
+}
+function dwShapeAnchor(s,f){
+  if(s.type==='rect')return{x:s.x*f,y:s.y*f,cx:(s.x+s.w/2)*f,cy:(s.y+s.h/2)*f};
+  const p=s.points||[{x:0,y:0}];let X=0,Y=0;p.forEach(q=>{X+=q.x;Y+=q.y;});
+  return{x:p[0].x*f,y:p[0].y*f,cx:X/p.length*f,cy:Y/p.length*f};
+}
+function dwDrawPlan(ctx,W,H,L,pg,o){
+  const u=o.u||1, today=o.today;
+  const s=dwScope(L,pg)||DW_EMPTY;
+  ctx.save();
+  ctx.lineJoin='round';
+  // ขอบเขต: ห้อง (เฉพาะบนจอ ช่วยให้รู้ว่าแตะตรงไหน) + ส่วนที่วาดเอง
+  if(o.rooms){
+    (dw.rooms[pg]||[]).forEach(r=>{
+      const x=r.nx*W,y=r.ny*H,hw=r.hx*W,hh=r.hy*H, inS=!s.ex[r.id];
+      if(inS){ctx.fillStyle='rgba(37,99,235,.05)';ctx.fillRect(x-hw,y-hh,hw*2,hh*2);ctx.strokeStyle='rgba(37,99,235,.8)';ctx.lineWidth=u;ctx.strokeRect(x-hw,y-hh,hw*2,hh*2);}
+      else if(o.scopeEdit){
+        ctx.strokeStyle='rgba(185,28,28,.85)';ctx.lineWidth=u*1.2;ctx.setLineDash([4*u,3*u]);ctx.strokeRect(x-hw,y-hh,hw*2,hh*2);ctx.setLineDash([]);
+        ctx.beginPath();ctx.moveTo(x-hw*.5,y-hh*.5);ctx.lineTo(x+hw*.5,y+hh*.5);ctx.moveTo(x+hw*.5,y-hh*.5);ctx.lineTo(x-hw*.5,y+hh*.5);ctx.stroke();
+      }
+    });
+  }
+  s.shapes.forEach(x=>{
+    const f=W/(x.canvasW||W);
+    dwShapePath(ctx,x.shape,f);
+    ctx.fillStyle='rgba(37,99,235,.06)';ctx.fill();
+    ctx.strokeStyle='rgba(37,99,235,.9)';ctx.lineWidth=u;ctx.stroke();
+  });
+  // งานที่ทำแล้ว
+  const upto=o.mode==='week'?o.wk.end:today;
+  const ms=dwMarks(L,pg).filter(m=>m.end<=upto);
+  const colOf=m=>o.mode==='week'?(m.end>=o.wk.start?DW_TODAY:'#6b7280'):dwColor(L,pg,m.end,today);
+  const aOf=m=>o.mode==='week'?(m.end>=o.wk.start?.34:.2):(m.end===today?(o.print?.3:.24):.2);
+  ms.forEach(m=>{
+    const f=W/(m.canvasW||W), col=colOf(m);
+    [m.shape,...(m.extraShapes||[])].forEach(sh=>{
+      if(!sh)return;
+      dwShapePath(ctx,sh,f);
+      if(sh.type==='rect'||sh.type==='poly'){ctx.fillStyle=hex2rgba(col,aOf(m));ctx.fill();}
+      ctx.strokeStyle=col;ctx.lineWidth=(m.id===o.sel?2.4:1.1)*u;ctx.stroke();
+    });
+  });
+  // ป้ายวันที่ของวันก่อนหน้า (รายงานรายวัน)
+  if(o.labels){
+    ctx.font=`700 ${10*u}px Sarabun`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ms.filter(m=>m.end!==today).forEach(m=>{
+      const f=W/(m.canvasW||W), a=dwShapeAnchor(m.shape,f), t=dwTh(m.end), tw=ctx.measureText(t).width+8*u;
+      ctx.fillStyle='rgba(255,255,255,.9)';roundRect(ctx,a.cx-tw/2,a.cy+4*u,tw,15*u,3*u);ctx.fill();
+      ctx.fillStyle=colOf(m);ctx.fillText(t,a.cx,a.cy+11.5*u);
+    });
+  }
+  // เลข ①②③ ของงานวันนี้
+  if(o.badges){
+    dwDay(L,pg,today).forEach((m,i)=>{
+      const f=W/(m.canvasW||W), a=dwShapeAnchor(m.shape,f), r=9*u;
+      const bx=m.shape.type==='rect'?a.x+r+2*u:a.x, by=m.shape.type==='rect'?a.y+r+2*u:a.y;
+      ctx.fillStyle=DW_TODAY;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.2*u;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font=`700 ${11*u}px Sarabun`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(String(i+1),bx,by+.5*u);
+    });
+  }
+  ctx.restore();
+  ctx.textAlign='start';ctx.textBaseline='alphabetic';
+}
+
+// ── เชื่อมกับระบบเดิม
+const _dwRedraw0=redraw;
+redraw=function(){
+  if(!dwOn)return _dwRedraw0();
+  if(!drawCtx)return;
+  drawCtx.clearRect(0,0,dc.width,dc.height);
+  if(!dw.rooms[pageNum]&&!dwLoading[pageNum]&&pdfDoc){
+    const pg=pageNum; dwLoading[pg]=1;
+    dwEnsureRooms(pg).then(()=>{delete dwLoading[pg];if(dwOn&&pageNum===pg)redraw();});
+  }
+  dwDrawPlan(drawCtx,dc.width,dc.height,activeLayer,pageNum,
+    {today:dwDate,mode:'day',rooms:true,badges:true,u:Math.max(1,curDPR||1),scopeEdit:dwTool==='scope',sel:selId});
+  dwUpdateBar();
+};
+const _dwCommit0=commitShape;
+commitShape=function(shape){ if(!dwOn)return _dwCommit0(shape); dwCommitRect(shape); };
+const _dwBuild0=buildProjectData;
+buildProjectData=function(withPdf){const d=_dwBuild0(withPdf);d.dw={cut:dw.cut,scopes:dw.scopes,photos:dw.photos};return d;};
+const _dwApply0=applyProjectData;
+applyProjectData=async function(d,opt){
+  await _dwApply0(d,opt);
+  const x=(d&&d.dw)||{};
+  dw.cut=(x.cut!=null&&!isNaN(+x.cut))?+x.cut:0;
+  dw.scopes=x.scopes||{};
+  dw.photos=Array.isArray(x.photos)?x.photos:[];
+  if(dwOn)redraw();
+};
+const _dwOpenPdf0=openPdf;
+openPdf=async function(buf){dw.rooms={};return _dwOpenPdf0(buf);};
+const _dwPhotoStats0=photoStats;
+photoStats=function(){const r=_dwPhotoStats0();(dw.photos||[]).forEach(p=>{r.n++;r.bytes+=b64Bytes(p.src);});return r;};
+
+// ── เข้า/ออกโหมด
+async function dwEnter(){
+  if(!pdfDoc){alert('อัพโหลดแบบ PDF ก่อน แล้วค่อยเข้าโหมดงานรายวัน');return;}
+  if(!LAYERS.some(l=>l.key===activeLayer))activeLayer=LAYERS[0].key;
+  if(polyPts.length)cancelPolygon();
+  setMulti(null); selId=null;
+  dwOn=true; document.body.classList.add('dw-on');
+  dwSetTool(dwTool,true);
+  dwFillCats();
+  document.getElementById('dwCut').value=String(dw.cut);
+  setBusy('กำลังอ่านเลขห้องจากแบบ…');
+  await dwEnsureRooms(pageNum);
+  setBusy('');
+  zoom=1; camReady=false;
+  setTimeout(()=>{if(pdfDoc)renderPage();},60);
+}
+function dwExit(){
+  dwCloseSheets(); dwToggleMenu(false);
+  dwOn=false; document.body.classList.remove('dw-on');
+  const pill=document.querySelector('.pill[data-tool="poly"]');
+  if(pill)setTool('poly',pill); else tool='poly';
+  renderLayerBar(); renderList(); updateSideTitle();
+  try{renderProgress();updateLayerCue();}catch(e){}
+  zoom=1; camReady=false;
+  setTimeout(()=>{if(pdfDoc)renderPage();},60);
+}
+function dwFillCats(){
+  document.getElementById('dwCat').innerHTML=LAYERS.map(l=>`<option value="${l.key}">${dwEsc(l.name)}</option>`).join('');
+  document.getElementById('dwCat').value=activeLayer;
+}
+function dwSetCat(k){activeLayer=k;selId=null;renderLayerBar();redraw();if(document.getElementById('dwList').classList.contains('open'))dwRenderList();}
+function dwSetTool(t,silent){
+  dwTool=t;
+  if(polyPts.length)cancelPolygon();
+  tool=(t==='room')?'dwtap':'rect';
+  document.querySelectorAll('.dw-pal button[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  if(!silent)redraw();
+  dwUpdateBar();
+}
+function dwToggleFinger(){dwFinger=!dwFinger;dwUpdateBar();dwToast(dwFinger?'นิ้ววาดได้แล้ว (เลื่อนแบบใช้สองนิ้ว)':'ปากกาวาด · นิ้วเลื่อน/ซูม');}
+// ให้นิ้วเลื่อนแบบไหม: ถ้าเคยใช้ปากกาแล้วและไม่ได้เปิด "นิ้ววาด" → นิ้วเลื่อน
+function dwFingerPan(){return dwOn&&!dwFinger&&(dwPenSeen||inputMode()==='pen');}
+async function dwPage(d){
+  if(!pdfDoc)return;
+  const n=pageNum+d; if(n<1||n>pdfDoc.numPages)return;
+  pageNum=n; selId=null;
+  await dwEnsureRooms(n);
+  renderPage(); try{syncPageAreaInput();}catch(e){}
+}
+function dwPickDate(){
+  dwToggleMenu(false);
+  const i=document.getElementById('dwDateIn'); i.value=dwDate;
+  try{if(i.showPicker){i.showPicker();return;}}catch(e){}
+  i.focus(); i.click();
+}
+function dwSetDate(v){if(!v)return;dwDate=v;selId=null;redraw();if(document.getElementById('dwList').classList.contains('open'))dwRenderList();}
+function dwSetCut(v){dw.cut=+v;dwDirty();dwUpdateBar();}
+function dwToggleMenu(force){
+  const m=document.getElementById('dwMenu');
+  const open=force===undefined?!m.classList.contains('open'):!!force;
+  m.classList.toggle('open',open);
+}
+
+// ── แถบบน/แถบสรุป
+function dwUpdateBar(){
+  if(!dwOn)return;
+  const L=activeLayer,pg=pageNum,lay=LAYERS.find(l=>l.key===L)||{name:''};
+  const nm=getPageName(pg);
+  document.getElementById('dwPgLbl').textContent=nm||('แผ่นที่ '+pg);
+  document.getElementById('dwSub').textContent=(pdfDoc?`แผ่น ${pg}/${pdfDoc.numPages} · `:'')+'งานรายวัน';
+  document.getElementById('dwDateBtn').textContent=dwTh(dwDate)+(dwDate===dwISO(new Date())?'':' ●');
+  const cat=document.getElementById('dwCat'); if(cat.value!==L)cat.value=L;
+  const S=dwStats(L,pg,dwDate);
+  const fl=document.getElementById('dwFingerLbl'); if(fl)fl.textContent=dwFinger?'นิ้ววาด':'นิ้วเลื่อน';
+  const fb=document.getElementById('dwFingerBtn'); if(fb)fb.classList.toggle('on',dwFinger);
+  document.getElementById('dwSum').innerHTML=`<span class="dw-grab" aria-hidden="true"></span>
+    <span class="dw-nums">
+      <span>วันนี้<b style="color:#9a3f0e">${dwP(dwPct(S.day,S.tot))}</b></span>
+      <span>สัปดาห์นี้<b>${dwP(dwPct(S.week,S.tot))}</b></span>
+      <span>สะสม<b style="color:#163a5a">${dwP(dwPct(S.cum,S.tot))}</b></span>
+    </span>
+    <span class="dw-line">${S.n} จุด · ${fmtQ(S.day)} ตร.ม. · ${S.tot>0?'ขอบเขต '+fmtQ(S.tot)+' ตร.ม.':'ยังไม่มีขอบเขต — กด ขอบเขต'}</span>`;
+  const wk=S.wk;
+  document.getElementById('dwMenuDay').textContent=`${dwThLong(dwDate)} · ${dwEsc(lay.name)}`;
+  document.getElementById('dwMenuWeek').textContent=`${dwTh(wk.start)} – ${dwTh(wk.end,true)}`;
+  const sb=document.getElementById('dwScopeBar');
+  if(dwTool==='scope'){
+    const P=dwScopeParts(L,pg), all=(dw.rooms[pg]||[]).length;
+    sb.innerHTML=`<b>ขอบเขต 100% · ${dwEsc(lay.name)}: ${fmtQ(P.total)} ตร.ม.</b><br>`+
+      (all?`ห้องจากแบบ ${P.rooms.length}/${all} ห้อง (${fmtQ(P.ra)} ตร.ม.)`:'ไม่พบเลขห้องในแบบแผ่นนี้')+
+      (P.shapes.length?` · วาดเอง ${P.shapes.length} ส่วน (${fmtQ(P.sa)} ตร.ม.)`:'')+
+      `<br>${all?'แตะห้องเพื่อตัดออก/ใส่คืน · ':''}ลากกรอบเพื่อเพิ่มส่วนที่ไม่มีเลขห้อง · แตะส่วนที่วาดเพื่อลบ`+
+      (all?`<br><button onclick="dwScopeAll(true)">ใส่ทุกห้อง</button><button onclick="dwScopeAll(false)">ตัดทุกห้อง</button>`:'')+
+      `<button onclick="dwSetTool('room')">เสร็จ</button>`;
+    sb.classList.add('open');
+  }else sb.classList.remove('open');
+}
+function dwToast(msg){
+  const t=document.getElementById('dwToast'); t.textContent=msg; t.classList.add('open');
+  clearTimeout(dwToast._t); dwToast._t=setTimeout(()=>t.classList.remove('open'),2600);
+}
+
+// ── แตะบนแบบ
+function dwRoomAt(pg,p){
+  let best=null,bd=1e9;
+  (dw.rooms[pg]||[]).forEach(r=>{
+    const x=r.nx*dc.width,y=r.ny*dc.height,hw=r.hx*dc.width,hh=r.hy*dc.height;
+    if(Math.abs(p.x-x)<=hw&&Math.abs(p.y-y)<=hh){const d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=r;}}
+  });
+  return best;
+}
+function dwTapAt(p){
+  if(dwTool==='scope')return dwTapScope(p);
+  if(dwTool==='rect'){dwToast('ลากกรอบด้วยปากกา (หรือเปิด "นิ้ววาด")');return;}
+  dwTapRoom(p);
+}
+function dwRoomShape(r){const W=dc.width,H=dc.height;return{type:'rect',x:(r.nx-r.hx)*W,y:(r.ny-r.hy)*H,w:r.hx*2*W,h:r.hy*2*H};}
+function dwTapRoom(p){
+  const L=activeLayer,pg=pageNum;
+  // แตะโดนงานวันนี้ที่ไม่ใช่ห้อง (กรอบที่วาดเอง) → เสนอให้ลบ
+  const r=dwRoomAt(pg,p);
+  if(!r){
+    const hit=dwDay(L,pg,dwDate).slice().reverse().find(m=>dwHit(m,p));
+    if(hit){if(confirm(`เอา "${hit.note||'จุดนี้'}" ออกจากงานวันนี้?`)){pushHistory();delMk(hit.id);dwAfterChange();}return;}
+    dwToast((dw.rooms[pg]||[]).length?'แตะที่เลขห้อง — ห้องที่ไม่มีเลขให้ใช้ "ลากกรอบ"':'แบบแผ่นนี้ไม่มีเลขห้อง — ใช้ "ลากกรอบ"');
+    return;
+  }
+  const s=dwScope(L,pg);
+  if(s&&s.ex[r.id]){dwToast(`ห้อง ${r.code} ไม่อยู่ในขอบเขตของหมวดนี้`);return;}
+  const done=dwRoomDone(L,pg,r.id), rem=+(r.area-done).toFixed(3);
+  if(rem<=0.01){
+    const t=wmk().find(m=>m.layer===L&&m.page===pg&&m.dw&&m.dw.room===r.id&&m.end===dwDate);
+    if(t){if(confirm(`ห้อง ${r.code} อยู่ในงานวันนี้แล้ว\nเอาออกจากงานวันนี้ไหม?`)){pushHistory();delMk(t.id);dwAfterChange();}}
+    else{const last=wmk().filter(m=>m.layer===L&&m.page===pg&&m.dw&&m.dw.room===r.id).map(m=>m.end).sort().pop();
+      dwToast(`ห้อง ${r.code} ทำครบแล้ว${last?' ('+dwTh(last)+')':''} — ไม่นับซ้ำ`);}
+    return;
+  }
+  pushHistory();
+  dwPushMark({kind:'room',room:r.id},dwRoomShape(r),rem,`ห้อง ${r.code}`+(done>0?' (ส่วนที่เหลือ)':''));
+  dwAfterChange();
+}
+function dwHit(m,p){
+  const f=dc.width/(m.canvasW||dc.width), s=m.shape; if(!s)return false;
+  if(s.type==='rect')return p.x>=s.x*f&&p.x<=(s.x+s.w)*f&&p.y>=s.y*f&&p.y<=(s.y+s.h)*f;
+  return false;
+}
+function dwTapScope(p){
+  const L=activeLayer,pg=pageNum;
+  const s=dwScope(L,pg,true);
+  const i=s.shapes.findIndex(x=>{const f=dc.width/(x.canvasW||dc.width),q=x.shape;return q.type==='rect'&&p.x>=q.x*f&&p.x<=(q.x+q.w)*f&&p.y>=q.y*f&&p.y<=(q.y+q.h)*f;});
+  const r=dwRoomAt(pg,p);
+  if(r){ if(s.ex[r.id])delete s.ex[r.id]; else s.ex[r.id]=1; dwDirty(); redraw(); return; }
+  if(i>=0){ if(confirm(`ลบขอบเขตส่วนนี้ (${fmtQ(s.shapes[i].area)} ตร.ม.)?`)){s.shapes.splice(i,1);dwDirty();redraw();} return; }
+  dwToast('แตะเลขห้องเพื่อตัดออก/ใส่คืน หรือลากกรอบเพื่อเพิ่มขอบเขต');
+}
+function dwScopeAll(on){
+  const s=dwScope(activeLayer,pageNum,true);
+  s.ex={}; if(!on)(dw.rooms[pageNum]||[]).forEach(r=>s.ex[r.id]=1);
+  dwDirty(); redraw();
+}
+function dwPushMark(info,shape,area,note){
+  const id=Date.now()+Math.random();
+  markups.push({id,layer:activeLayer,zone:layerZone(activeLayer),page:pageNum,shape,planId:null,delivId:null,
+    stroke:DW_TODAY,fill:DW_TODAY,opacity:22,width:1.2,note,start:dwDate,end:dwDate,
+    area:String(+(+area).toFixed(3)),photos:[],canvasW:dc.width,canvasH:dc.height,dw:info});
+  return id;
+}
+function dwAfterChange(){
+  redraw();
+  try{renderList();renderLayerBar();renderProgress();}catch(e){}
+  if(document.getElementById('dwList').classList.contains('open'))dwRenderList();
+}
+// พื้นที่จากมาตราส่วนที่ตั้งไว้ (ถ้าเคยตั้ง) — ใช้เป็นค่าเริ่มต้นให้แก้ได้
+function dwGeom(sh){const ppm=ppmNow(pageNum);if(!(ppm>0)||sh.type!=='rect')return null;return +((sh.w/ppm)*(sh.h/ppm)).toFixed(2);}
+function dwRectHit(a,x){
+  const f=dc.width/(x.canvasW||dc.width),b=x.shape; if(b.type!=='rect')return false;
+  return a.x<(b.x+b.w)*f&&a.x+a.w>b.x*f&&a.y<(b.y+b.h)*f&&a.y+a.h>b.y*f;
+}
+async function dwCommitRect(sh){
+  if(!sh||sh.type!=='rect'){redraw();return;}
+  const L=activeLayer,pg=pageNum;
+  if(dwTool==='scope'){
+    const v=await dwAsk({title:'เพิ่มขอบเขต (ส่วนที่ไม่มีเลขห้อง)',msg:'ส่วนนี้มีพื้นที่กี่ ตร.ม.?',val:dwGeom(sh)});
+    if(v==null||!(v>0)){redraw();return;}
+    dwScope(L,pg,true).shapes.push({id:Date.now()+Math.random(),shape:sh,area:+v,canvasW:dc.width});
+    dwDirty(); redraw(); return;
+  }
+  const s=dwScope(L,pg)||DW_EMPTY;
+  const inRooms=(dw.rooms[pg]||[]).filter(r=>!s.ex[r.id]).filter(r=>{
+    const x=r.nx*dc.width,y=r.ny*dc.height; return x>=sh.x&&x<=sh.x+sh.w&&y>=sh.y&&y<=sh.y+sh.h;});
+  if(inRooms.length===1){
+    const r=inRooms[0], rem=+(r.area-dwRoomDone(L,pg,r.id)).toFixed(3);
+    if(rem<=0.01){dwToast(`ห้อง ${r.code} ทำครบแล้ว — ไม่นับซ้ำ`);redraw();return;}
+    const g=dwGeom(sh);
+    const v=await dwAsk({title:`ห้อง ${r.code} · ทำได้บางส่วน`,
+      msg:`ห้องนี้ ${fmtQ(r.area)} ตร.ม. · คงเหลือ ${fmtQ(rem)} ตร.ม.`,val:g!=null?Math.min(g,rem):null,base:r.area,max:rem});
+    if(v==null||!(v>0)){redraw();return;}
+    pushHistory();
+    dwPushMark({kind:'part',room:r.id},sh,Math.min(+v,rem),`ห้อง ${r.code} บางส่วน`);
+    dwAfterChange(); return;
+  }
+  if(inRooms.length>1){
+    const todo=inRooms.map(r=>({r,rem:+(r.area-dwRoomDone(L,pg,r.id)).toFixed(3)})).filter(x=>x.rem>0.01);
+    if(!todo.length){dwToast('ห้องในกรอบนี้ทำครบแล้วทั้งหมด — ไม่นับซ้ำ');redraw();return;}
+    const tot=todo.reduce((a,x)=>a+x.rem,0);
+    if(confirm(`กรอบนี้ครอบ ${todo.length} ห้อง (${todo.map(x=>x.r.code).join(', ')})\nนับเป็นทำครบทั้งห้อง รวม ${fmtQ(tot)} ตร.ม.?`)){
+      pushHistory();
+      todo.forEach(x=>dwPushMark({kind:'room',room:x.r.id},dwRoomShape(x.r),x.rem,`ห้อง ${x.r.code}`));
+      dwAfterChange();
+    }else redraw();
+    return;
+  }
+  const hasScope=(dw.rooms[pg]||[]).length>0||s.shapes.length>0;
+  if(hasScope&&!s.shapes.some(x=>dwRectHit(sh,x))){dwToast('กรอบนี้อยู่นอกขอบเขต — ไม่นับ');redraw();return;}
+  const v=await dwAsk({title:'พื้นที่ที่ทำได้',msg:'กรอบนี้กี่ ตร.ม.?',val:dwGeom(sh)});
+  if(v==null||!(v>0)){redraw();return;}
+  pushHistory();
+  dwPushMark({kind:'shape'},sh,+v,'พื้นที่ (วาดเอง)');
+  dwAfterChange();
+}
+
+// ── ช่องกรอกพื้นที่
+let dwAskRes=null;
+function dwAsk(o){
+  return new Promise(res=>{
+    dwAskRes=res;
+    document.getElementById('dwAskT').textContent=o.title||'';
+    document.getElementById('dwAskM').textContent=o.msg||'';
+    const inp=document.getElementById('dwAskIn'); inp.value=o.val!=null?o.val:'';
+    const q=document.getElementById('dwAskQ');
+    if(o.base){
+      q.innerHTML=[25,50,75,100].map(p=>`<button type="button" data-v="${Math.min(o.max!=null?o.max:o.base,o.base*p/100).toFixed(2)}">${p}%</button>`).join('');
+      q.querySelectorAll('button').forEach(b=>b.onclick=()=>{inp.value=b.dataset.v;});
+      q.style.display='grid';
+    }else{q.innerHTML='';q.style.display='none';}
+    document.getElementById('dwAsk').classList.add('open');
+    setTimeout(()=>{try{inp.focus();}catch(e){}},60);
+  });
+}
+function dwAskDone(ok){
+  document.getElementById('dwAsk').classList.remove('open');
+  const v=parseFloat(document.getElementById('dwAskIn').value);
+  const r=dwAskRes; dwAskRes=null;
+  if(r)r(ok&&v>0?v:null);
+}
+document.getElementById('dwAskIn').addEventListener('keydown',e=>{if(e.key==='Enter')dwAskDone(true);if(e.key==='Escape')dwAskDone(false);});
+
+// ── รายการจุดวันนี้
+function dwOpenList(){dwCloseSheets();dwRenderList();document.getElementById('dwList').classList.add('open');document.getElementById('dwBack').classList.add('open');}
+function dwCloseSheets(){['dwList','dwPhotos','dwBack'].forEach(i=>document.getElementById(i).classList.remove('open'));}
+function dwRenderList(){
+  const L=activeLayer,pg=pageNum,S=dwStats(L,pg,dwDate),ms=dwDay(L,pg,dwDate);
+  const trash='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+  const go='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';
+  document.getElementById('dwList').innerHTML=`<span class="dw-grab" aria-hidden="true"></span>
+    <h3>จุดที่มาร์ค ${dwTh(dwDate)}<small>วันนี้ ${dwP(dwPct(S.day,S.tot))} · สัปดาห์ ${dwP(dwPct(S.week,S.tot))} · สะสม ${dwP(dwPct(S.cum,S.tot))}</small></h3>
+    <div>${ms.length?ms.map((m,i)=>`<div class="dw-row"><span class="dw-n">${i+1}</span><span class="dw-t">${dwEsc(m.note||'จุดที่ '+(i+1))}</span><span class="dw-a">${fmtQ(m.area)} ตร.ม.</span>
+      <button onclick="dwGoto(${m.id})" aria-label="ไปที่จุด ${i+1}">${go}</button><button onclick="dwDel(${m.id})" aria-label="ลบจุด ${i+1}">${trash}</button></div>`).join('')
+      :'<div class="dw-empty">ยังไม่มีงานของวันนี้ — แตะเลขห้อง หรือลากกรอบบนแบบ</div>'}</div>
+    <div class="dw-tot"><span>รวมวันนี้ ${ms.length} จุด</span><span>${fmtQ(S.day)} ตร.ม. · ${dwP(dwPct(S.day,S.tot))}</span></div>
+    <div class="dw-note">ขอบเขต 100% ของหมวดนี้บนแผ่นนี้ ${S.tot>0?fmtQ(S.tot)+' ตร.ม.':'— ยังไม่ได้ตั้ง'} · สะสม ${fmtQ(S.cum)} ตร.ม. · คงเหลือ ${fmtQ(Math.max(0,S.tot-S.cum))} ตร.ม.</div>
+    <div class="dw-btn2"><button class="sec" onclick="dwCloseSheets();dwSetTool('scope')">ตั้งขอบเขต</button><button onclick="dwCloseSheets()">ปิด</button></div>`;
+}
+function dwDel(id){
+  const m=markups.find(x=>x.id===id); if(!m)return;
+  if(!confirm(`ลบ "${m.note||'จุดนี้'}" ออกจากงานวันนี้?`))return;
+  pushHistory(); delMk(id); dwAfterChange();
+}
+function dwGoto(id){
+  const m=markups.find(x=>x.id===id); if(!m)return;
+  dwCloseSheets(); selId=id;
+  const f=dc.width/(m.canvasW||dc.width), a=dwShapeAnchor(m.shape,f);
+  const unit=(curDPR||1)*currentFitScale*renderedZoom;          // พิกเซล canvas ต่อ 1 หน่วยหน้า PDF
+  const ux=a.cx/unit, uy=a.cy/unit, W=wrapEl().clientWidth, H=wrapEl().clientHeight;
+  const z=Math.max(zoom,2);
+  const [x,y]=clampCam(z,W/2-ux*pxPerUnit(z),H/2-uy*pxPerUnit(z));
+  redraw(); animateCam(z,x,y,260,()=>scheduleRender(60));
+}
+
+// ── รูปหน้างานของวัน (ต่อหมวดงาน + แผ่น)
+function dwDayPhotos(L,pg,a,b){
+  b=b||a;
+  const own=(dw.photos||[]).filter(p=>p.layer===L&&p.page===pg&&p.date>=a&&p.date<=b);
+  const fromMk=[];
+  dwRange(L,pg,a,b).forEach(m=>(m.photos||[]).forEach(src=>fromMk.push({src,date:m.end,t:'',fromMk:true})));
+  return [...own,...fromMk].sort((x,y)=>(x.date+x.t).localeCompare(y.date+y.t));
+}
+function dwOpenPhotos(){dwCloseSheets();dwRenderPhotos();document.getElementById('dwPhotos').classList.add('open');document.getElementById('dwBack').classList.add('open');}
+function dwRenderPhotos(){
+  const L=activeLayer,pg=pageNum;
+  const own=(dw.photos||[]).filter(p=>p.layer===L&&p.page===pg&&p.date===dwDate);
+  document.getElementById('dwPhotos').innerHTML=`<span class="dw-grab" aria-hidden="true"></span>
+    <h3>รูปหน้างาน ${dwTh(dwDate)}<small>แนบแล้ว ${own.length} รูป</small></h3>
+    <div class="dw-btn2"><button onclick="document.getElementById('dwCamIn').click()">ถ่ายรูป</button><button class="sec" onclick="document.getElementById('dwGalIn').click()">เลือกจากคลัง</button></div>
+    ${own.length?`<div class="dw-ph">${own.map(p=>`<figure><img src="${p.src}" alt="รูปหน้างาน ${p.t}"><figcaption>${p.t}</figcaption><button onclick="dwDelPhoto('${p.id}')" aria-label="ลบรูป">×</button></figure>`).join('')}</div>`:'<div class="dw-empty">ยังไม่มีรูปของวันนี้</div>'}
+    <button class="dw-big" onclick="dwCloseSheets()">เสร็จ กลับไปที่แบบ</button>`;
+}
+async function dwAddPhotos(input){
+  const files=[...input.files]; input.value='';
+  if(!files.length)return;
+  setBusy('กำลังย่อรูป…');
+  for(const f of files){
+    const src=await downscaleImage(f); if(!src)continue;
+    const d=new Date(f.lastModified||Date.now());
+    dw.photos.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),layer:activeLayer,page:pageNum,date:dwDate,
+      t:String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),src});
+  }
+  setBusy(''); dwDirty(); dwRenderPhotos();
+}
+function dwDelPhoto(id){if(!confirm('ลบรูปนี้?'))return;dw.photos=dw.photos.filter(p=>p.id!==id);dwDirty();dwRenderPhotos();}
+
+// ── รายงาน (A4 แนวนอน)
+function dwFontCSS(){
+  const st=document.querySelector('style'); const m=st?st.textContent.match(/@font-face\{[^}]*\}/g):null;
+  return m?m.join('\n'):'';
+}
+async function dwPlanImg(L,pg,o){
+  const page=await pdfDoc.getPage(pg); const base=page.getViewport({scale:1});
+  const W=TIGHT?1300:1600, s=W/base.width, H=Math.round(base.height*s);
+  const rec=await getPageImage(pg,s);
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H);
+  x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high';
+  x.drawImage(rec.bmp,0,0,W,H);
+  dwDrawPlan(x,W,H,L,pg,Object.assign({u:W/900,print:true},o));
+  // ตัดเฉพาะส่วนผังที่มีห้อง/งาน (ไม่เอากรอบชื่อแบบด้านข้าง) ให้ผังใหญ่ขึ้นบนกระดาษ
+  let x0=1,y0=1,x1=0,y1=0;
+  const add=(a,b,c2,d)=>{x0=Math.min(x0,a);y0=Math.min(y0,b);x1=Math.max(x1,c2);y1=Math.max(y1,d);};
+  (dw.rooms[pg]||[]).forEach(r=>add(r.nx-r.hx,r.ny-r.hy,r.nx+r.hx,r.ny+r.hy));
+  const sc=dwScope(L,pg)||DW_EMPTY;
+  const shBox=(s,cw)=>{ // พิกัด markup อ้างกับ canvas กว้าง cw (สัดส่วนเดียวกับหน้าแบบ)
+    if(!s)return; const ch=cw*H/W;
+    if(s.type==='rect')add(s.x/cw,s.y/ch,(s.x+s.w)/cw,(s.y+s.h)/ch);
+    else (s.points||[]).forEach(q=>add(q.x/cw,q.y/ch,q.x/cw,q.y/ch));};
+  sc.shapes.forEach(z=>shBox(z.shape,z.canvasW||W));
+  dwMarks(L,pg).forEach(m=>shBox(m.shape,m.canvasW||W));
+  let out=c;
+  if(x1>x0&&y1>y0){
+    const pad=0.035;
+    const cx0=Math.max(0,(x0-pad)*W),cy0=Math.max(0,(y0-pad)*H),cx1=Math.min(W,(x1+pad)*W),cy1=Math.min(H,(y1+pad)*H);
+    const cw2=Math.round(cx1-cx0),ch2=Math.round(cy1-cy0);
+    if(cw2*ch2<W*H*0.85&&cw2>W*0.2&&ch2>H*0.2){
+      out=document.createElement('canvas');out.width=cw2;out.height=ch2;
+      out.getContext('2d').drawImage(c,cx0,cy0,cw2,ch2,0,0,cw2,ch2);
+    }
+  }
+  const url=out.toDataURL('image/jpeg',0.88); c.width=c.height=0; if(out!==c)out.width=out.height=0;
+  return url;
+}
+function dwWeeks(L,pg,uptoEnd){
+  const ms=dwMarks(L,pg); if(!ms.length)return[];
+  const tot=dwScopeTotal(L,pg);
+  let w=dwWeek(ms.map(m=>m.end).sort()[0]); const out=[]; let cum=0,i=1;
+  while(w.start<=uptoEnd&&out.length<520){
+    const add=dwSum(ms.filter(m=>m.end>=w.start&&m.end<=w.end)); cum+=add;
+    out.push({no:i++,start:w.start,end:w.end,add,addP:dwPct(add,tot),cum,cumP:dwPct(cum,tot)});
+    w={start:dwAddDays(w.start,7),end:dwAddDays(w.end,7)};
+  }
+  return out;
+}
+async function dwPrint(kind){
+  if(!pdfDoc){alert('ต้องเปิดแบบ PDF ก่อน');return;}
+  const w=openPrintWin('กำลังสร้างรายงาน…');
+  try{
+    const L=activeLayer,pg=pageNum,lay=LAYERS.find(l=>l.key===L)||{name:L};
+    const pn=document.getElementById('projName').value||'โครงการ', au=document.getElementById('authorName').value||'';
+    const S=dwStats(L,pg,dwDate), tot=S.tot, wk=S.wk;
+    const head=(title,right)=>`<header class="hdr">${logoHTML()}<div class="ht"><b>${title}</b><span>${dwEsc(pn)} · ${dwEsc(getPageLabel(pg))} · หมวด ${dwEsc(lay.name)}</span></div><div class="hr">${right}</div></header>`;
+    const photoGrid=ps=>ps.length?`<section class="ph"><h3>รูปหน้างาน (${ps.length} รูป)</h3><div class="pg">${ps.map(p=>`<figure><img src="${p.src}" alt=""><figcaption>${dwTh(p.date)}${p.t?' · '+p.t:''}</figcaption></figure>`).join('')}</div></section>`:'';
+    let body='', title='';
+    if(kind==='day'){
+      const ms=dwDay(L,pg,dwDate), day=dwSum(ms), cum=dwSum(dwUpto(L,pg,dwDate));
+      const img=await dwPlanImg(L,pg,{today:dwDate,mode:'day',badges:true,labels:true});
+      title=`รายงานรายวัน ${dwTh(dwDate,true)}`;
+      body=head('รายงานความคืบหน้ารายวัน',`<b>${dwThLong(dwDate)}</b>${au?`<span>ผู้จัดทำ ${dwEsc(au)}</span>`:''}`)+
+      `<div class="grid"><div class="pl"><img src="${img}" alt="แบบ"><div class="lg">
+        <span><i style="background:rgba(234,88,12,.4);border-color:${DW_TODAY}"></i>วันนี้ ${dwTh(dwDate)} (เลข ① ② ③ ตามตาราง)</span>
+        <span><i style="background:rgba(13,148,136,.25);border-color:#0d9488"></i>วันก่อนหน้า (มีป้ายวันที่)</span></div></div>
+      <div class="rc">
+        <div class="big"><span>วันนี้ทำได้ ${ms.length} จุด</span><b>${fmtQ(day)} ตร.ม. · <em>${dwP(dwPct(day,tot))} ของแบบ</em></b></div>
+        <table><thead><tr><th>จุด</th><th class="l">ห้อง / วิธีมาร์ค</th><th>ตร.ม.</th></tr></thead><tbody>
+        ${ms.length?ms.map((m,i)=>`<tr><td>${i+1}</td><td class="l">${dwEsc(m.note||'-')}${m.dw&&m.dw.kind==='room'?' · ทั้งห้อง':''}</td><td>${fmtQ(m.area)}</td></tr>`).join(''):'<tr><td colspan="3" class="l">ยังไม่มีงานที่บันทึกของวันนี้</td></tr>'}
+        <tr class="sum"><td colspan="2" class="l">รวมวันนี้</td><td>${fmtQ(day)}</td></tr></tbody></table>
+        <div class="tiles"><div><span>ขอบเขต 100%</span><b>${fmtQ(tot)} ตร.ม.</b></div>
+          <div><span>สะสม</span><b>${fmtQ(cum)} · ${dwP(dwPct(cum,tot))}</b></div>
+          <div><span>คงเหลือ</span><b>${fmtQ(Math.max(0,tot-cum))} · ${dwP(Math.max(0,100-dwPct(cum,tot)))}</b></div></div>
+      </div></div>`+photoGrid(dwDayPhotos(L,pg,dwDate));
+    }else{
+      const weeks=dwWeeks(L,pg,wk.end);
+      const cur=weeks.find(x=>x.start===wk.start)||{no:weeks.length+1,add:0,addP:0,cum:dwSum(dwUpto(L,pg,wk.end)),cumP:dwPct(dwSum(dwUpto(L,pg,wk.end)),tot)};
+      const prev=weeks.find(x=>x.end===dwAddDays(wk.start,-1));
+      const img=await dwPlanImg(L,pg,{today:dwDate,mode:'week',wk,badges:false,labels:false});
+      const days=[]; for(let d=wk.start;d<=wk.end;d=dwAddDays(d,1)){const ms=dwDay(L,pg,d);if(ms.length)days.push({d,n:ms.length,a:dwSum(ms)});}
+      const diff=prev?cur.addP-prev.addP:null;
+      title=`รายงานรายสัปดาห์ ${dwTh(wk.start)}-${dwTh(wk.end,true)}`;
+      body=head('รายงานความคืบหน้ารายสัปดาห์',`<b>สัปดาห์ที่ ${cur.no} · ${dwTh(wk.start)} – ${dwTh(wk.end,true)}</b><span>ตัดยอดทุกวัน${DW_DL[+dw.cut]}</span>`)+
+      `<div class="grid"><div class="pl"><img src="${img}" alt="แบบ"><div class="lg">
+        <span><i style="background:rgba(234,88,12,.45);border-color:${DW_TODAY}"></i>สัปดาห์นี้ (${dwTh(wk.start)} – ${dwTh(wk.end)})</span>
+        <span><i style="background:rgba(107,114,128,.3);border-color:#6b7280"></i>สัปดาห์ก่อนหน้า</span></div></div>
+      <div class="rc">
+        <div class="tiles"><div class="hl"><span>สัปดาห์นี้เพิ่ม</span><b>+${dwP(cur.addP)}</b><small>${fmtQ(cur.add)} ตร.ม.</small></div>
+          <div><span>สัปดาห์ก่อนเพิ่ม</span><b>${prev?'+'+dwP(prev.addP):'-'}</b><small>${prev?fmtQ(prev.add)+' ตร.ม.':'ไม่มีข้อมูล'}</small></div>
+          <div><span>สะสม</span><b>${dwP(cur.cumP)}</b><small>${fmtQ(cur.cum)} / ${fmtQ(tot)} ตร.ม.</small></div></div>
+        <p class="cmp">${diff==null?'สัปดาห์แรกของการบันทึก':(Math.abs(diff)<0.05?'ทำได้เท่ากับสัปดาห์ก่อน':(diff>0?`ทำได้มากกว่าสัปดาห์ก่อน ${dwP(diff)}`:`ทำได้น้อยกว่าสัปดาห์ก่อน ${dwP(-diff)}`))} · คงเหลือ ${fmtQ(Math.max(0,tot-cur.cum))} ตร.ม. (${dwP(Math.max(0,100-cur.cumP))})</p>
+        <h3>ย้อนหลังทุกสัปดาห์</h3>
+        <table><thead><tr><th>สัปดาห์</th><th class="l">ช่วงวัน</th><th>เพิ่ม ตร.ม.</th><th>เพิ่ม %</th><th>สะสม %</th></tr></thead><tbody>
+        ${weeks.map(x=>`<tr${x.start===wk.start?' class="cur"':''}><td>${x.no}</td><td class="l">${dwTh(x.start)} – ${dwTh(x.end)}</td><td>${fmtQ(x.add)}</td><td>${dwP(x.addP)}</td><td>${dwP(x.cumP)}</td></tr>`).join('')||'<tr><td colspan="5" class="l">ยังไม่มีข้อมูล</td></tr>'}
+        </tbody></table>
+        <h3>รายวันในสัปดาห์นี้</h3>
+        <table><thead><tr><th class="l">วันที่</th><th>จุด</th><th>ตร.ม.</th><th>% ของแบบ</th></tr></thead><tbody>
+        ${days.map(x=>`<tr><td class="l">${DW_D[dwD(x.d).getDay()]} ${dwTh(x.d)}</td><td>${x.n}</td><td>${fmtQ(x.a)}</td><td>${dwP(dwPct(x.a,tot))}</td></tr>`).join('')||'<tr><td colspan="4" class="l">ไม่มีงานในสัปดาห์นี้</td></tr>'}
+        <tr class="sum"><td class="l">รวมสัปดาห์</td><td>${days.reduce((a,x)=>a+x.n,0)}</td><td>${fmtQ(cur.add)}</td><td>${dwP(cur.addP)}</td></tr></tbody></table>
+      </div></div>`+photoGrid(dwDayPhotos(L,pg,wk.start,wk.end));
+    }
+    const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${dwEsc(pn)} — ${title}</title><style>
+${dwFontCSS()}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;color:#1b1e22;font-size:12.5px;line-height:1.45;background:#fff;padding:12px}
+@page{size:A4 landscape;margin:10mm}
+.bar{position:sticky;top:0;display:flex;gap:8px;justify-content:flex-end;padding:8px 0 10px;background:#fff}
+.bar button{height:44px;padding:0 18px;border:0;border-radius:10px;background:#1f4e79;color:#fff;font:600 15px 'Sarabun',sans-serif;cursor:pointer}
+.hdr{display:flex;align-items:center;gap:14px;padding-bottom:8px;border-bottom:2px solid #1b1e22;margin-bottom:10px}
+.doc-logo{height:38px;width:auto;object-fit:contain}
+.ht{flex:1;display:flex;flex-direction:column}.ht b{font-size:18px}.ht span{font-size:12.5px;color:#3a3f45}
+.hr{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.hr b{font-size:15px}.hr span{font-size:12px;color:#3a3f45}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl img{width:100%;max-height:150mm;object-fit:contain;border:1px solid #c9c3b8;display:block}
+.lg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#3a3f45}
+.lg span{display:flex;align-items:center;gap:6px}.lg i{width:14px;height:11px;border:1px solid;display:inline-block}
+.rc{display:flex;flex-direction:column;gap:10px}
+.big{border:1.5px solid ${DW_TODAY};border-radius:8px;padding:8px 12px;display:flex;flex-direction:column}
+.big span{font-size:12.5px;color:#3a3f45}.big b{font-size:22px}.big em{font-style:normal;color:#9a3f0e}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-weight:700;border-bottom:1.5px solid #1b1e22;padding:4px 4px;text-align:right}
+td{border-bottom:1px solid #c9c3b8;padding:4px 4px;text-align:right}
+.l{text-align:left}tr.sum td{font-weight:700;border-bottom:0}tr.cur td{font-weight:700;background:#fdf3ec}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tiles div{border:1px solid #c9c3b8;border-radius:6px;padding:6px 8px;display:flex;flex-direction:column}
+.tiles div.hl{border:1.5px solid ${DW_TODAY}}.tiles div.hl b{color:#9a3f0e}
+.tiles span{font-size:12px;color:#3a3f45}.tiles b{font-size:16px}.tiles small{font-size:12px;color:#3a3f45}
+.cmp{font-size:13px}
+h3{font-size:14px;margin-top:2px}
+.ph{margin-top:12px;break-before:auto}.ph h3{margin-bottom:6px}
+.pg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.pg figure{break-inside:avoid}.pg img{width:100%;height:34mm;object-fit:cover;border:1px solid #c9c3b8;display:block}
+.pg figcaption{font-size:12px;color:#3a3f45}
+.ft{margin-top:10px;padding-top:5px;border-top:1px solid #c9c3b8;display:flex;justify-content:space-between;font-size:12px;color:#5b6168}
+@media print{.bar{display:none!important}body{padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+@media (max-width:760px){.grid{grid-template-columns:1fr}.pg{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style></head><body>
+<div class="bar"><button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button></div>
+${body}
+<div class="ft"><span>${kind==='day'?'รายวัน':'รายสัปดาห์'} · หมวด ${dwEsc(lay.name)} · ${dwEsc(getPageLabel(pg))}</span><span>พิมพ์เมื่อ ${dwThLong(dwISO(new Date()))}</span></div>
+</body></html>`;
+    showPrintResult(w,html);
+  }catch(err){
+    console.error(err);
+    closePrintWin(w); alert('สร้างรายงานไม่สำเร็จ: '+(err&&err.message||err));
+  }
+}
+document.addEventListener('keydown',e=>{if(!dwOn||e.key!=='Escape')return;dwCloseSheets();dwToggleMenu(false);if(dwTool==='scope')dwSetTool('room');});
+document.addEventListener('pointerdown',e=>{if(!dwOn)return;const m=document.getElementById('dwMenu');if(m.classList.contains('open')&&!m.contains(e.target)&&!e.target.closest('.dw-pri'))dwToggleMenu(false);},true);
+</script>
+
+<script>
+// ════════════════ rev 8: เมนูเด้งลงไม่โดนแถบหัวตัด ════════════════
+// แถบหัว (.hd) ตัดทุกอย่างที่ล้นออกนอกแถบ → ย้ายเมนูที่เปิดอยู่ไปลอยเหนือทุกอย่าง วางใต้ปุ่มที่กด และไม่ให้ล้นขอบจอ
+function placeMenu(m,btn){
+  const a=(btn&&btn.getBoundingClientRect)?btn:(m.parentElement||m);
+  const r=a.getBoundingClientRect(), vw=window.innerWidth, vh=window.innerHeight;
+  m.style.position='fixed'; m.style.zIndex='10030'; m.style.right='auto';
+  m.style.top=Math.round(r.bottom+6)+'px';
+  m.style.maxHeight=Math.max(160,vh-r.bottom-16)+'px'; m.style.overflowY='auto';
+  const w=m.offsetWidth;
+  let left=m.classList.contains('right')?r.right-w:r.left;
+  left=Math.max(8,Math.min(left,vw-w-8));
+  m.style.left=Math.round(left)+'px';
+}
+const _rev8Toggle=toggleMenu;
+toggleMenu=function(id,btn){
+  _rev8Toggle(id,btn);
+  const m=document.getElementById(id);
+  if(m&&!m.hidden&&!m.classList.contains('pdf-choice'))placeMenu(m,btn);
+};
+window.addEventListener('resize',()=>{try{closeMenus();}catch(e){}});
 </script>
 </body>
 </html>
