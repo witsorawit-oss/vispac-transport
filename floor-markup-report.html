@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report · rev 9</title>
+<title>Floor Markup Report · rev 24</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -367,6 +367,17 @@ input[type=file]{display:none}
 /* กล่องพรีวิวรายการที่สแกนได้จาก BOQ */
 .po-parsed{background:var(--bg3);border:1px solid var(--accent);border-radius:8px;padding:9px;margin-bottom:8px;max-height:46%;overflow-y:auto}
 .po-parsed-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+/* rev 13: หัวกล่อง (มีปุ่มยืนยัน) ค้างอยู่บนสุดของกล่องเสมอ ไม่เลื่อนหายไปกับรายการ */
+.po-parsed .po-parsed-h{position:sticky;top:-9px;z-index:3;background:var(--bg3);margin:-9px -9px 7px;padding:9px;border-bottom:1px solid var(--border2)}
+.po-steps{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:11.5px;flex-wrap:wrap}
+.po-steps span{display:flex;align-items:center;gap:5px;color:var(--text2);padding:3px 8px;border-radius:12px;border:1px solid var(--border2)}
+.po-steps span i{font-style:normal;width:17px;height:17px;border-radius:50%;background:var(--bg3);display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700}
+.po-steps span.on{color:var(--text);border-color:var(--accent);background:rgba(244,167,38,.12)}
+.po-steps span.on i{background:var(--accent);color:#111}
+.po-steps span.ok{color:var(--green);border-color:var(--green)}
+.po-steps span.ok i{background:var(--green);color:#111}
+.po-conv{font-size:11px;color:var(--accent);background:rgba(244,167,38,.1);border-radius:6px;padding:5px 7px;line-height:1.45}
+.po-conv a{color:var(--text2);margin-left:4px}
 .po-parsed-h b{font-size:12px;color:var(--accent)}
 .po-parsed-h button{background:var(--accent);border:none;border-radius:6px;color:#1a1d24;font-family:'Sarabun';font-weight:700;font-size:11.5px;padding:6px 11px;cursor:pointer}
 .po-parsed-h button:disabled{opacity:.4;cursor:not-allowed}
@@ -752,12 +763,13 @@ input.ro{opacity:.75;pointer-events:none}
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report <span class="rev-tag">rev 9</span>
+    Markup Report <span class="rev-tag">rev 24</span>
   </div>
   <div class="hd-fields">
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
-    <div class="fld"><label>ชื่อแผ่นนี้</label><input id="pageName" placeholder="เช่น ชั้น 1, Basement" value="" style="min-width:110px" oninput="onPageNameChange()"></div>
-    <div class="fld"><label>พื้นที่แผ่นนี้</label><input id="pageArea" type="number" placeholder="ตร.ม." value="" style="min-width:70px" oninput="onPageAreaChange()"><span style="font-size:11px;color:var(--text2)">ตร.ม.</span></div>
+    <div class="fld"><label>ชั้น</label><input id="pageFloorIn" placeholder="เช่น 4, B1" value="" style="min-width:60px;width:76px" oninput="onPageFloorChange()" title="ชั้นของแผ่นนี้ — ใช้เป็นหัวรายงาน และแผ่นที่ชั้นเดียวกันจะรวมเป็นบรรทัดเดียวในใบสรุป"></div>
+    <div class="fld"><label>โซน / ส่วน</label><input id="pageName" placeholder="ถ้ามี เช่น ปีกซ้าย, โซน B" value="" style="min-width:150px" oninput="onPageNameChange()" title="ใส่เมื่อชั้นเดียวกันมีแบบหลายแผ่น — หัวรายงานจะเป็น ชั้น 5 · ปีกซ้าย"></div>
+    <div class="fld" style="display:none"><input id="pageArea" type="number" oninput="onPageAreaChange()"></div>
   </div>
   <div class="hd-actions">
     <span class="save-st" id="saveSt" title="สถานะบันทึกลงเครื่องอัตโนมัติ"><i></i><span>ยังไม่มีงาน</span></span>
@@ -784,11 +796,14 @@ input.ro{opacity:.75;pointer-events:none}
       <button class="hbtn" onclick="openMeeting()" title="บันทึกการประชุม">📝<span class="t"> ประชุม</span></button>
     </span>
     <span class="hgrp" style="border-right:0;padding-right:0">
-      <button class="hbtn" onclick="openDeliv()" title="ใบส่งงาน — จัดการรอบส่งงาน แล้วพิมพ์">📦<span class="t"> ใบส่งงาน</span></button>
+      <button class="hbtn" id="delivBtn" onclick="openDeliv()" title="ใบส่งงาน — จัดการรอบส่งงาน แล้วพิมพ์">📦<span class="t"> ใบส่งงาน</span></button>
       <span class="menu-wrap">
         <button class="hbtn pri" type="button" onclick="toggleMenu('outMenu',this)" aria-haspopup="true" title="พิมพ์ / ส่งออก">🖨<span class="t"> พิมพ์ / ส่งออก</span> ▾</button>
         <div class="hmenu right" id="outMenu" role="menu" hidden>
-          <button type="button" onclick="closeMenus();openPrintPick()">🖨 พิมพ์รายงาน</button>
+          <button type="button" onclick="closeMenus();openBookReport()">🖨 รายงานความคืบหน้า ประจำสัปดาห์ (A4)</button>
+          <button type="button" onclick="closeMenus();openFloorReport()">🏢 รายงานความคืบหน้า + ใบสรุป (A3)</button>
+          <button type="button" onclick="closeMenus();openPrintPick()">📄 รายงานประจำเดือนแบบเดิม</button>
+          <button type="button" onclick="closeMenus();openFloorQty()">📊 ปริมาณรายชั้น</button>
           <button type="button" onclick="closeMenus();exportExcel()">📗 ส่งออกเอ็กเซล</button>
           <button type="button" onclick="closeMenus();openDashboard()">📊 สรุปภาพรวม</button>
         </div>
@@ -815,6 +830,7 @@ input.ro{opacity:.75;pointer-events:none}
         <div class="pill" data-tool="highlight" onclick="setTool('highlight',this)">🖌️ ไฮไลท์</div>
         <div class="pill" data-tool="pan" onclick="setTool('pan',this)" title="โหมดเลื่อน: ลากเพื่อเลื่อนแบบ แตะสองครั้งเพื่อซูมเข้า">✋ เลื่อน</div>
       </div>
+      <div class="sticky-bar" id="stickyBar" style="display:none" title="รายการที่จะติ๊กให้เองเมื่อระบายพื้นที่ใหม่ — ค้างไว้จนกว่าจะเปลี่ยน"><span>รายการค้าง</span><select id="stickyItem" onchange="stickySet(this.value)"></select></div>
       <div class="pnav" style="gap:3px">
         <button id="undoBtn" onclick="doUndo()" title="ย้อนกลับ (Ctrl+Z)" disabled>↶</button>
         <button id="redoBtn" onclick="doRedo()" title="ทำซ้ำ (Ctrl+Y)" disabled>↷</button>
@@ -842,6 +858,9 @@ input.ro{opacity:.75;pointer-events:none}
           <div class="hm-t">การแสดงผล</div>
           <label class="set-tg"><input type="checkbox" id="grayToggle" onchange="toggleGray()"> แบบเป็นสีเทาดำ</label>
           <label class="set-tg"><input type="checkbox" id="autoColorToggle" checked onchange="toggleAutoColor()"> สีไม่ซ้ำกันอัตโนมัติ</label>
+          <div class="hm-t">เครื่องมือเสริม</div>
+          <label class="set-tg"><input type="checkbox" id="featDelivToggle" onchange="setFeat('deliv',this.checked)"> ใช้งานใบส่งงาน</label>
+          <label class="set-tg"><input type="checkbox" id="featIssueToggle" onchange="setFeat('issue',this.checked)"> ใช้งานพื้นที่ติดปัญหา</label>
           <button type="button" id="sideToggleBtn" onclick="closeMenus();toggleSide()">⏵ ข้อมูล</button>
         </div>
       </span>
@@ -949,6 +968,7 @@ input.ro{opacity:.75;pointer-events:none}
           <span>📄 ดึงรายการจากเอกสาร</span>
           <div class="po-pane-tools">
             <button onclick="closePoManager();openScan()" title="อ่านตารางวัสดุ/BOQ จากแบบที่โหลดอยู่">🔍 ดึงจากแบบที่โหลดอยู่</button>
+            <button onclick="closePoManager();openFloorQty()" title="ปริมาณของแต่ละรายการในแต่ละชั้น">📊 ปริมาณรายชั้น</button>
             <button onclick="document.getElementById('poPdfIn').click()" title="เปิดไฟล์ BOQ แยกต่างหาก แล้วจิ้มบรรทัดเอง">📄 เปิดไฟล์ BOQ อื่น</button>
             <span id="poPgNav" style="display:none">
               <button onclick="poPage(-1)">◀</button>
@@ -958,13 +978,14 @@ input.ro{opacity:.75;pointer-events:none}
             <button onclick="poAutoParse()" id="poScanBtn" style="display:none">อ่านรายการจากไฟล์นี้</button>
           </div>
         </div>
+        <div class="po-steps" id="poSteps"></div>
         <div class="po-parsed" id="poParsedBox" style="display:none"></div>
         <div class="po-lines" id="poLines"><div class="po-empty">ดึงรายการเข้าที่นี่ได้จาก <b style="color:var(--accent)">🔍 ดึงจากแบบที่โหลดอยู่</b><br><small>ใช้ไฟล์แบบที่โหลดอยู่ · อ่านทั้งตารางวัสดุในแบบและใบ BOQ<br>หรือกด "เปิดไฟล์ BOQ อื่น" ถ้าต้องการดึงจากไฟล์แยก แล้วจิ้มบรรทัดเอง</small></div></div>
       </div>
       <div class="po-pane">
         <div class="po-pane-h">
           <span>🧾 ตารางรายการ</span>
-          <div class="po-pane-tools"><button onclick="syncPoToMarkups()" title="จับคู่รายการ PO กับ markup ที่ทำไว้แล้วโดยอัตโนมัติ">🔗 จับคู่กับ markup</button><button onclick="addPoItem()">➕ เพิ่มเอง</button></div>
+          <div class="po-pane-tools"><button onclick="syncPoToMarkups()" title="เสนอคู่รายการ PO กับพื้นที่ที่ระบายไว้แต่ยังไม่ผูก ให้ตรวจแล้วติ๊กยืนยัน">🔗 จับคู่กับพื้นที่</button><button onclick="addPoItem()">➕ เพิ่มเอง</button></div>
         </div>
         <div class="po-items" id="poItemsList"></div>
       </div>
@@ -1105,8 +1126,14 @@ input.ro{opacity:.75;pointer-events:none}
 </div>
 <div class="mkpop-overlay" id="printOverlay" style="display:none">
   <div class="mkpop">
-    <div class="mkpop-head"><span>🖨 เลือกหมวดงานที่จะพิมพ์</span></div>
+    <div class="mkpop-head"><span>🖨 พิมพ์รายงาน — เลือกหมวดงานและรูปแบบ</span></div>
     <div class="mkpop-body" id="printBody"></div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);font-size:12px">
+      <b>รูปแบบรายงาน</b><br>
+      <label><input type="radio" name="reportAudience" value="external" checked> เจ้าของงาน / ที่ปรึกษา — ไม่มีราคาและมูลค่า</label><br>
+      <label><input type="radio" name="reportAudience" value="internal"> ใช้ภายในบริษัท — แสดงความคืบหน้าถ่วงตามมูลค่า</label>
+      <div style="color:var(--text2);font-size:11px;margin-top:5px">ก่อนส่งให้ตรวจไฟล์แบบต้นฉบับและข้อความที่พิมพ์เองด้วย — อาจมีราคาอยู่ในภาพแบบหรือหมายเหตุ</div>
+    </div>
     <div class="mkpop-btns">
       <button style="flex:1;background:var(--bg3);color:var(--text)" onclick="closePrintPick()">ยกเลิก</button>
       <button style="flex:1;background:var(--accent);color:#111;border-color:var(--accent)" id="printGo" onclick="doPrintPick()">🖨 พิมพ์</button>
@@ -1143,6 +1170,15 @@ input.ro{opacity:.75;pointer-events:none}
         <div class="mk-fld"><label>ตำแหน่ง / ห้อง</label><input id="mkPopNote" placeholder="เช่น ห้องประชุม ชั้น 2"></div>
         <div class="mk-fld"><label>พื้นที่บนแบบ (ตร.ม.)</label><input id="mkPopArea" type="number" inputmode="decimal" placeholder="0" oninput="mkPopAreaInput(this.value)"><div class="mk-hint-rem" id="mkPopAreaRem" style="display:none"></div></div>
       </div>
+      <div class="mk-fld" id="mkPopIssue" style="display:none"><label>สาเหตุที่เข้าทำงานไม่ได้</label>
+        <select id="mkPopCause" onchange="document.getElementById('mkPopCauseTx').style.display=this.value==='อื่นๆ'?'block':'none'"></select>
+        <input id="mkPopCauseTx" placeholder="พิมพ์สาเหตุ" style="display:none;margin-top:6px">
+        <label style="margin-top:8px">วันที่คาดว่าเข้าได้</label><input id="mkPopExpect" type="date"></div>
+      <div class="mk-fld" id="mkPopQuick"><label>สถานะงาน <span style="font-weight:400;color:var(--text2)">(เลือกวันที่ค้างไว้ แล้วกดปุ่ม — บันทึกทันที)</span></label>
+        <div class="qs-row"><input type="date" id="qsDate" onchange="qsSetDate(this.value)" title="วันที่ที่ใช้กับปุ่มเสร็จ / กำลังทำ — ค้างไว้จนกว่าจะเปลี่ยน">
+          <button type="button" class="qs-b done" onclick="qsApply('done')">✔ เสร็จ</button>
+          <button type="button" class="qs-b wip" onclick="qsApply('wip')">⏳ กำลังทำ</button>
+          <button type="button" class="qs-b plan" onclick="qsApply('plan')">🗓 แผน</button></div></div>
       <div class="mkpop-row">
         <div class="mk-fld"><label>วันเริ่ม</label><input id="mkPopStart" type="date"></div>
         <div class="mk-fld"><label>วันเสร็จ</label><input id="mkPopEnd" type="date"></div>
@@ -1182,6 +1218,8 @@ let WORKER_MODE='ยังไม่ตั้ง';
     const url=URL.createObjectURL(new Blob([src],{type:'application/javascript'}));
     pdfjsLib.GlobalWorkerOptions.workerSrc=url;
     WORKER_MODE='ฝังในไฟล์';
+    // สร้างตัวประมวลผลเองแล้วส่งให้ pdf.js ตรง ๆ — เปิดไฟล์จากเครื่อง (file://) pdf.js จะไม่ต้องโหลดซ้อนผ่าน importScripts ซึ่งเบราว์เซอร์ปฏิเสธ
+    try{ pdfjsLib.GlobalWorkerOptions.workerPort=new Worker(url); WORKER_MODE='ฝังในไฟล์ (ส่งตรง)'; }catch(e2){ console.warn('สร้างตัวประมวลผลเองไม่ได้:',e2&&e2.message); }
   }catch(e){
     pdfjsLib.GlobalWorkerOptions.workerSrc=CDN;   // ทางสำรองสุดท้าย ต้องมีเน็ต
     WORKER_MODE='CDN (สำรอง)';
@@ -1195,11 +1233,19 @@ async function ensureWorkerOk(){
   if(workerOk!==null)return workerOk;
   try{
     if(typeof Worker==='undefined')throw new Error('เบราว์เซอร์นี้ไม่รองรับ Web Worker');
-    const w=new pdfjsLib.PDFWorker({name:'health-check'});
-    await w.promise;
-    workerOk=!!(w.port&&w.port instanceof Worker);
-    try{w.destroy();}catch(e){}
-  }catch(e){ workerOk=false; }
+    const direct=pdfjsLib.GlobalWorkerOptions.workerPort;
+    if(direct){ // ตัวประมวลผลที่สร้างเอง: ตรวจผ่านช่องทางเดียวกับที่ใช้เปิดแบบจริง และไม่ปิดทิ้ง (ใช้ร่วมกันทั้งแอป)
+      const w=pdfjsLib.PDFWorker.fromPort({port:direct});
+      await Promise.race([w.promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error('หมดเวลา')),8000))]);
+      workerOk=!!(w.port&&w.port instanceof Worker);
+    }else{
+      const w=new pdfjsLib.PDFWorker({name:'health-check'});
+      await w.promise;
+      workerOk=!!(w.port&&w.port instanceof Worker);
+      try{w.destroy();}catch(e){}
+    }
+    if(!workerOk&&direct){ try{direct.terminate();}catch(e){} pdfjsLib.GlobalWorkerOptions.workerPort=null; }
+  }catch(e){ workerOk=false; try{ const d=pdfjsLib.GlobalWorkerOptions.workerPort; if(d){d.terminate();pdfjsLib.GlobalWorkerOptions.workerPort=null;} }catch(_){} }
   if(!workerOk){
     alert('⚠️ ส่วนประมวลผล PDF (worker) เริ่มทำงานไม่สำเร็จ\n\n'+
           'แอพยังเปิดแบบได้ แต่จะทำงานบนเธรดหลักแทน — หน้าจออาจ "ค้าง" '+
@@ -1233,10 +1279,16 @@ const PLAN_LAYER={key:'plan', name:'แผนงาน (คาดการณ์
 // ชั้น "ใบส่งงาน" = ขอบเขตที่ส่งมอบงานแต่ละรอบ แยกออกจากงานจริงเด็ดขาดเช่นเดียวกับแผนงาน
 // (วาดทับพื้นที่เดิมได้ ไม่กระทบยอดความคืบหน้า/BOQ — เพราะเป็นคนละเรื่องกับการติดตามงาน)
 const DELIV_LAYER={key:'deliv', name:'ใบส่งงาน', color:'#ef4444', visible:true, planning:true};
-const ALL_LAYERS=[...LAYERS,PLAN_LAYER,DELIV_LAYER];   // ใช้ตอนวาด/แสดงผลเท่านั้น
+// rev 14: ชั้น "ติดปัญหา" = พื้นที่ที่ยังเข้าทำงานไม่ได้ ไม่นับเป็นความคืบหน้า
+const ISSUE_LAYER={key:'issue', name:'ติดปัญหา', color:'#C0392B', visible:true, planning:true};
+const ALL_LAYERS=[...LAYERS,PLAN_LAYER,DELIV_LAYER,ISSUE_LAYER];
+// rev 15: เปิด/ปิดการใช้งาน "ใบส่งงาน" และ "ติดปัญหา" — ปิดแล้วแท็บ ปุ่ม และพื้นที่บนแบบหายไป (ข้อมูลไม่ถูกลบ)
+let featDeliv=false, featIssue=false;
+const featOn=l=>!((l.key==='deliv'&&!featDeliv)||(l.key==='issue'&&!featIssue));   // ใช้ตอนวาด/แสดงผลเท่านั้น
 const isPlanMk=m=>m.layer==='plan';
 const isDelivMk=m=>m.layer==='deliv';
-const wmk=()=>markups.filter(m=>!isPlanMk(m)&&!isDelivMk(m));                    // งานจริง (ใช้คิดความคืบหน้าทุกที่)
+const isIssueMk=m=>m.layer==='issue';
+const wmk=()=>markups.filter(m=>!isPlanMk(m)&&!isDelivMk(m)&&!isIssueMk(m));                    // งานจริง (ใช้คิดความคืบหน้าทุกที่)
 const pmk=pid=>markups.filter(m=>isPlanMk(m)&&(pid==null||m.planId===pid));      // markup ของแผนงาน
 const dmk=()=>markups.filter(isDelivMk);                                         // markup ของใบส่งงาน
 // เลข markup รันแยกตามชั้นงาน — งานเทปรับพื้น 1,2,3… / งานติดตั้ง 1,2,3… / แผนงาน / ใบส่งงาน ต่างชุดกัน
@@ -1361,6 +1413,7 @@ function cancelMulti(){setMulti(null);}
 function layerZone(layerKey){
   if(layerKey==='plan')return 'แผนงาน (คาดการณ์)';
   if(layerKey==='deliv')return 'ใบส่งงาน';
+  if(layerKey==='issue')return 'พื้นที่ติดปัญหา';
   const l=LAYERS.find(x=>x.key===layerKey);
   return l?l.name:'งานติดตั้งกระเบื้องยาง';
 }
@@ -1717,7 +1770,7 @@ function applyGray(){} // kept for compatibility (no-op, handled via CSS now)
 // ── LAYER UI
 function renderLayerBar(){
   const bar=document.getElementById('layerBar');
-  bar.innerHTML=ALL_LAYERS.map(l=>{
+  bar.innerHTML=ALL_LAYERS.filter(featOn).map(l=>{
     const isPlan=l.key==='plan';
     const cnt=isPlan?pmk(planSel).length:markups.filter(m=>m.layer===l.key).length;
     const cur=isPlan?(plans.find(p=>p.id===planSel)||{}):null;
@@ -1743,7 +1796,7 @@ function addLayer(){
   const color=LAYER_COLORS[LAYERS.filter(l=>l.custom).length%LAYER_COLORS.length];
   const nl={key,name,color,visible:true,custom:true};
   LAYERS.push(nl);
-  ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+  ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER,ISSUE_LAYER);
   activeLayer=key;
   buildSwatches(); renderLayerBar(); renderList(); redraw(); renderProgress(); updateSideTitle();
 }
@@ -1754,7 +1807,7 @@ function delLayer(key){
   pushHistory();
   markups=markups.filter(m=>m.layer!==key);
   LAYERS.splice(LAYERS.indexOf(l),1);
-  ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+  ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER,ISSUE_LAYER);
   if(activeLayer===key)activeLayer=LAYERS[0].key;
   buildSwatches(); renderLayerBar(); renderList(); redraw(); renderProgress(); renderInsights(); updateSideTitle();
 }
@@ -2299,23 +2352,30 @@ function onPoAreaMgr(v){
 }
 function syncPoAreaMgr(){ const el=document.getElementById('poAreaMgr'); if(el)el.value=poArea||''; }
 function openPoManager(){
-  syncPoAreaMgr();
+  syncPoAreaMgr(); setTimeout(poStepsRender,0);
   renderPoItems(); renderPoLines();
   showOverlay('poOverlay');
 }
+function poDropBlank(){
+  const used=new Set(); markups.forEach(m=>mkItems(m).forEach(x=>used.add(String(x.id))));
+  const before=poItems.length;
+  poItems=poItems.filter(it=>String(it.name||'').trim()||parseFloat(it.qty)>0||parseFloat(it.price)>0||used.has(String(it.id)));
+  return before-poItems.length;
+}
 function closePoManager(){
+  if(poDropBlank())try{Autosave.mark();}catch(_){}
   document.getElementById('poOverlay').style.display='none';
   renderList(); // การ์ด/ป้ายอาจต้องอัปเดตชื่อ item
 }
 function addPoItem(name,qty,unit,boqId){
   ensureBoq();
-  poItems.push({id:Date.now()+Math.random(),name:name||'',qty:qty||'',unit:unit||'',boqId:boqId||boqSel});
+  poItems.push({id:Date.now()+Math.random(),name:name||'',qty:qty||'',unit:unit||'',price:'',boqId:boqId||boqSel});
   renderPoItems();
   if(!name)setTimeout(()=>{const els=document.querySelectorAll('#poItemsList .po-it input');const last=els[els.length-2];if(last)last.focus();},60);
 }
 function updPoItem(id,k,v){const it=poItems.find(x=>x.id===id);if(it)it[k]=v;renderPoSum();}
 function delPoItem(id){
-  const used=markups.some(m=>mkItems(m).includes(String(id)));
+  const used=markups.some(m=>mkItems(m).some(x=>String(x.id)===String(id)));
   if(used&&!confirm('มี markup ที่ผูกกับ item นี้อยู่ — ลบ item แล้ว markup เหล่านั้นจะไม่ระบุ item\nยืนยันลบ?'))return;
   poItems=poItems.filter(x=>x.id!==id);
   markups.forEach(m=>{
@@ -2350,6 +2410,7 @@ function delBoq(id){
   boqSel=boqs[0].id;
   renderPoItems(); renderList(); renderProgress();
 }
+function poEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function renderPoItems(){
   ensureBoq();
   const el=document.getElementById('poItemsList');
@@ -2376,11 +2437,14 @@ function renderPoItems(){
     const pct=parseFloat(it.qty)>0?d/parseFloat(it.qty)*100:null;
     html+=`<div class="po-it">
       <span class="no">${i+1}</span>
-      <input value="${(it.name||'').replace(/"/g,'&quot;')}" placeholder="ชื่องาน" onchange="updPoItem(${it.id},'name',this.value)">
+      <input value="${poEsc(it.name||'')}" placeholder="ชื่องาน" onchange="updPoItem(${it.id},'name',this.value)">
       <input type="number" inputmode="decimal" value="${it.qty||''}" placeholder="0" style="text-align:right" onchange="updPoItem(${it.id},'qty',this.value)">
       <input type="number" inputmode="decimal" value="${it.price||''}" placeholder="บาท" title="ราคาต่อหน่วย — ใส่ครบทุกรายการ รายงานจะคิดภาพรวมแบบถ่วงตามมูลค่า" style="text-align:right" onchange="updPoItem(${it.id},'price',this.value)">
       <span class="done" style="color:${pct!=null&&pct>=100?'var(--green)':'var(--text)'}"><b>${d.toLocaleString()}</b>${pct!=null?fmtPct(pct):'-'}</span>
       <button onclick="delPoItem(${it.id})" title="ลบ">✕</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 9px 18px;font-size:11px;color:var(--text2)">
+      <label>หน่วย <input style="width:65px;padding:4px" value="${poEsc(it.unit||'')}" onchange="updPoItem(${it.id},'unit',this.value)"></label>
     </div>`;
   });
   el.innerHTML=html;
@@ -2438,7 +2502,9 @@ function poPickLine(el){
   let name=text;
   if(qty){const i=text.lastIndexOf(nums[nums.length-1]);name=(text.slice(0,i)+' '+text.slice(i+nums[nums.length-1].length)).trim();}
   name=name.replace(/(ตร\.?ม\.?|SQ\.?M\.?|sq\.?m\.?|m2|ตารางเมตร|บาท|฿)/gi,'').replace(/\s+/g,' ').trim();
-  addPoItem(name||text,qty);
+  poParsed.push({name:name||text,qty,unit:'',price:'',dup:poIsDup(name||text)});
+  document.getElementById('poParsedBox').style.display='block';
+  renderPoParsed();
   el.classList.add('used');
 }
 
@@ -2515,33 +2581,92 @@ async function poAutoParse(){
     renderPoParsed();
   }catch(err){box.innerHTML='<div class="po-empty">สแกนไม่ได้: '+err.message+'</div>';}
 }
+function poDraftSet(i,key,value){if(poParsed[i]){poParsed[i][key]=value;if(poParsed[i].bad){poParsed[i].bad='';const e=document.getElementById('poPrErr'+i);if(e)e.textContent='';}}}
+// rev 12: ตัวช่วยตรวจรายการซ้ำ (เทียบชื่อแบบไม่สนช่องว่าง/ตัวพิมพ์ — ทั้งกับ BOQ และกับร่างที่รอนำเข้า)
+const poNameKey=s=>String(s||'').toLowerCase().replace(/\s+/g,'');
+function poIsDup(name){
+  const k=poNameKey(name); if(!k)return false;
+  if(poItems.some(p=>poNameKey(p.name)===k)||poParsed.some(p=>poNameKey(p.name)===k))return true;
+  const toks=(String(name).match(/[A-Za-z]{1,4}-?\d{2,}[A-Za-z0-9]*/g)||[]).map(poNameKey).filter(t=>t.length>=4);
+  return toks.some(t=>poItems.some(p=>poNameKey(p.name).includes(t)));   // รหัสสินค้าเดียวกันอยู่ใน BOQ แล้ว
+}
+// ชื่อวัสดุจากตารางในแบบ: ถ้าชื่อสินค้ามีรหัสอยู่แล้ว ไม่ต้องเติมรหัสซ้ำ ("4E F4E No.RK013" → "F4E No.RK013")
+function poLegendName(l){ return ((l.product&&l.code&&poNameKey(l.product).includes(poNameKey(l.code)))?l.product:[l.code,l.product].filter(Boolean).join(' ')).trim(); }
+// rev 13: รายการเหมางาน ("1 งาน") ที่ระบุพื้นที่ในชื่อ เช่น "(54 ตรม.)" → เสนอปริมาณเป็นพื้นที่แทน ทำครั้งเดียวต่อรายการ
+const PO_LUMP_RE=/^(งาน|เหมา|เหมางาน|ล็อต|lot|ls|l\.s\.?|job|ชุด)$/i;
+function poNormDraft(it){
+  if(!it||it._n)return; it._n=true;
+  const unit=String(it.unit||'').trim(), q=parseFloat(String(it.qty||'').replace(/,/g,''));
+  if(!(PO_LUMP_RE.test(unit)||!unit)||!(q===1||!it.qty))return;
+  const nm=String(it.name||'');
+  let m=[...nm.matchAll(/([\d,]+(?:\.\d+)?)\s*(?:ตร\.?\s*ม\.?|ตรม\.?|ตารางเมตร|m2|m²|sq\.?\s*m)/gi)].pop(), u='ตร.ม.';
+  if(!m){ m=[...nm.matchAll(/\(\s*([\d,]+(?:\.\d+)?)\s*(?:ม\.|เมตร|m\.?)\s*\)/gi)].pop(); u='ม.'; }
+  if(!m)return;
+  const v=parseFloat(m[1].replace(/,/g,'')); if(!(v>0))return;
+  it.conv={qty:it.qty||'-',unit:unit||'(ไม่มีหน่วย)'}; it.qty=String(v); it.unit=u;
+}
+function poDraftRevert(i){ const it=poParsed[i]; if(!it||!it.conv)return; it.qty=it.conv.qty==='-'?'':it.conv.qty; it.unit=/^\(/.test(it.conv.unit)?'':it.conv.unit; it.conv=null; renderPoParsed(); }
+function poStepsRender(){
+  const el=document.getElementById('poSteps'); if(!el)return;
+  const st=(typeof poMatchRows!=='undefined'&&poMatchRows.length)?4:(poParsed.length?3:(poDoc?2:1));
+  const L=[['1','เปิดไฟล์ใบเสนอราคา / บีโอคิว (หรือดึงจากแบบ)'],['2','กด "อ่านรายการจากไฟล์นี้" หรือจิ้มทีละบรรทัด'],['3','ตรวจแล้วกด "ยืนยัน นำเข้า" ที่หัวกล่อง'],['4','จับคู่กับพื้นที่ที่ระบายไว้']];
+  el.innerHTML=L.map(([n,t],k)=>`<span class="${k+1<st?'ok':(k+1===st?'on':'')}"><i>${k+1<st?'✓':n}</i>${t}</span>`).join('');
+}
 function renderPoParsed(){
+  poParsed.forEach(poNormDraft); setTimeout(poStepsRender,0);
   const box=document.getElementById('poParsedBox');
-  if(!poParsed.length){
-    box.innerHTML='<div class="po-empty">ไม่พบรายการรูปแบบ BOQ ในไฟล์นี้<br><small>ลองจิ้มบรรทัดจากด้านล่างเพื่อดึงเองทีละรายการ</small></div>';
-    return;
-  }
-  box.innerHTML=`<div class="po-parsed-h">
-      <b>🔍 พบ ${poParsed.length} รายการ</b>
-      <button onclick="poApplyParsed()">➕ เพิ่มรายการที่ติ๊ก</button>
-    </div>`+
-    poParsed.map((it,i)=>`<div class="po-parsed-row">
-      <input type="checkbox" id="poPr${i}" ${it.dup?'':'checked'}>
-      <label class="nm" for="poPr${i}">${it.name.replace(/</g,'&lt;')}${it.dup?' <span class="dup">· มีอยู่แล้ว</span>':''}</label>
-      <span class="qy">${(+it.qty).toLocaleString()} ${it.unit}</span>
+  if(!poParsed.length){box.innerHTML='<div class="po-empty">ไม่พบรายการที่อ่านได้ — สามารถจิ้มบรรทัดเพื่อเลือกเอง</div>';return;}
+  box.style.display='block';
+  box.innerHTML=`<div class="po-parsed-h" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <b>ตรวจและแก้ไข ${poParsed.length} รายการก่อนนำเข้า</b>
+      <button onclick="poApplyParsed()">✓ ยืนยัน นำเข้า ${poParsed.filter(x=>x.on!==undefined?x.on:!x.dup).length} รายการ</button>
+    </div><div class="sc-note">ตัวเลขที่อ่านได้เป็นค่าตั้งต้น แก้ได้ทุกช่อง · ตัวเลขที่เขียนด้วยมือให้พิมพ์เอง · รายการที่มีอยู่แล้วไม่ได้ติ๊กไว้ให้ · กดยืนยันแล้วจะเสนอการจับคู่กับพื้นที่ที่ระบายไว้ให้ตรวจอีกรอบ</div>`+
+    poParsed.map((it,i)=>`<div style="padding:9px 6px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px">
+      <label style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="poPr${i}" ${(it.on!==undefined?it.on:!it.dup)?'checked':''} onchange="if(poParsed[${i}])poParsed[${i}].on=this.checked"> รายการ ${i+1}${it.dup?' <span style="color:var(--accent)">· มีอยู่แล้ว</span>':''}</label>
+      ${it.byPage&&Object.keys(it.byPage).length>1?`<div style="font-size:11px;color:var(--text2)">พบใน ${Object.keys(it.byPage).length} แผ่น: ${Object.keys(it.byPage).map(pg=>'แผ่น '+pg+' = '+fmtQ(it.byPage[pg])).join(' · ')} — รวมเป็นรายการเดียว และใส่ปริมาณรายชั้นให้</div>`:''}
+      ${it.conv?`<div class="po-conv">เปลี่ยนจาก ${poEsc(it.conv.qty)} ${poEsc(it.conv.unit)} เป็น ${poEsc(it.qty)} ${poEsc(it.unit)} ตามที่เขียนในชื่อรายการ — เพื่อให้คิดความคืบหน้าตามพื้นที่ได้ · ถ้าใส่ราคา ให้เป็นราคาต่อ${poEsc(it.unit)} <a href="#" onclick="poDraftRevert(${i});return false">ใช้ตามเดิม</a></div>`:''}
+      <div id="poPrErr${i}" style="color:var(--red);font-size:11.5px">${it.bad?'⚠ '+poEsc(it.bad):''}</div>
+      <input aria-label="ชื่อรายการ" placeholder="ชื่อรายการ" value="${poEsc(it.name)}" oninput="poDraftSet(${i},'name',this.value)" style="width:100%;padding:6px">
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px">
+        <label>ปริมาณ<input type="number" min="0" step="any" value="${poEsc(it.qty)}" oninput="poDraftSet(${i},'qty',this.value)" style="width:100%;padding:5px"></label>
+        <label>หน่วย<input value="${poEsc(it.unit)}" placeholder="ตร.ม./เมตร/งาน" oninput="poDraftSet(${i},'unit',this.value)" style="width:100%;padding:5px"></label>
+        <label>ราคาขาย/หน่วย<input type="number" min="0" step="any" value="${poEsc(it.price||'')}" placeholder="ดูจากใบเสนอราคา" oninput="poDraftSet(${i},'price',this.value)" style="width:100%;padding:5px"></label>
+      </div>
     </div>`).join('');
 }
 function poApplyParsed(){
-  let n=0;
+  // ตรวจทุกแถวที่ติ๊กก่อน — ถ้ามีแถวผิดแม้แถวเดียว หยุดทั้งหมด ชี้แถวที่ผิด และไม่ล้างหน้าตรวจ (เดิมนำเข้าแถวที่ถูกแล้วทิ้งแถวที่ผิดไปเงียบๆ)
+  const chosen=[], bad=[];
   poParsed.forEach((it,i)=>{
+    it.bad='';
     const cb=document.getElementById('poPr'+i);
-    if(cb&&cb.checked){addPoItem(it.name,it.qty,it.unit);n++;}
+    if(!cb||!cb.checked)return;
+    const name=String(it.name||'').trim(), qty=String(it.qty==null?'':it.qty).trim().replace(/,/g,''), price=String(it.price==null?'':it.price).trim().replace(/,/g,'');
+    const okNum=v=>v===''||(Number.isFinite(Number(v))&&Number(v)>=0);
+    if(!name)it.bad='ยังไม่มีชื่อรายการ';
+    else if(!okNum(qty))it.bad='ปริมาณต้องเป็นตัวเลข';
+    else if(!okNum(price))it.bad='ราคาต้องเป็นตัวเลข';
+    if(it.bad){bad.push(i+1);return;}
+    chosen.push({name,qty,unit:String(it.unit||'').trim(),price,byPage:it.byPage});
   });
-  if(n){
-    document.getElementById('poParsedBox').style.display='none';
-    poParsed=[];
-    if(wmk().some(m=>!mkItems(m).length))syncPoToMarkups(); // มี markup ที่ยังไม่ผูก PO → จับคู่ให้เลย
-  }else alert('ยังไม่ได้ติ๊กรายการ');
+  if(bad.length){renderPoParsed();alert(`ยังนำเข้าไม่ได้ — แก้รายการที่ ${bad.join(', ')} ก่อน (ขึ้นตัวแดงไว้ให้)\n\nยังไม่มีรายการใดถูกบันทึก`);return;}
+  if(!chosen.length){alert('ยังไม่ได้ติ๊กรายการ');return;}
+  chosen.forEach(it=>{
+    addPoItem(it.name,it.qty,it.unit);
+    const d=poItems[poItems.length-1]; d.price=it.price;
+    // มาจากตารางวัสดุหลายแผ่น → ใส่ปริมาณรายชั้นให้ด้วย (เมื่อยอดรวมยังตรงกับปริมาณที่กดยืนยัน)
+    if(it.byPage&&Object.keys(it.byPage).length>1){
+      const tot=Object.values(it.byPage).reduce((a,v)=>a+v,0);
+      if(Math.abs(tot-(parseFloat(it.qty)||0))<0.01){ d.pq={}; Object.keys(it.byPage).forEach(pg=>{ if(it.byPage[pg]>0)d.pq[pg]=it.byPage[pg]; }); }
+    }
+  });
+  renderPoItems();
+  poParsed=[];
+  const box=document.getElementById('poParsedBox'); box.style.display='none'; box.innerHTML='';
+  try{Autosave.mark();}catch(_){}
+  // นำเข้าแล้ว → ถ้ามีพื้นที่ที่ระบายไว้แต่ยังไม่ผูกรายการ เสนอคู่ให้ตรวจ (ไม่ผูกเองโดยไม่ถาม)
+  if(wmk().some(m=>!mkItems(m).length))poMatchPropose(`นำเข้าแล้ว ${chosen.length} รายการ ✓`);
+  else alert(`นำเข้าแล้ว ${chosen.length} รายการ ✓`);
 }
 
 // ══════ ตัวจับคู่ PO กลาง — ใช้ร่วมกันทุกทาง (ปุ่มจับคู่, ปักหมุด, นำเข้าจากสแกน) ══════
@@ -2579,27 +2704,64 @@ function poMatchFor(opt){
   }
   return {item:null,reason:'none'};
 }
-function syncPoToMarkups(){
+function syncPoToMarkups(){ poMatchPropose(''); }
+// rev 12: เสนอการจับคู่ "รายการ PO ↔ พื้นที่ที่ระบายไว้แต่ยังไม่ผูก" ให้ตรวจและติ๊กยืนยันก่อน
+let poMatchRows=[];
+function poMatchPropose(head){
   if(!poItems.length){alert('ยังไม่มีรายการ PO ให้จับคู่');return;}
-  const targets=wmk().filter(m=>!mkItems(m).length); // เฉพาะงานจริงที่ยังไม่ผูกรายการ (ไม่แตะที่ติ๊กไว้แล้ว/ไม่แตะแผนงาน)
-  if(!targets.length){alert('markup ทุกจุดผูกรายการ PO ไว้แล้ว ✓');return;}
-  let linked=0; const ambig={}, nomatch={};
-  pushHistory();
-  targets.forEach(m=>{
-    const lname=(LAYERS.find(l=>l.key===m.layer)||{}).name||m.layer;
-    const r=poMatchFor({layer:m.layer,code:m.roomCode||''});   // ใช้ตัวจับคู่กลางตัวเดียวกับปักหมุด
-    if(r.item){ m.items=[{id:String(r.item.id),qty:m.area||'',locked:true}]; m.item=''; linked++; }
-    else if(r.reason==='ambiguous')ambig[lname]=(ambig[lname]||0)+1;
-    else nomatch[lname]=(nomatch[lname]||0)+1;
+  const targets=wmk().filter(m=>!mkItems(m).length);
+  if(!targets.length){alert((head?head+'\n\n':'')+'พื้นที่ทุกจุดผูกรายการไว้แล้ว ✓');return;}
+  poMatchRows=targets.sort((a,b)=>a.page-b.page||mkNo(a)-mkNo(b)).map(m=>{
+    const opts=poItemsForPage(m.page);
+    let r=poMatchFor({layer:m.layer,code:m.roomCode||''});
+    // เดาไม่ออก → ลองแคบลงด้วยปริมาณรายชั้น (รายการที่มีปริมาณในแผ่นนี้ และเป็นของหมวดงานนี้)
+    if(!r.item&&typeof pqGet==='function'){
+      const c=opts.filter(it=>pqGet(it,m.page)>0&&(!poMatchLayer(it.name)||poMatchLayer(it.name)===m.layer));
+      if(c.length===1)r={item:c[0],reason:'floor'};
+    }
+    const sug=r.item&&opts.some(o=>o.id===r.item.id)?String(r.item.id):'';
+    return {id:m.id,item:sug,on:!!sug};
   });
-  redraw(); renderList(); renderPoItems();
-  const L=[`จับคู่อัตโนมัติสำเร็จ ${linked} จุด`];
-  const fmtGrp=o=>Object.keys(o).map(k=>`${k} ${o[k]} จุด`).join(', ');
-  if(Object.keys(ambig).length)L.push(`\nยังไม่จับคู่ (มีรายการ PO เข้าเกณฑ์หลายรายการ ต้องเลือกเอง):\n${fmtGrp(ambig)}`);
-  if(Object.keys(nomatch).length)L.push(`\nยังไม่จับคู่ (ไม่พบรายการ PO ที่ตรงกับชั้นงาน):\n${fmtGrp(nomatch)}`);
-  if(linked)L.push('\nปริมาณตั้งต้น = พื้นที่บนแบบของแต่ละจุด (ล็อก 🔒 ไว้ แก้ได้)');
-  alert(L.join('\n'));
+  if(!document.getElementById('poOverlay')||document.getElementById('poOverlay').style.display==='none')openPoManager();
+  renderPoMatch(head);
 }
+function poMatchSet(i,k,v){ const r=poMatchRows[i]; if(!r)return; r[k]=v; if(k==='item')r.on=!!v; renderPoMatch(); }
+function poMatchAll(on){ poMatchRows.forEach(r=>{r.on=on&&!!r.item;}); renderPoMatch(); }
+let poMatchHead='';
+function renderPoMatch(head){
+  if(head!==undefined)poMatchHead=head;
+  const box=document.getElementById('poParsedBox'); box.style.display='block';
+  const nOn=poMatchRows.filter(r=>r.on&&r.item).length, nSug=poMatchRows.filter(r=>r.item).length;
+  box.innerHTML=`<div class="po-parsed-h" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <b>${poMatchHead?poEsc(poMatchHead)+' · ':''}จับคู่รายการกับพื้นที่ที่ระบายไว้ (${poMatchRows.length} จุดยังไม่ผูก)</b>
+      <button onclick="poMatchApply()">✓ ยืนยัน ${nOn} คู่</button>
+      <button onclick="poMatchClose()" style="background:var(--bg3);color:var(--text)">ข้ามไปก่อน</button>
+    </div>
+    <div class="sc-note">เครื่องมือเดาให้ ${nSug} จุด และติ๊กไว้แล้ว — ตรวจแล้วกดยืนยันทีเดียว · จุดที่เดาไม่ได้ ให้เลือกรายการเองจากช่องเลือก หรือปล่อยว่างไว้
+      · <a href="#" style="color:var(--accent)" onclick="poMatchAll(true);return false">ติ๊กทุกจุดที่เดาได้</a> · <a href="#" style="color:var(--accent)" onclick="poMatchAll(false);return false">เอาติ๊กออกทั้งหมด</a></div>`+
+    poMatchRows.map((r,i)=>{
+      const m=markups.find(x=>x.id===r.id); if(!m)return '';
+      const L=LAYERS.find(l=>l.key===m.layer);
+      return `<div style="display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.3fr);gap:6px;align-items:center;padding:6px;border-bottom:1px solid var(--border);font-size:12px">
+        <input type="checkbox" ${r.on&&r.item?'checked':''} ${r.item?'':'disabled'} onchange="poMatchSet(${i},'on',this.checked)">
+        <span><span class="dot" style="background:${L?L.color:'#999'}"></span> #${mkNo(m)} ${poEsc(L?L.name:m.layer)}<br><span style="color:var(--text2)">${poEsc(getPageLabel(m.page))}${m.note?' · '+poEsc(m.note):''}${m.area?' · '+fmtQ(m.area)+' ตร.ม.':''}</span></span>
+        <select onchange="poMatchSet(${i},'item',this.value)" style="width:100%;padding:5px;font-size:12px"><option value="">— ยังไม่ผูก —</option>${
+          poItemsForPage(m.page).map(it=>`<option value="${it.id}" ${String(it.id)===r.item?'selected':''}>${poEsc(it.name)}</option>`).join('')}</select>
+      </div>`;
+    }).join('');
+}
+function poMatchApply(){
+  const sel=poMatchRows.filter(r=>r.on&&r.item);
+  if(!sel.length){alert('ยังไม่ได้ติ๊กคู่ที่จะผูก');return;}
+  pushHistory();
+  sel.forEach(r=>{ const m=markups.find(x=>x.id===r.id); if(m&&!mkItems(m).length){ m.items=[{id:String(r.item),qty:m.area||'',locked:true}]; m.item=''; } });
+  const left=wmk().filter(m=>!mkItems(m).length).length;
+  poMatchClose();
+  redraw(); renderList(); renderPoItems();
+  try{Autosave.mark();}catch(_){}
+  alert(`ผูกแล้ว ${sel.length} จุด ✓${left?`\nยังไม่ผูกอีก ${left} จุด — กด 🔗 จับคู่ เพื่อทำต่อได้`:''}\n\nปริมาณตั้งต้น = พื้นที่บนแบบของแต่ละจุด (แก้ได้ที่จุดนั้น)`);
+}
+function poMatchClose(){ poMatchRows=[]; const box=document.getElementById('poParsedBox'); box.style.display='none'; box.innerHTML=''; }
 
 // ══════════════ สแกนแบบจาก PDF (ปริ้นจาก CAD = มี text layer ให้ดึง) ══════════════
 // รองรับ 3 ชนิดแบบที่เจอจริง: (A) แบบมีชื่อห้อง+รหัสวัสดุ (B) แบบ layout ม้วน (C) แบบสแกนเป็นรูป
@@ -2745,11 +2907,13 @@ function scanLegend(lines){ // ตารางวัสดุ: ชื่อส�
 function scanTotals(lines){
   const t={area:0,skirting:0,trim:0,weld:0};
   lines.forEach(r=>{
-    let m;
-    if(/total\s+area/i.test(r.text)&&(m=r.text.match(RE_AREA)))t.area+=num(m[1]);
-    if(m=r.text.match(RE_SKIRT))t.skirting+=num(m[1]);
-    if(m=r.text.match(RE_TRIM))t.trim+=num(m[1]);
-    if(m=r.text.match(RE_WELD))t.weld+=num(m[1]);
+    // rev 10: บรรทัดเดียวอาจมีตารางวัสดุหลายช่องเรียงกัน (เช่น Edgeskirting 255 m. … Edgeskirting 210 m.)
+    // เดิมอ่านได้แค่ค่าแรกของบรรทัด ทำให้ยอดรวมของแผ่นขาด — ตอนนี้รวมทุกค่าที่พบในบรรทัด
+    const all=(re)=>{let s=0;const g=new RegExp(re.source,'gi');let m;while((m=g.exec(r.text))!==null)s+=num(m[1]);return s;};
+    t.area+=all(/total\s+area\s*[:=]?\s*([\d,]+\.?\d*)\s*(?:sq\.?\s?m|ตร\.?\s?ม)/i);
+    t.skirting+=all(RE_SKIRT);
+    t.trim+=all(RE_TRIM);
+    t.weld+=all(RE_WELD);
   });
   return t;
 }
@@ -2870,6 +3034,7 @@ function renderScan(){
       <table class="sc-t"><thead><tr><th></th><th>รหัส</th><th style="text-align:left">สินค้า</th><th>พื้นที่</th><th>ปริมาณ</th><th>หน้า</th></tr></thead><tbody>${legRows}</tbody></table>
       <button class="st-btn" style="margin-top:8px" onclick="scanImportLegend()">➕ เพิ่มรายการที่ติ๊กเข้า PO</button>
     </div>`:'<div class="sc-sec"><div class="sc-note">ไม่พบตารางวัสดุในแบบชุดนี้</div></div>'}
+    ${pqScanSection(R)}
     ${scanRoomAreaSection(R)}
     ${scanPinSection(R)}
     <div class="sc-sec"><b>รายหน้า</b>
@@ -2892,7 +3057,7 @@ function applyRoomAreaToSheets(){                 // เอายอดรวม
   const R=scanResult; if(!R||!R.roomAreas.length)return;
   const per={}; R.roomAreas.forEach(r=>per[r.page]=(per[r.page]||0)+r.area);
   const n=Object.keys(per).length;
-  if(!confirm(`ใส่พื้นที่รวมจากป้ายห้องลงช่อง "พื้นที่แผ่นนี้" ทั้งหมด ${n} แผ่น?\n(ค่าเดิมในช่องจะถูกเขียนทับ)`))return;
+  if(!confirm(`ใส่พื้นที่รวมจากป้ายห้องลงช่อง "พื้นที่ตามแบบของแผ่น" ทั้งหมด ${n} แผ่น?\n(ค่าเดิมในช่องจะถูกเขียนทับ)`))return;
   Object.keys(per).forEach(pg=>pageAreas[pg]=+per[pg].toFixed(3));
   syncPageAreaInput(); renderProgress(); renderInsights();
   alert(`ใส่พื้นที่ให้ ${n} แผ่นเรียบร้อย ✓`);
@@ -3062,33 +3227,25 @@ function scanPlacePin(idx){
   // เข้าโหมดแก้กรอบทันที ให้ลากปรับได้เลย
   selectMk(id);
 }
-function scanImportBoq(){ // นำเข้าจากตาราง BOQ ที่สแกนได้
+function scanImportBoq(){ // สแกนแบบ → รอให้ตรวจชื่อ/ปริมาณก่อนบันทึก
   if(!scanResult||!scanResult.boq)return;
-  let n=0;
-  scanResult.boq.forEach((b,i)=>{
-    const cb=document.getElementById('scB'+i);
-    if(!cb||!cb.checked)return;
-    const nm=(b.name||'').trim(); if(!nm)return;
-    if(poItems.some(p=>String(p.name||'').replace(/\s+/g,'')===nm.replace(/\s+/g,'')))return;
-    addPoItem(nm,String(b.qty||''),b.unit||''); n++;
-  });
-  if(!n){alert('ไม่มีรายการใหม่ให้เพิ่ม (อาจเพิ่มไปแล้ว)');return;}
-  alert(`เพิ่มเข้ารายการ PO แล้ว ${n} รายการ ✓`);
-  if(wmk().some(m=>!mkItems(m).length))syncPoToMarkups();
+  const rows=scanResult.boq.filter((b,i)=>{const cb=document.getElementById('scB'+i);return cb&&cb.checked;});
+  if(!rows.length){alert('ยังไม่ได้เลือกรายการ');return;}
+  poParsed=rows.map(b=>({name:b.name||'',qty:String(b.qty||''),unit:b.unit||'',price:'',dup:poIsDup(b.name)}));
+  openPoManager();renderPoParsed();
 }
 function scanImportLegend(){
   if(!scanResult)return;
-  let n=0;
-  scanResult.legend.forEach((l,i)=>{
-    const cb=document.getElementById('scL'+i);
-    if(!cb||!cb.checked)return;
-    const nm=[l.code,l.product].filter(Boolean).join(' ').trim()||('วัสดุจากแบบ หน้า '+l.page);
-    if(poItems.some(p=>String(p.name||'').trim()===nm))return; // กันซ้ำ
-    addPoItem(nm,String(l.area),'ตร.ม.'); n++;
-  });
-  if(!n){alert('ไม่มีรายการใหม่ให้เพิ่ม (อาจเพิ่มไปแล้ว)');return;}
-  alert(`เพิ่มเข้ารายการ PO แล้ว ${n} รายการ ✓\n\nเปิดหน้า 📋 PO เพื่อตรวจ/แก้ไข`);
-  if(wmk().some(m=>!mkItems(m).length))syncPoToMarkups();
+  const rows=scanResult.legend.filter((l,i)=>{const cb=document.getElementById('scL'+i);return cb&&cb.checked;});
+  if(!rows.length){alert('ยังไม่ได้เลือกรายการ');return;}
+  const grp={}, order=[];
+  rows.forEach(l=>{ const nm=poLegendName(l)||('วัสดุจากแบบ หน้า '+l.page), k=poNameKey(nm);
+    if(!grp[k]){grp[k]={name:nm,byPage:{}};order.push(k);}
+    grp[k].byPage[l.page]=Math.round(((grp[k].byPage[l.page]||0)+(+l.area||0))*100)/100; });
+  poParsed=[];
+  order.forEach(k=>{ const g=grp[k], tot=Math.round(Object.values(g.byPage).reduce((a,v)=>a+v,0)*100)/100;
+    poParsed.push({name:g.name,qty:String(tot),unit:'ตร.ม.',price:'',byPage:g.byPage,dup:poIsDup(g.name)}); });
+  openPoManager();renderPoParsed();
 }
 let popId=null, mkPopOpenT=0;
 function openMkPopup(id){
@@ -3558,7 +3715,7 @@ const DIM_ALPHA=0.4;
 function redraw(){
   if(!drawCtx)return;
   drawCtx.clearRect(0,0,dc.width,dc.height);
-  const onPage=l=>l.visible?markups.filter(m=>m.layer===l.key&&m.page===pageNum):[];
+  const onPage=l=>(l.visible&&featOn(l))?markups.filter(m=>m.layer===l.key&&m.page===pageNum):[];
   const others=ALL_LAYERS.filter(l=>l.key!==activeLayer).map(onPage).flat();
   if(others.length){
     if(!dimCanvas){dimCanvas=document.createElement('canvas');dimCtx=dimCanvas.getContext('2d');}
@@ -3596,7 +3753,12 @@ function getPoArea(){const v=parseFloat(poArea);return v>0?v:0;}
 function getPageArea(pg){const v=parseFloat(pageAreas[pg]);return v>0?v:0;}
 // display label for a sheet: custom name if set, else "แผ่นที่ N"
 function getPageName(pg){return (pageNames[pg]||'').trim();}
-function getPageLabel(pg){const n=getPageName(pg);return n?`แผ่นที่ ${pg} (${n})`:`แผ่นที่ ${pg}`;}
+function getPageLabel(pg){ // rev 16: แผ่นที่ 3 (ชั้น 5 · ปีกซ้าย)
+  const f=(pageFloors[pg]||'').trim(), n=getPageName(pg);
+  const fl=f?(/^[A-Za-z]?\d+[A-Za-z]?$/.test(f)?'ชั้น '+f:f):'';
+  const t=[fl,n].filter(Boolean).join(' · ');
+  return t?`แผ่นที่ ${pg} (${t})`:`แผ่นที่ ${pg}`;
+}
 // sum of all entered sheet areas (for cross-checking against PO)
 function getSheetsSum(){let t=0;Object.keys(pageAreas).forEach(pg=>{const v=parseFloat(pageAreas[pg]);if(v>0)t+=v;});return t;}
 // project area used for project-level %: prefer PO, else fall back to sheets sum
@@ -3794,7 +3956,7 @@ function renderProgress(){
     html+=`<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:7px">${getPageLabel(pageNum)} <span style="font-weight:400;color:var(--text2)">(พื้นที่ตามแบบ ${sheetArea.toLocaleString()} ตร.ม.)</span></div>`;
     html+=layerLines(sheetArea,(lk)=>donePageLayer(pageNum,lk));
   }else{
-    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">กรอก "พื้นที่แผ่นนี้" เพื่อดู % ของแผ่น</div>`;
+    html+=`<div style="font-size:11px;color:var(--text2);margin-bottom:9px">กรอก "พื้นที่ตามแบบของแผ่น" ในตารางปริมาณรายชั้น เพื่อดู % ของแผ่น</div>`;
   }
   // whole project — per layer
   if(po||hasBoq){
@@ -5672,7 +5834,7 @@ async function applyProjectData(d,opt){
     const RENAME={'งานเทปรับพื้น':'งานเทปรับระดับพื้น','งานหลังคา':'งานติดตั้งหลังคา'};
     d.layers.forEach(l=>{ if(RENAME[l.name])l.name=RENAME[l.name]; });
     LAYERS.splice(0,LAYERS.length,...d.layers.filter(l=>l.key!=='plan'&&l.key!=='deliv'));
-    ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER);
+    ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER,ISSUE_LAYER);
     if(!ALL_LAYERS.some(l=>l.key===activeLayer))activeLayer=LAYERS[0].key;
   }
   if(d.planLayerVisible!==undefined)PLAN_LAYER.visible=d.planLayerVisible;
@@ -5832,10 +5994,13 @@ async function renderPageToCanvas(pg,scale){
 // ── เลือกหมวดงานก่อนพิมพ์ ──
 // เดิมรายงานเอาทุกหมวดเสมอ ทำให้ตอนส่งงานเทปรับพื้นอย่างเดียวก็ยังมีตารางงานติดตั้งติดไปด้วย
 let printSel=null;   // null = ยังไม่เคยเลือก → ติ๊กทุกหมวด
+let printAudience='external'; // ค่าเริ่มต้นปลอดราคาสำหรับ Owner/Consult
 function openPrintPick(){
+  printAudience='external';
+  const r=document.querySelector('input[name="reportAudience"][value="external"]');if(r)r.checked=true;
   if(!wmk().length){alert('ยังไม่มี markup งานจริงให้พิมพ์');return;}
   const has=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
-  if(has.length<2){ printReport(); return; }          // มีหมวดเดียว ไม่ต้องถาม
+  // Always show the print audience choice, including projects with only one layer.
   if(!printSel)printSel=has.map(l=>l.key);
   printSel=printSel.filter(k=>has.some(l=>l.key===k));
   if(!printSel.length)printSel=has.map(l=>l.key);
@@ -5865,6 +6030,8 @@ function renderPrintPick(){
 }
 function doPrintPick(){
   const has=LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
+  const aud=document.querySelector('input[name="reportAudience"]:checked');
+  printAudience=aud&&aud.value==='internal'?'internal':'external';
   closePrintPick();
   // ติ๊กครบทุกหมวด = ไม่ต้องส่งตัวกรอง (หัวเอกสารจะขึ้นว่า "ทุกหมวดงาน")
   printReport(undefined, printSel.length===has.length?null:printSel);
@@ -6414,7 +6581,7 @@ renderList();
 updateSideTitle();
 
 // ════════════════ rev 1 ════════════════
-const APP_REV='rev 9';
+const APP_REV='rev 24';
 
 // ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
 const ErrTrap=(()=>{
@@ -7179,6 +7346,8 @@ function rptChart(el,PL,cut){
 
 async function printReport(mode,only){
   if(mode==='plan')return printReportLegacy(mode,only);
+  // Direct calls without explicit picker are external by default; print picker supplies audience explicitly.
+  const audience=printAudience==='internal'?'internal':'external';
   const w=openPrintWin('กำลังสร้างรายงาน...');
   const sel=Array.isArray(only)&&only.length?only.slice():null;
   const PL=sel?LAYERS.filter(l=>sel.includes(l.key)):LAYERS.filter(l=>wmk().some(m=>m.layer===l.key));
@@ -7207,7 +7376,7 @@ async function printReport(mode,only){
   const cards=LP.map(({l,lp,pp})=>{const st=planStatus(lp.pct,el);return `<div class="kp"><div class="t"><span class="dot" style="background:${l.color}"></span>หมวดที่ ${layerNo(l.key)} ${esc(l.name)}</div>
     <div class="v" style="color:${l.color}">${lp.pct==null?'—':fmtPct(lp.pct)}</div><div class="bar"><i style="width:${Math.min(100,lp.pct||0)}%;background:${l.color}"></i>${el?`<u style="left:${Math.min(100,el.pct)}%"></u>`:''}</div>
     <div class="d">${fmtQ(lp.done)} / ${fmtQ(lp.base)} ตร.ม.${pp?` · งวดนี้ +${fmtQ(Math.max(0,lp.done-pp.done))}`:''}${lp.wipN?` · กำลังทำ ${fmtQ(lp.wip)}`:''}</div><span class="st ${st.cls}">${st.txt}</span></div>`;}).join('')
-    +(WO?(()=>{const st=planStatus(WO.pct,el);return `<div class="kp"><div class="t">ภาพรวมโครงการ (ถ่วงตามมูลค่า)</div><div class="v">${fmtPct(WO.pct)}</div><div class="bar"><i style="width:${Math.min(100,WO.pct)}%;background:#5f6b7a"></i>${el?`<u style="left:${Math.min(100,el.pct)}%"></u>`:''}</div><div class="d">${el?`แผนเฉลี่ย ${fmtPct(el.pct)} · ต่างจากแผน ${(WO.pct-el.pct>=0?'+':'')+fmtPct(WO.pct-el.pct)}`:'มูลค่างานรวม '+fmtQ(WO.value)+' บาท'}</div><span class="st ${st.cls}">${st.txt}</span></div>`;})():'');
+    +(audience==='internal'&&WO?(()=>{const st=planStatus(WO.pct,el);return `<div class="kp"><div class="t">ภาพรวมโครงการ (ถ่วงตามมูลค่า)</div><div class="v">${fmtPct(WO.pct)}</div><div class="bar"><i style="width:${Math.min(100,WO.pct)}%;background:#5f6b7a"></i>${el?`<u style="left:${Math.min(100,el.pct)}%"></u>`:''}</div><div class="d">${el?`แผนเฉลี่ย ${fmtPct(el.pct)} · ต่างจากแผน ${(WO.pct-el.pct>=0?'+':'')+fmtPct(WO.pct-el.pct)}`:'มูลค่างานรวม '+fmtQ(WO.value)+' บาท'}</div><span class="st ${st.cls}">${st.txt}</span></div>`;})():'');
   const pts=[];
   LP.forEach(({l,lp,pp})=>{ pts.push(`${esc(l.name)} สะสม ${fmtQ(lp.done)} ตร.ม. (${lp.pct==null?'—':fmtPct(lp.pct)})${pp?` งวดนี้ทำเพิ่ม ${fmtQ(Math.max(0,lp.done-pp.done))} ตร.ม.`:''}${lp.wipN?` · กำลังดำเนินการอีก ${fmtQ(lp.wip)} ตร.ม.`:''}`); });
   if(hasMeet){ (mSel.issue||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,2).forEach(s=>pts.push('<b>ปัญหา:</b> '+esc(s)));
@@ -7269,7 +7438,7 @@ async function printReport(mode,only){
     <h2><span class="no">ข</span>ภาคผนวก ข ปฏิทินระยะเวลางาน</h2>${buildCalendarHTML(true,sel)}</section>`;
   const fileName=`${P.name}-รายงานความคืบหน้า-${cut}`.replace(/[\\/:*?"<>|]/g,'-');
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(fileName)}</title><style>${appFontCSS()}${RPT_CSS}</style></head><body>
-    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 · ขอบกระดาษ "ค่าเริ่มต้น" · เปิดพื้นหลังกราฟิก</span></div>${warns.length?`<div class="tb-warn">⚠ ควรตรวจก่อนส่ง: ${warns.map(esc).join(' · ')}</div>`:''}
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 · ขอบกระดาษ "ค่าเริ่มต้น" · เปิดพื้นหลังกราฟิก · ${audience==='external'?'ฉบับเจ้าของงาน / ที่ปรึกษา: ไม่แสดงมูลค่า':'ฉบับใช้ภายในบริษัท'}</span></div>${warns.length?`<div class="tb-warn">⚠ ควรตรวจก่อนส่ง: ${warns.map(esc).join(' · ')}</div>`:''}
     ${page1}${page2}${page3}${page4}${page5}
     <script>(function(){var mm=96/25.4,H=271*mm;function pagesOf(sec){var used=0,n=1;[].slice.call(sec.children).forEach(function(c){var cs=getComputedStyle(c);var h=c.getBoundingClientRect().height+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);var avoid=/avoid/.test(cs.breakInside)||/avoid/.test(cs.pageBreakInside);if(used+h<=H){used+=h;return;} if(avoid&&h<=H){n++;used=h;return;} var rem=h-(H-used);n+=Math.ceil(rem/H);used=rem%H||H;});return n;}var s=[].slice.call(document.querySelectorAll('.page')),st=[],t=0;s.forEach(function(p){st.push(t+1);t+=pagesOf(p);});s.forEach(function(p,i){var e=p.querySelector('.pg');if(e)e.textContent=st[i]+' / '+t;});})();<\/script></body></html>`;
   showPrintResult(w,html);
@@ -8169,6 +8338,1639 @@ toggleMenu=function(id,btn){
   if(m&&!m.hidden&&!m.classList.contains('pdf-choice'))placeMenu(m,btn);
 };
 window.addEventListener('resize',()=>{try{closeMenus();}catch(e){}});
+</script>
+<!-- ══════════════ rev 11: รายงานรายชั้น + ใบสรุปทั้งโครงการ + ตารางปริมาณรายชั้น + ปุ่มสถานะ ══════════════ -->
+<div class="mkpop-overlay" id="frOverlay" style="display:none" onclick="if(event.target===this)closeFloorReport()">
+  <div class="mkpop" style="max-width:480px">
+    <div class="mkpop-head"><span>🏢 รายงานความคืบหน้า ทุกหมวดงาน (A3 แนวนอน)</span></div>
+    <div class="mkpop-body" id="frBody"></div>
+    <div class="mkpop-btns">
+      <button style="flex:1;background:var(--bg3);color:var(--text)" onclick="closeFloorReport()">ยกเลิก</button>
+      <button style="flex:1;background:var(--accent);color:#111;border-color:var(--accent)" id="frGo" onclick="doFloorReport()">🖨 สร้างรายงาน</button>
+    </div>
+  </div>
+</div>
+<div class="mkpop-overlay" id="pqOverlay" style="display:none">
+  <div class="mkpop" style="max-width:1100px">
+    <div class="mkpop-head"><span>📊 ปริมาณรายชั้น</span><span class="mkpop-areas" id="pqCount"></span></div>
+    <div class="mkpop-body" id="pqBody"></div>
+    <div class="mkpop-btns">
+      <button style="flex:1;background:var(--bg3);color:var(--text)" id="pqFillBtn" onclick="pqAutoFill()">🔍 เติมจากแบบ</button>
+      <button class="mkpop-save" style="flex:1" onclick="closeFloorQty()">✓ เสร็จ</button>
+    </div>
+  </div>
+</div>
+<style>
+.fr-lbl{font-size:10.5px;color:var(--text2);display:block;margin:10px 0 4px;font-weight:600}
+.fr-dates{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr-key{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text2);margin-top:10px}
+.fr-key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.fr-err{color:var(--red);font-size:11.5px;margin-top:8px}
+.fr-ck{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-top:6px;cursor:pointer}
+.fr-ck input{width:17px;height:17px;flex-shrink:0;accent-color:var(--accent)}
+.pq-wrap{overflow-x:auto;border:1px solid var(--border2);border-radius:8px}
+.pq-t{border-collapse:collapse;font-size:11.5px;min-width:100%}
+.pq-t th,.pq-t td{border:1px solid var(--border);padding:4px 5px;text-align:right;white-space:nowrap}
+.pq-t th{background:var(--bg3);color:var(--text2);font-weight:600;text-align:center;vertical-align:bottom}
+.pq-t td.nm,.pq-t th.nm{text-align:left;position:sticky;left:0;background:var(--bg2);z-index:1;max-width:230px;white-space:normal;min-width:160px}
+.pq-t th.nm{background:var(--bg3)}
+.pq-t input[type=number]{width:74px;padding:4px 5px;font-size:11.5px;text-align:right}
+.pq-t input[type=text]{width:84px;padding:3px 5px;font-size:11px;text-align:center;margin-top:3px;display:block;margin-left:auto;margin-right:auto}
+.pq-t td.bad{color:var(--red);font-weight:700}
+.pq-t td.ok{color:var(--green)}
+.pq-t td.tot{font-weight:700;background:var(--bg3)}
+.pq-t tr.sec td{background:var(--bg3);color:var(--accent);font-weight:700;text-align:left;font-size:12px}
+.pq-t tr.ref td.nm{color:var(--text2)}
+.pq-t td.lnk{color:#60a5fa;background:rgba(96,165,250,.07)}
+.pq-src{width:100%;padding:4px 5px;font-size:11.5px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;color:var(--text)}
+.pq-src.on{border-color:#60a5fa;color:#93c5fd}
+.pq-warn{color:var(--red);font-size:10.5px;margin-top:2px}
+.pq-x{background:none;border:1px solid var(--border2);color:var(--text2);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px}
+.pq-x:disabled{opacity:.3;cursor:not-allowed}
+.pq-add{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:6px;padding:4px 10px;font-family:'Sarabun';font-size:12px;cursor:pointer}
+.pq-add:hover{border-color:var(--accent);color:var(--accent)}
+.pq-mv{font-size:10.5px;color:var(--text2);margin-left:4px}
+.pq-t tr.add td{background:rgba(244,167,38,.05)}
+.pq-un{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px dashed var(--border2);border-radius:8px;padding:7px 9px;margin-top:6px;font-size:12px}
+.pq-un button{background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);border-radius:7px;padding:5px 10px;font-family:'Sarabun';font-size:12px;cursor:pointer}
+.pq-un button:hover{border-color:var(--accent);color:var(--accent)}
+.qs-row{display:grid;grid-template-columns:minmax(120px,1.2fr) 1fr 1fr 1fr;gap:6px}
+.qs-b{border-radius:8px;font-family:'Sarabun';font-size:13px;font-weight:700;padding:8px 4px;cursor:pointer;border:1.5px solid var(--border2);background:var(--bg3);color:var(--text)}
+.qs-b.done{background:#16a34a;border-color:#16a34a;color:#fff}
+.qs-b.wip{background:#eab308;border-color:#eab308;color:#111}
+.qs-b.plan{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.sticky-bar{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text2)}
+.sticky-bar select{background:var(--bg3);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Sarabun';font-size:12px;padding:5px 6px;max-width:210px}
+</style>
+<script>
+// ════════════════ rev 11 (ก): ชั้นของแผ่นแบบ ════════════════
+// ป้ายชั้น: ใช้ช่อง "ชั้น" ของแผ่น → ถ้าไม่กรอกใช้ชื่อแผ่น → ถ้าไม่มีใช้เลขแผ่น · แผ่นที่ป้ายชั้นตรงกันถือเป็นชั้นเดียวกัน
+function frFloorLabel(pg){
+  const f=(pageFloors[pg]||'').trim();
+  if(f)return /^\d+[A-Za-z]?$/.test(f)?'ชั้น '+f:f;
+  return getPageName(pg)||('แผ่นที่ '+pg);
+}
+function onPageFloorChange(){
+  pageFloors[pageNum]=document.getElementById('pageFloorIn').value.trim();
+  try{Autosave.mark();}catch(_){}
+}
+function frSheetCount(){
+  let n=pdfDoc?pdfDoc.numPages:0;
+  markups.forEach(m=>{if(m.page>n)n=m.page;});
+  poItems.forEach(it=>{if(it.pq)Object.keys(it.pq).forEach(k=>{if(+k>n)n=+k;});});
+  return Math.max(1,n);
+}
+
+// ════════════════ rev 11 (ข): ปริมาณรายชั้น — เก็บไว้ที่รายการ BOQ เดิม (it.pq = {เลขแผ่น: ปริมาณ}) ════════════════
+// BOQ ยังเป็นชุดเดียวเหมือนเดิม ไม่ต้องแยกชุดต่อชั้น · ช่องว่าง = ชั้นนั้นไม่มีรายการนี้
+function pqGet(it,pg){ const v=(it&&it.pq)?parseFloat(it.pq[pg]):NaN; return v>0?v:0; }
+function pqHas(it){ return !!(it&&it.pq&&Object.keys(it.pq).some(k=>parseFloat(it.pq[k])>0)); }
+function pqSum(it){ return (it&&it.pq)?Object.keys(it.pq).reduce((s,k)=>s+(parseFloat(it.pq[k])>0?parseFloat(it.pq[k]):0),0):0; }
+function pqSetVal(it,pg,v){
+  v=Math.round((parseFloat(v)||0)*100)/100;
+  if(!it.pq)it.pq={};
+  if(v>0)it.pq[pg]=v; else delete it.pq[pg];
+}
+const pqNorm=s=>String(s||'').toLowerCase().replace(/\s+/g,'');
+// รหัสสินค้าในชื่อ เช่น RK013, FS4211, VN-01
+function pqTokens(s){ return (String(s||'').match(/[A-Za-z]{1,4}-?\d{2,}[A-Za-z0-9]*/g)||[]).map(pqNorm).filter(t=>t.length>=4); }
+function pqMatchItem(name,kind){ // หารายการ BOQ ที่ตรงกับวัสดุจากแบบ — ต้องตรงรายการเดียวเท่านั้นจึงจะจับคู่ให้
+  const nm=pqNorm(name);
+  let hit=poItems.filter(o=>pqNorm(o.name)===nm);
+  if(hit.length===1)return hit[0];
+  for(const t of pqTokens(name)){ hit=poItems.filter(o=>pqNorm(o.name).includes(t)); if(hit.length===1)return hit[0]; }
+  if(kind==='skirt'){ hit=poItems.filter(o=>/บัว|skirt/i.test(o.name||'')); if(hit.length===1)return hit[0]; }
+  if(kind==='trim'){ hit=poItems.filter(o=>/คิ้ว|กันสะดุด|trim/i.test(o.name||'')); if(hit.length===1)return hit[0]; }
+  return null;
+}
+// ── rev 17: แยก "ปริมาณจากแบบ" (ตัวเลขอ้างอิงรายแผ่น) ออกจาก "รายการ BOQ" ──
+// รายการ BOQ เลือกได้ว่าจะใช้ปริมาณรายชั้นจากแหล่งไหน (it.src) หรือกรอกเอง · หลายรายการใช้แหล่งเดียวกันได้
+let drawQty=[];   // [{id,name,unit,pq:{เลขแผ่น:ปริมาณ},auto:true/false}]
+let pqExtra=new Set(), pqMsg='', pqNew={name:'',unit:'ตร.ม.',qty:''};
+function pqHasData(p){ return !!(p&&((p.legend&&p.legend.length)||(p.totals&&(p.totals.skirting>0||p.totals.trim>0||p.totals.area>0)))); }
+function dqGet(id){ return drawQty.find(d=>d.id===id); }
+function dqSum(d){ return d&&d.pq?Object.values(d.pq).reduce((s,v)=>s+(parseFloat(v)>0?parseFloat(v):0),0):0; }
+// คัดลอกตัวเลขรายแผ่นจากแหล่ง → it.pq (รายงานทุกจุดอ่าน it.pq เหมือนเดิม)
+function pqSyncSrc(){
+  poItems.forEach(it=>{
+    if(!it.src)return;
+    const d=dqGet(it.src); if(!d){ it.src=''; return; }
+    it.pq={}; Object.keys(d.pq||{}).forEach(pg=>{ const v=parseFloat(d.pq[pg]); if(v>0)it.pq[pg]=Math.round(v*100)/100; });
+  });
+}
+function pqCols(){ // แผ่นที่ควรมีคอลัมน์
+  const n=frSheetCount(), s=new Set(pqExtra);
+  poItems.forEach(it=>{if(it.pq)Object.keys(it.pq).forEach(k=>{if(parseFloat(it.pq[k])>0)s.add(+k);});});
+  drawQty.forEach(d=>Object.keys(d.pq||{}).forEach(k=>{if(parseFloat(d.pq[k])>0)s.add(+k);}));
+  markups.forEach(m=>s.add(m.page));
+  Object.keys(pageFloors).forEach(k=>{if((pageFloors[k]||'').trim())s.add(+k);});
+  if(scanResult)scanResult.pages.filter(pqHasData).forEach(p=>s.add(p.n));
+  let a=[...s].filter(p=>p>=1&&p<=n).sort((x,y)=>x-y);
+  if(!a.length)a=Array.from({length:n},(_,i)=>i+1);
+  return a;
+}
+function openFloorQty(){
+  ensureBoq();
+  if(!poItems.length&&!drawQty.length&&!scanResult&&!pdfDoc){alert('ใส่แบบ PDF หรือรายการ PO ก่อน');return;}
+  pqMsg=''; pqSyncSrc(); renderFloorQty(); showOverlay('pqOverlay');
+}
+function closeFloorQty(){
+  document.getElementById('pqOverlay').style.display='none';
+  pqSyncSrc();
+  try{renderList();renderProgress();stickyRender();}catch(_){}
+  try{Autosave.mark();}catch(_){}
+}
+function pqEdit(id,pg,v){ const it=poItems.find(x=>String(x.id)===String(id)); if(!it)return; pqSetVal(it,pg,v); renderFloorQty(); }
+function dqEdit(id,pg,v){
+  const d=dqGet(id); if(!d)return;
+  v=Math.round((parseFloat(v)||0)*100)/100; d.pq=d.pq||{}; if(v>0)d.pq[pg]=v; else delete d.pq[pg];
+  pqSyncSrc(); renderFloorQty();
+}
+function pqSetSrc(id,src){
+  const it=poItems.find(x=>String(x.id)===String(id)); if(!it)return;
+  if(src){ it.src=src; pqSyncSrc(); }
+  else { it.src=''; } // กรอกเอง: คงตัวเลขเดิมไว้ให้แก้ต่อ
+  renderFloorQty();
+}
+function dqAdd(){
+  const name=prompt('ชื่อแถวอ้างอิง เช่น พื้นที่โซน B, เส้นปิดหัว','');
+  if(!name||!name.trim())return;
+  const unit=prompt('หน่วย','ตร.ม.')||'';
+  drawQty.push({id:'u'+Date.now(),name:name.trim(),unit:unit.trim(),pq:{},auto:false});
+  renderFloorQty();
+}
+function dqDel(id){
+  const used=poItems.filter(it=>it.src===id).length;
+  if(!confirm(`ลบแถวอ้างอิงนี้?${used?`\n\nมี ${used} รายการ BOQ ใช้ตัวเลขจากแถวนี้ — จะเปลี่ยนเป็น "กรอกเอง" และคงตัวเลขเดิมไว้`:''}`))return;
+  poItems.forEach(it=>{ if(it.src===id)it.src=''; });
+  drawQty=drawQty.filter(d=>d.id!==id); renderFloorQty();
+}
+function pqNewSet(k,v){ pqNew[k]=v; }
+function pqAddItem(){
+  const name=String(pqNew.name||'').trim(); if(!name){alert('ใส่ชื่อรายการก่อน');return;}
+  const q=String(pqNew.qty||'').replace(/,/g,'').trim();
+  if(q!==''&&!(Number(q)>=0)){alert('ปริมาณต้องเป็นตัวเลข');return;}
+  addPoItem(name,q,String(pqNew.unit||'').trim());
+  const it=poItems[poItems.length-1]; const g=pqGuessSrc(it); if(g){it.src=g;pqSyncSrc();}
+  pqNew={name:'',unit:pqNew.unit,qty:''}; renderFloorQty();
+}
+function pqDelItem(id){
+  const it=poItems.find(x=>String(x.id)===String(id)); if(!it)return;
+  if(markups.some(m=>mkItems(m).some(x=>x.id===String(id)))){alert('รายการนี้มีพื้นที่บนแบบผูกอยู่ — ลบไม่ได้ (เอาออกจากจุดที่ผูกก่อน)');return;}
+  if(!confirm(`ลบรายการ "${it.name}" ออกจาก BOQ?`))return;
+  poItems=poItems.filter(x=>x!==it); renderFloorQty();
+}
+// รายการเดิมที่จริงๆ เป็นตัวเลขจากแบบ (ไม่มีงานผูก) → ย้ายเป็นแถวอ้างอิง
+function pqMoveToRef(id){
+  const it=poItems.find(x=>String(x.id)===String(id)); if(!it)return;
+  if(markups.some(m=>mkItems(m).some(x=>x.id===String(id)))){alert('รายการนี้มีพื้นที่บนแบบผูกอยู่ — ย้ายไม่ได้');return;}
+  drawQty.push({id:'m'+Date.now(),name:it.name,unit:it.unit||'',pq:Object.assign({},it.pq||{}),auto:false});
+  poItems=poItems.filter(x=>x!==it); renderFloorQty();
+}
+function pqFloorEdit(pg,v){ pageFloors[pg]=String(v||'').trim(); if(pg===pageNum){const el=document.getElementById('pageFloorIn');if(el)el.value=pageFloors[pg];} }
+function pqZoneEdit(pg,v){ pageNames[pg]=String(v||'').trim(); if(pg===pageNum){const el=document.getElementById('pageName');if(el)el.value=pageNames[pg];} }
+function pqAreaEdit(pg,v){ pageAreas[pg]=v; if(pg===pageNum){const el=document.getElementById('pageArea');if(el)el.value=v;} }
+function pqAddCol(v){ if(v){pqExtra.add(+v);renderFloorQty();} }
+function pqDiffCell(it){
+  const s=pqSum(it), q=parseFloat(it.qty)||0;
+  if(!s||!q)return '<td>–</td>';
+  const d=Math.round((s-q)*100)/100, bad=Math.abs(d)>Math.max(0.5,q*0.005);
+  return `<td class="${bad?'bad':'ok'}" title="${bad?'ยอดรวมทุกชั้นไม่เท่ากับปริมาณใน BOQ — รายงานใช้ตัวเลขรายชั้นตามนี้':'ตรงกับ BOQ'}">${d===0?'✓':(d>0?'+':'')+fmtQ(d)}</td>`;
+}
+// รายการที่น่าจะเป็นตัวเลขจากแบบ ไม่ใช่รายการ BOQ จริง (ชื่อตรงกับแถวอ้างอิง / ชื่อมาตรฐานที่ rev 11 เคยสร้าง / ชื่อสินค้าที่ไม่ใช่ค่าแรงหรืองาน)
+function pqLooksRef(it){
+  const n=String(it.name||'').trim(), k=pqNorm(n);
+  if(/^(วัสดุปูพื้น|บัวเชิงผนัง|คิ้วขอบ|พื้นที่ปูพื้น)$/.test(n))return true;
+  if(drawQty.some(d=>pqNorm(d.name)===k))return true;
+  return /no\.?\s*[a-z0-9]/i.test(n)&&!/ค่าแรง|งาน|ติดตั้ง|ปรับ|เคลือบ|ขัด/.test(n);
+}
+const pqUnitKind=u=>isAreaUnit(u)?'a':(/^(ม\.?|เมตร|m\.?)$/i.test(String(u||'').trim())?'m':'o');
+function renderFloorQty(){
+  const esc=prEsc, cols=pqCols(), n=frSheetCount();
+  document.getElementById('pqCount').textContent=`${poItems.length} รายการ BOQ · ${cols.length} แผ่น`;
+  const rest=Array.from({length:n},(_,i)=>i+1).filter(p=>!cols.includes(p));
+  const nc=cols.length+8; const IL19=frItemLayerMap();
+  const head=`<tr><th class="nm">รายการ</th><th>หน่วย</th><th>หมวดงาน</th><th style="min-width:130px">ใช้ปริมาณจาก</th>${cols.map(pg=>`<th>แผ่น ${pg}
+      <input type="text" placeholder="ชั้น" title="ชั้นของแผ่นนี้" value="${esc(pageFloors[pg]||'').replace(/"/g,'&quot;')}" onchange="pqFloorEdit(${pg},this.value)">
+      <input type="text" placeholder="โซน (ถ้ามี)" title="โซน / ส่วน" value="${esc(getPageName(pg)).replace(/"/g,'&quot;')}" onchange="pqZoneEdit(${pg},this.value)"></th>`).join('')}
+    <th>รวมทุกชั้น</th><th>ตาม BOQ</th><th>ต่าง</th><th></th></tr>`;
+  // ก. ปริมาณจากแบบ
+  const refRows=drawQty.map(d=>`<tr class="ref"><td class="nm">${esc(d.name)}</td><td style="text-align:center">${esc(d.unit)}</td><td></td><td style="text-align:center;color:var(--text2)">${d.auto?'อ่านจากแบบ':'กรอกเอง'}</td>${
+      cols.map(pg=>`<td><input type="number" step="0.01" min="0" value="${(d.pq&&d.pq[pg])||''}" onchange="dqEdit('${d.id}',${pg},this.value)"></td>`).join('')}
+      <td class="tot">${dqSum(d)?fmtQ(dqSum(d)):'–'}</td><td></td><td></td><td><button class="pq-x" title="ลบแถวอ้างอิง" onclick="dqDel('${d.id}')">✕</button></td></tr>`).join('');
+  // ข. รายการ BOQ
+  const itRows=poItems.map((it,i)=>{
+    const kind=pqUnitKind(it.unit), d=it.src?dqGet(it.src):null;
+    const opts=`<option value="">กรอกเอง</option>`+drawQty.map(x=>`<option value="${x.id}" ${it.src===x.id?'selected':''} ${pqUnitKind(x.unit)!==kind&&it.src!==x.id?'style="color:#888"':''}>${esc(x.name)} (${esc(x.unit)})</option>`).join('');
+    const linked=markups.some(m=>mkItems(m).some(x=>x.id===String(it.id)));
+    return `<tr><td class="nm">${i+1}. ${esc(it.name)||'-'}</td>
+      <td style="text-align:center">${esc(it.unit||'')}</td>
+      <td><select class="pq-lay" title="รายการนี้นับเป็นงานของหมวดไหน" onchange="pqSetLayer('${it.id}',this.value)">${LAYERS.map(l=>`<option value="${l.key}" ${IL19.get(String(it.id))===l.key?'selected':''}>${esc(l.name)}</option>`).join('')}</select></td>
+      <td><select class="pq-src ${it.src?'on':''}" onchange="pqSetSrc('${it.id}',this.value)">${opts}</select>${d&&pqUnitKind(d.unit)!==kind?'<div class="pq-warn">หน่วยไม่ตรงกัน</div>':''}</td>${
+      cols.map(pg=>it.src?`<td class="lnk">${pqGet(it,pg)?fmtQ(pqGet(it,pg)):'–'}</td>`:`<td><input type="number" step="0.01" min="0" value="${pqGet(it,pg)||''}" onchange="pqEdit('${it.id}',${pg},this.value)"></td>`).join('')}
+      <td class="tot">${pqSum(it)?fmtQ(pqSum(it)):'–'}</td><td>${parseFloat(it.qty)>0?fmtQ(it.qty):'–'}</td>${pqDiffCell(it)}
+      <td></td></tr>`;
+  }).join('');
+  const addRow=`<tr class="add"><td class="nm"><input type="text" placeholder="ชื่อรายการ BOQ ใหม่ เช่น เคลือบแว็กซ์" value="${esc(pqNew.name).replace(/"/g,'&quot;')}" oninput="pqNewSet('name',this.value)" style="width:100%;text-align:left"></td>
+    <td><input type="text" value="${esc(pqNew.unit).replace(/"/g,'&quot;')}" oninput="pqNewSet('unit',this.value)" style="width:56px"></td>
+    <td colspan="${cols.length+1}" style="text-align:left"><button class="pq-add" onclick="pqAddItem()">➕ เพิ่มรายการ BOQ</button> <span style="font-size:11px;color:var(--text2)">ปริมาณตาม BOQ</span>
+      <input type="number" step="any" min="0" value="${esc(pqNew.qty)}" oninput="pqNewSet('qty',this.value)" style="width:90px"></td><td colspan="4"></td></tr>`;
+  const areaRow=`<tr><td class="nm" style="color:var(--text2)">พื้นที่ตามแบบของแผ่น <span style="font-size:10.5px">(ใช้เมื่อหมวดงานยังไม่มีรายการ BOQ)</span></td><td style="text-align:center">ตร.ม.</td><td></td><td></td>${
+    cols.map(pg=>`<td><input type="number" step="0.01" min="0" value="${pageAreas[pg]||''}" onchange="pqAreaEdit(${pg},this.value)"></td>`).join('')}<td class="tot">${getSheetsSum()?fmtQ(getSheetsSum()):'–'}</td><td></td><td></td><td></td></tr>`;
+  document.getElementById('pqBody').innerHTML=
+    `<div class="sc-note" style="margin:0 0 9px">ส่วน <b>ก</b> คือตัวเลขรายแผ่นที่อ่านจากแบบ ใช้อ้างอิง · ส่วน <b>ข</b> คือรายการ BOQ ทั้งหมด (เพิ่ม/ลบ/แก้ชื่อและปริมาณที่หน้ารายการ BOQ) — เลือกช่อง <b>ใช้ปริมาณจาก</b> ให้ดึงตัวเลขรายชั้นจากแถวอ้างอิง (หลายรายการใช้แถวเดียวกันได้) หรือเลือกกรอกเอง ·
+      กด <b>เติมจากแบบ</b> เพื่ออ่านตัวเลขจากแบบใหม่</div>
+    ${pqMsg?`<div class="sc-note" style="margin:0 0 9px;color:var(--green)">${pqMsg}</div>`:''}
+    <div class="pq-wrap"><table class="pq-t"><thead>${head}</thead><tbody>
+      <tr class="sec"><td colspan="${nc}">ก. ปริมาณจากแบบ (อ้างอิง — ไม่ใช่รายการ BOQ) <button class="pq-add" style="margin-left:8px" onclick="dqAdd()">➕ เพิ่มแถวอ้างอิง</button></td></tr>
+      ${refRows||`<tr><td colspan="${nc}" style="text-align:left;color:var(--text2)">ยังไม่มี — กด "เติมจากแบบ" ด้านล่าง</td></tr>`}
+      <tr class="sec"><td colspan="${nc}">ข. รายการ BOQ <button class="pq-add" style="margin-left:8px" onclick="closeFloorQty();openPoManager()">📋 เพิ่ม / ลบ / แก้รายการ BOQ</button></td></tr>
+      ${itRows||`<tr><td colspan="${nc}" style="text-align:left;color:var(--text2)">ยังไม่มีรายการ BOQ — กดปุ่ม 📋 ด้านบนเพื่อดึงจากใบเสนอราคาหรือเพิ่มเอง</td></tr>`}
+      ${areaRow}</tbody></table></div>
+    ${rest.length?`<div class="sc-note">เพิ่มคอลัมน์แผ่นอื่น: <select style="width:auto;padding:4px 6px;font-size:12px" onchange="pqAddCol(this.value)"><option value="">เลือกแผ่น…</option>${rest.map(p=>`<option value="${p}">แผ่น ${p}${getPageName(p)?' — '+esc(getPageName(p)):''}</option>`).join('')}</select></div>`:''}
+    <div class="sc-note" style="margin-top:8px">คอลัมน์ "ต่าง" = รวมทุกชั้น ลบ ปริมาณใน BOQ · สีแดงคือไม่ตรงกัน — รายงานใช้ตัวเลขรายชั้นตามตารางนี้</div>`;
+}
+async function pqDetectFloor(pg){ // เดาเลขชั้นจากชื่อแบบ เช่น "PATTERN 4th FLOOR PLAN" หรือ "แปลนพื้นชั้น 4"
+  try{
+    const page=await pdfDoc.getPage(pg); const tc=await page.getTextContent();
+    const strs=tc.items.map(i=>i.str||'');
+    for(const s of strs){
+      let m=s.match(/\b(\d{1,2})\s*(?:st|nd|rd|th)\s*(?:floor|fl\b)/i)||s.match(/\b(?:floor|level)\s*(\d{1,2})\b/i);
+      if(m)return String(+m[1]);
+      m=s.match(/(?:แปลน|ผัง)[^\d]{0,20}ชั้น(?:ที่)?\s*(\d{1,2})/);
+      if(m)return String(+m[1]);
+    }
+  }catch(_){}
+  return '';
+}
+// เดาแหล่งปริมาณของรายการ BOQ จากชื่อ + หน่วย (รหัสวัสดุ > คำสำคัญ)
+function pqGuessSrc(it){
+  const nm=pqNorm(it.name), kind=pqUnitKind(it.unit);
+  for(const t of pqTokens(it.name)){ const d=drawQty.find(x=>x.id.startsWith('mat:')&&pqNorm(x.name).includes(t)); if(d&&pqUnitKind(d.unit)===kind)return d.id; }
+  const has=id=>dqGet(id)?id:'';
+  if(kind==='m'){ if(/บัว|skirt/.test(nm))return has('skirt'); if(/คิ้ว|กันสะดุด|trim|ปิดขอบ/.test(nm))return has('trim'); return ''; }
+  if(kind==='a'&&/ปรับพื้น|ปรับระดับ|selflevel|เซลฟ์|ติดตั้ง|ปูพื้น|ปูกระเบื้อง|กระเบื้อง|ไวนิล|vinyl|แว็กซ์|แวกซ์|wax|เคลือบ|ขัดพื้น|ขัดล้าง/.test(nm))return has('area');
+  return '';
+}
+async function pqAutoFill(){
+  if(!pdfDoc){alert('ใส่แบบ PDF ก่อน');return;}
+  const btn=document.getElementById('pqFillBtn'); btn.disabled=true; btn.textContent='กำลังอ่านแบบ…';
+  try{
+    if(!scanResult)await scanPlan();
+    let nFloor=0, nCell=0;
+    const put=(id,name,unit,pg,v)=>{ if(!(v>0))return; let d=dqGet(id); if(!d){d={id,name,unit,pq:{},auto:true};drawQty.push(d);} if(!(parseFloat(d.pq[pg])>0)){d.pq[pg]=Math.round(v*100)/100;nCell++;} };
+    for(const p of scanResult.pages.filter(pqHasData)){
+      if(!(pageFloors[p.n]||'').trim()&&!getPageName(p.n)){ const f=await pqDetectFloor(p.n); if(f){pageFloors[p.n]=f;nFloor++;} }
+      const legA=(p.legend||[]).reduce((s,l)=>s+(+l.area||0),0);
+      put('area','พื้นที่ปูพื้น','ตร.ม.',p.n,legA||p.totals.area);
+      put('skirt','บัวเชิงผนัง','ม.',p.n,p.totals.skirting);
+      put('trim','คิ้วขอบ','ม.',p.n,p.totals.trim);
+      if((p.legend||[]).length>1)(p.legend||[]).forEach(l=>{ const nm=((l.product&&l.code&&pqNorm(l.product).includes(pqNorm(l.code)))?l.product:[l.code,l.product].filter(Boolean).join(' ')).trim()||'วัสดุ';
+        put('mat:'+(pqTokens(nm)[0]||pqNorm(nm)),nm,'ตร.ม.',p.n,+l.area); });
+    }
+    // ผูกแหล่งให้รายการ BOQ ที่ยังไม่ได้เลือก และยังไม่มีตัวเลขรายชั้น (ไม่ทับที่กรอกเอง)
+    let nLink=0;
+    poItems.forEach(it=>{ if(it.src||pqHas(it))return; const g=pqGuessSrc(it); if(g){it.src=g;nLink++;} });
+    pqSyncSrc();
+    pqMsg=`อ่านจากแบบแล้ว ${nCell} ช่อง${nFloor?` · ใส่เลขชั้นให้ ${nFloor} แผ่น`:''}${nLink?` · ผูกรายการ BOQ กับปริมาณจากแบบให้ ${nLink} รายการ (ตรวจในช่อง "ใช้ปริมาณจาก")`:''}${(!nCell&&!nLink)?' — ไม่พบตัวเลขใหม่ในแบบ':''}`;
+    const el=document.getElementById('pageFloorIn'); if(el)el.value=pageFloors[pageNum]||'';
+  }catch(e){ console.warn('เติมปริมาณจากแบบ',e); pqMsg='อ่านแบบไม่สำเร็จ — ลองกดอีกครั้ง'; }
+  btn.disabled=false; btn.textContent='🔍 เติมจากแบบ';
+  renderFloorQty();
+  try{Autosave.mark();}catch(_){}
+}
+function pqScanSection(R){
+  const n=R.pages.filter(pqHasData).length;
+  return `<div class="sc-sec"><b>ปริมาณรายชั้น</b>
+    <div class="sc-note" style="margin:0 0 7px">${n?`พบตารางวัสดุใน ${n} แผ่น — `:''}เปิดตารางปริมาณรายชั้นเพื่อดูว่าแต่ละรายการมีปริมาณเท่าไรในแต่ละชั้น (ใช้ BOQ ชุดเดียว ไม่ต้องแยกชุด)</div>
+    <button class="st-btn" style="margin-top:0" onclick="closeScan();openFloorQty()">📊 เปิดตารางปริมาณรายชั้น</button></div>`;
+}
+
+// ════════════════ rev 11 (ค): รายการค้าง + ปุ่มสถานะ เสร็จ / กำลังทำ / แผน ════════════════
+// รายการค้าง = รายการที่จะถูกติ๊กให้เองเมื่อระบายพื้นที่ใหม่ (ใช้ตัวจำ "รายการล่าสุดต่อหมวดงาน" ที่มีอยู่เดิม แต่ทำให้เลือกเองได้)
+function stickyRender(){
+  const bar=document.getElementById('stickyBar'), sel=document.getElementById('stickyItem'); if(!bar||!sel)return;
+  if(!poItems.length||activeLayer==='deliv'){bar.style.display='none';return;}
+  bar.style.display='';
+  const items=poItemsForPage(pageNum).filter(it=>!pqHas(it)||pqGet(it,pageNum)>0);
+  const cur=(lastItemByLayer[activeLayer]||[]).map(String);
+  sel.innerHTML=`<option value="">— ไม่ค้าง —</option>`
+    +(cur.length>1?`<option value="*" selected>หลายรายการ (ตามจุดล่าสุด)</option>`:'')
+    +items.map(it=>`<option value="${it.id}" ${cur.length===1&&cur[0]===String(it.id)?'selected':''}>${prEsc(it.name)}</option>`).join('');
+}
+function stickySet(v){ if(v==='*')return; lastItemByLayer[activeLayer]=v?[String(v)]:[]; }
+let qsDate='';
+function qsSetDate(v){ qsDate=v||todayISO(); }
+function qsApply(kind){
+  if(Date.now()-mkPopOpenT<450)return; // กันแตะซ้ำที่ตามหลังการปิดกรอบ
+  const m=markups.find(x=>x.id===popId); if(!m)return;
+  const d=qsDate||todayISO();
+  const S=document.getElementById('mkPopStart'), E=document.getElementById('mkPopEnd');
+  if(kind==='done'){ E.value=d; if(!S.value||S.value>d)S.value=d; saveMkPopup(); return; }
+  if(kind==='wip'){ if(!S.value)S.value=d; E.value=''; saveMkPopup(); return; }
+  // แผน: ย้ายจุดนี้ไปอยู่ในแผนงานที่ใช้อยู่ (ไม่นับเป็นงานที่ทำแล้ว) โดยไม่สลับแท็บหมวดงานที่กำลังระบาย
+  collectMkPopup();
+  if(!plans.length)plans.push(newPlan());
+  const p=activePlan()||plans[plans.length-1];
+  m.layer='plan'; m.zone=layerZone('plan'); m.planId=p.id; m.stroke=PLAN_LAYER.color; m.fill=PLAN_LAYER.color;
+  document.getElementById('mkPopOverlay').style.display='none'; popId=null;
+  redraw(); renderList(); renderLayerBar();
+}
+const _r11OpenMkPopup=openMkPopup;
+openMkPopup=function(id){
+  _r11OpenMkPopup(id);
+  const m=markups.find(x=>x.id===id), q=document.getElementById('mkPopQuick');
+  if(q&&m){ q.style.display=(isPlanMk(m)||isDelivMk(m))?'none':'block'; if(!qsDate)qsDate=todayISO(); document.getElementById('qsDate').value=qsDate; }
+  // แผ่นที่ตั้งมาตราส่วนไว้แล้ว: คำนวณพื้นที่จากรูปที่ระบายให้เลย (เฉพาะจุดที่ยังไม่ได้กรอกพื้นที่) — แก้เองได้
+  try{
+    if(m&&!m.area){
+      const ppm=ppmNow(m.page), f=(m.canvasW&&dc.width)?dc.width/m.canvasW:1;
+      const shapes=[m.shape,...(m.extraShapes||[])].filter(Boolean);
+      if(ppm>0&&shapes.length&&shapes.every(sh=>sh.type==='rect'||sh.type==='poly')){
+        const px=shapes.reduce((t,sh)=>{
+          if(sh.type==='rect')return t+Math.abs(sh.w*sh.h);
+          let a=0; const P=sh.points; for(let i=0;i<P.length;i++){const j=(i+1)%P.length;a+=P[i].x*P[j].y-P[j].x*P[i].y;} return t+Math.abs(a)/2;
+        },0);
+        const sqm=Math.round(px*f*f/(ppm*ppm)*100)/100;
+        if(sqm>0){ const el=document.getElementById('mkPopArea'); el.value=sqm; mkPopAreaInput(String(sqm)); }
+      }
+    }
+  }catch(_){}
+};
+const _r11RenderLayerBar=renderLayerBar;
+renderLayerBar=function(){ _r11RenderLayerBar(); try{stickyRender();}catch(_){} };
+const _r11SyncPage=syncPageAreaInput;
+syncPageAreaInput=function(){ _r11SyncPage(); try{ const el=document.getElementById('pageFloorIn'); if(el)el.value=pageFloors[pageNum]||''; stickyRender(); }catch(_){} };
+
+const FR14_CSS="\n@page{size:A3 landscape;margin:0}*{box-sizing:border-box;margin:0;padding:0}\nbody{font-family:Sarabun,Loma,sans-serif;color:#1d2228;font-size:9.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n.sheet{width:420mm;height:297mm;padding:9mm 10mm 8mm;display:flex;flex-direction:column;page-break-after:always;overflow:hidden;position:relative}\n.top{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:3mm;border-bottom:.8pt solid #1d2228}\n.top .l{display:flex;gap:5mm;align-items:center}\n.logo{width:14mm;height:14mm;border:.6pt solid #9aa2ab;display:flex;align-items:center;justify-content:center;font-size:7pt;color:#9aa2ab}\n.top .k{font-size:8.5pt;letter-spacing:.6pt;color:#6b737c}.top .t{font-size:17pt;font-weight:700;line-height:1.15}.top .s{font-size:9.5pt;color:#6b737c}\n.top .r{text-align:right;font-size:9pt;color:#6b737c;line-height:1.5}.top .r b{font-size:11.5pt;color:#1d2228}\n\n.bd{flex:1;min-height:0;overflow:hidden;grid-template-rows:minmax(0,1fr);display:grid;grid-template-columns:53% 1fr;gap:7mm;margin-top:5mm}\n.figw{display:flex;flex-direction:column;min-height:0;border:.6pt solid #1d2228}\n.fig{position:relative;flex:1;min-height:0}.fig svg{position:absolute;inset:0;width:100%;height:100%}\n.fbar{display:flex;align-items:center;gap:7mm;border-top:.6pt solid #1d2228;padding:2mm 4mm;font-size:9pt}\n.fbar .lg{display:flex;gap:5mm;align-items:center;white-space:nowrap}.fbar .lg b{font-size:8pt;color:#6b737c;letter-spacing:.5pt}\n.fbar i{display:inline-block;width:6mm;height:3.6mm;margin-right:2mm;vertical-align:-.6mm;border:.5pt solid #111}\n.fbar .cap{margin-left:auto;color:#6b737c;font-size:8.5pt}\n.side{display:flex;flex-direction:column;gap:3mm;min-width:0;min-height:0}\n.sec{font-size:8.5pt;letter-spacing:.6pt;color:#6b737c;font-weight:700;border-bottom:.6pt solid #c9ced4;padding-bottom:1mm}\n.kps{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}.kps4{display:grid;grid-template-columns:repeat(4,1fr);gap:7mm;margin:5mm 0 6mm}\n.kp{border-top:2.4pt solid;padding-top:2mm}.kp>span{display:block;font-size:9.5pt;color:#4b525a;font-weight:700;margin-bottom:1mm}\n.fl{display:flex;align-items:flex-end;gap:2.5mm}.fl small{display:block;font-size:7.5pt;color:#6b737c}\n.fl em{font-style:normal;font-size:12pt;color:#4b525a}.fl small.a{font-size:8pt;color:#4b525a;margin-top:.4mm}.fl small.a.g{color:#15803d}.fl em.g{color:#15803d;font-weight:700}.fl b{font-size:19pt;line-height:1.05}.fl .op{font-size:12pt;color:#9aa2ab;padding-bottom:.6mm}\n.kps4 .fl em{font-size:15pt}.kps4 .fl b{font-size:26pt}.kps4 .fl .op{font-size:15pt}\n.kp .q{display:block;font-size:8pt;color:#6b737c;margin-top:1mm}\n.bar{height:1.5mm;background:#e6e9ed;position:relative;margin-top:1mm;overflow:hidden}.bar i{position:absolute;left:0;top:0;bottom:0}\ntable{width:100%;border-collapse:collapse}\nth{background:#DDEBF7;color:#1F3864;font-weight:700;font-size:8.8pt;padding:1.6mm;text-align:center;line-height:1.25;border:.6pt solid #9BB0C9}\ntd{padding:1.5mm 1.8mm;border:.6pt solid #BFC7D1;vertical-align:middle}\ntd.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}td.c{text-align:center}td.l{text-align:left}\ntd.cur{color:#15803d;font-weight:700}td.pct b{font-size:10pt}\ntr.g td{font-weight:700;background:#F2F2F2;font-size:9.5pt}tr.g td i{display:inline-block;width:3mm;height:3mm;margin-right:2mm;vertical-align:-.3mm}\n.note{font-size:8pt;color:#6b737c;line-height:1.5}\n.tblk{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border:.8pt solid #1d2228;margin-top:auto}\n.tblk div{padding:1.6mm 2.5mm;border-left:.5pt solid #c9ced4;font-size:8.5pt;min-height:13mm}.tblk div:first-child{border-left:0}\n.tblk span{display:block;font-size:7pt;letter-spacing:.5pt;color:#6b737c}\n.mx th.grp{font-size:10pt;padding:2mm;background:#BDD7EE}.mx th.grp i{display:inline-block;width:3mm;height:3mm;margin-right:1.5mm;vertical-align:-.3mm}.mx th.sub{font-size:8.5pt;padding:1.2mm}\n.mx td{padding:2mm 1.4mm;font-size:9.5pt}.mx td.rm{color:#9a3412}.mx td.rm small{color:#9a3412}.mx td.cu{border-right:0}.mx td.rm{border-right:1.2pt solid #7F8C99}.mx td.flr{font-weight:700;font-size:10.5pt;background:#F7F9FC}\n.mx td small{display:block;font-size:7.8pt;color:#6b737c;font-weight:400}\n.mx td.tt{color:#4b525a;background:#FAFBFC}.mx td.nw{color:#15803d;font-weight:700}.mx td.nw small{color:#15803d}.mx td.cu{font-weight:700}\n.mx td.full{background:#E2EFDA}\n.mx.sm td{font-size:9.5pt;padding:1.6mm}.mx.sm td.flr{font-size:9.5pt}.mx i.sw{display:inline-block;width:3mm;height:3mm;margin-right:1.5mm;vertical-align:-.3mm}\n.mx tr.grand td{background:#FFF2CC;font-weight:700;border-top:1.4pt solid #7F8C99}\n.side td{padding:1mm 1.5mm;font-size:8.8pt}.side .mx.sm td{padding:1mm 1.5mm;font-size:8.8pt}.side .mx td small{font-size:7.2pt}.side th{padding:1.1mm;font-size:8.3pt}.side tr.g td{font-size:8.8pt}\n.iss th{background:#FBE9E7;color:#7B241C;border-color:#E6B0AA}.iss td{font-size:9pt;padding:1.3mm 1.6mm}.iss .it{display:inline-block;background:#C0392B;color:#fff;font-weight:700;border-radius:1mm;padding:0 1.6mm}\n.iss tr.done td{color:#4b525a;background:#F3F7F2}.iss .it.ok{background:#2F9E6E}\n.iss.sum td{font-size:9.5pt;padding:1.8mm}.iss tr.t td{background:#FBE9E7;font-weight:700}\n.ph.bad{border-color:#C0392B}.ph .no.it{width:auto;border-radius:1mm;background:#C0392B;color:#fff;border:0;padding:0 2mm}\n.phg{display:grid;grid-template-columns:repeat(3,1fr);gap:3.5mm 6mm;flex:1;min-height:0;align-content:start}\n.ph{display:flex;flex-direction:column;border:.6pt solid #BFC7D1}.ph .im{position:relative;height:47mm;overflow:hidden;background:#eee}.ph img{width:100%;height:100%;object-fit:cover;display:block}\n.ph .no{position:absolute;left:2.5mm;top:2.5mm;width:7mm;height:7mm;border-radius:50%;background:#fff;border:.8pt solid #111;font-weight:700;font-size:10pt;display:flex;align-items:center;justify-content:center}\n.ph figcaption{padding:2mm 3mm;font-size:9.5pt;line-height:1.5;border-top:.6pt solid #BFC7D1}.ph figcaption small{display:block;color:#6b737c;font-size:8.5pt}\n.ph .tg{float:right;border:.6pt solid;border-radius:1mm;padding:0 1.5mm;font-size:8pt}\n";
+// ════════════════ rev 14: รายงานทุกหมวดงาน — ใบสรุปทั้งโครงการ + หน้ารายชั้น + รูปถ่าย + พื้นที่ติดปัญหา ════════════════
+// ร้อยละคิดแยกทีละงาน ไม่ถ่วงน้ำหนัก · บนแบบมีสองสถานะ: ปรับพื้นเสร็จ (รอปู) กับ ปูเสร็จ
+// ห้องที่ปูแล้ว "เจาะ" ก้อนปรับพื้นออกก่อนเติมสีเขียว — ก้อนปรับพื้นที่ระบายเป็นก้อนใหญ่จึงไม่ซ้อนสีกับห้องที่ปู
+const FR_COL={sl:'#E3A33A',in:'#2F9E6E',plan:'#1F4E9C',issue:'#C0392B'};
+const FR_XCOL=['#7A7F87','#8E6BBF','#3F7FBF','#B5651D','#5E7D3A'];
+function frLayerColor(lk){
+  if(lk==='screed')return FR_COL.sl; if(lk==='install')return FR_COL.in;
+  const o=LAYERS.filter(l=>l.key!=='screed'&&l.key!=='install').findIndex(l=>l.key===lk);
+  return FR_XCOL[Math.max(0,o)%FR_XCOL.length];
+}
+let frSel={start:'',end:'',sum:true,pages:true,photos:true,phMode:'period',layers:null};
+function frIsOwnBoq(b){ return !!b&&parsePages(b.pages).length===1; }
+// รายการ BOQ แต่ละรายการเป็นของหมวดงานไหน: ดูจากงานที่ผูกอยู่ (หมวดที่ผูกมากที่สุด) → ชื่อรายการ → ค่าเริ่มต้นคืองานติดตั้ง
+function frItemLayerMap(){
+  const cnt={};
+  wmk().forEach(m=>mkItems(m).forEach(x=>{ const k=String(x.id); (cnt[k]=cnt[k]||{})[m.layer]=((cnt[k]||{})[m.layer]||0)+1; }));
+  const def=LAYERS.some(l=>l.key==='install')?'install':LAYERS[0].key;
+  const map=new Map();
+  poItems.forEach(it=>{
+    const c=cnt[String(it.id)];
+    let lk=c?Object.keys(c).sort((a,b)=>c[b]-c[a])[0]:null;
+    if(!lk)lk=poMatchLayer(it.name)||def;
+    map.set(String(it.id),lk);
+  });
+  return map;
+}
+function frLayers(IL){
+  IL=IL||frItemLayerMap();
+  return LAYERS.filter(l=>wmk().some(m=>m.layer===l.key)||poItems.some(it=>IL.get(String(it.id))===l.key&&(pqHas(it)||parseFloat(it.qty)>0)));
+}
+function frStat(m,S,E){ const pc=addDays(S,-1); return isDoneMk(m,pc)?'prev':isDoneMk(m,E)?'cur':isWipMk(m,E)?'wip':'none'; }
+// ข้อมูลหนึ่งแผ่น หนึ่งหมวดงาน
+function frPageLayer(pg,lk,S,E,IL){
+  const q=v=>parseFloat(v)||0;
+  const mks=wmk().filter(m=>m.page===pg&&m.layer===lk);
+  const linked=new Set(); mks.forEach(m=>mkItems(m).forEach(x=>linked.add(String(x.id))));
+  const nS=frSheetCount();
+  const items=poItemsForPage(pg).filter(it=>{
+    const id=String(it.id); if(IL.get(id)!==lk)return false;
+    if(linked.has(id))return true;
+    if(pqHas(it))return pqGet(it,pg)>0;
+    return q(it.qty)>0&&(frIsOwnBoq(boqOf(it.id))||nS===1||mks.length>0);
+  });
+  const sum=(st,id)=>mks.filter(m=>frStat(m,S,E)===st).reduce((s,m)=>s+mkItems(m).filter(x=>String(x.id)===id).reduce((a,x)=>a+q(x.qty),0),0);
+  let rows=items.map(it=>{
+    const id=String(it.id), per=pqGet(it,pg), has=pqHas(it);
+    const total=per>0?per:((!has&&(frIsOwnBoq(boqOf(it.id))||nS===1))?q(it.qty):0);
+    return {id,name:it.name||'-',unit:(it.unit||'').trim()||'ตร.ม.',area:isAreaUnit(it.unit),total,prev:sum('prev',id),cur:sum('cur',id),unknown:!(total>0)};
+  });
+  let basis='boq';
+  if(!rows.length&&mks.length){ // หมวดนี้ยังไม่มีรายการ BOQ → ใช้พื้นที่ตามแบบของแผ่น
+    basis='sheet';
+    const A=st=>mks.filter(m=>frStat(m,S,E)===st).reduce((s,m)=>s+q(m.area),0);
+    rows=[{id:null,name:'พื้นที่ตามแบบของแผ่น',unit:'ตร.ม.',area:true,total:getPageArea(pg)||0,prev:A('prev'),cur:A('cur'),unknown:!(getPageArea(pg)>0)}];
+  }
+  return {lk,mks,rows,basis,unlinked:basis==='boq'?mks.filter(m=>!mkItems(m).length):[],noDate:mks.filter(m=>frStat(m,S,E)==='none')};
+}
+// พื้นที่ติดปัญหาของแผ่น: ยังติดอยู่ ณ วันที่รายงาน + ที่แก้แล้วภายในสัปดาห์นี้
+function frIssues(pg,S,E){
+  if(!featIssue)return [];
+  return markups.filter(m=>isIssueMk(m)&&m.page===pg&&(!m.start||m.start<=E)&&(!m.end||m.end>=S))
+    .sort((a,b)=>String(a.start||'').localeCompare(String(b.start||''))||mkNo(a)-mkNo(b))
+    .map((m,i)=>{ const done=!!(m.end&&m.end<=E); const to=done?m.end:E;
+      const days=m.start?Math.max(0,Math.round((new Date(to+'T00:00:00')-new Date(m.start+'T00:00:00'))/864e5)):null;
+      return {m,tag:'ป'+(i+1),done,days,area:parseFloat(m.area)||0}; });
+}
+function frPagesInScope(lks,S,E){
+  const s=new Set(), act=activePlan();
+  wmk().forEach(m=>{ if(lks.includes(m.layer))s.add(m.page); });
+  if(act)pmk(act.id).forEach(m=>s.add(m.page));
+  if(featIssue)markups.forEach(m=>{ if(isIssueMk(m)&&(!m.start||m.start<=E)&&(!m.end||m.end>=S))s.add(m.page); });
+  return [...s].sort((a,b)=>a-b);
+}
+// ── หน้าต่างเลือกก่อนพิมพ์ ──
+function openFloorReport(){
+  const IL=frItemLayerMap(), has=frLayers(IL);
+  if(!has.length&&!(featIssue&&markups.some(isIssueMk))){alert('ยังไม่มีพื้นที่งานให้ออกรายงาน');return;}
+  if(!frSel.layers)frSel.layers=has.map(l=>l.key);
+  frSel.layers=frSel.layers.filter(k=>has.some(l=>l.key===k)); if(!frSel.layers.length)frSel.layers=has.map(l=>l.key);
+  if(!frSel.end)frSel.end=todayISO();
+  if(!frSel.start)frSel.start=addDays(frSel.end,-6);
+  renderFloorPick(); showOverlay('frOverlay');
+}
+function closeFloorReport(){ document.getElementById('frOverlay').style.display='none'; }
+function frSet(k,v){ frSel[k]=v; renderFloorPick(); }
+function frToggleLayer(k,on){ frSel.layers=on?[...new Set([...frSel.layers,k])]:frSel.layers.filter(x=>x!==k); renderFloorPick(); }
+function renderFloorPick(){
+  const IL=frItemLayerMap(), has=frLayers(IL), S=frSel.start, E=frSel.end;
+  const n=frPagesInScope(frSel.layers,S,E).length;
+  const bad=!S||!E?'กรอกวันเริ่มและวันสิ้นสุดของงวด':(S>E?'วันเริ่มงวดต้องไม่หลังวันสิ้นสุดงวด':
+    ((!frSel.sum&&!frSel.pages&&!frSel.photos)?'ติ๊กเอกสารอย่างน้อยหนึ่งอย่าง':(!frSel.layers.length?'ติ๊กหมวดงานอย่างน้อยหนึ่งหมวด':'')));
+  const noPq=!poItems.some(pqHas)&&frSheetCount()>1;
+  document.getElementById('frBody').innerHTML=
+    `<span class="fr-lbl" style="margin-top:0">ช่วงงวดที่รายงาน</span>
+    <div class="fr-dates">
+      <div><span class="fr-lbl" style="margin-top:0">วันเริ่มงวด</span><input type="date" value="${S}" onchange="frSet('start',this.value)"></div>
+      <div><span class="fr-lbl" style="margin-top:0">วันสิ้นสุดงวด</span><input type="date" value="${E}" onchange="frSet('end',this.value)"></div>
+    </div>
+    <div class="sc-note">งานที่ลงวันเสร็จก่อนวันเริ่มงวด = ยกมา · งานที่เสร็จภายในช่วงงวด = สัปดาห์นี้</div>
+    <span class="fr-lbl">หมวดงานที่รวมในรายงาน</span>`
+    +has.map(l=>`<label class="fr-ck"><input type="checkbox" ${frSel.layers.includes(l.key)?'checked':''} onchange="frToggleLayer('${l.key}',this.checked)"> <span class="dot" style="background:${frLayerColor(l.key)}"></span> ${prEsc(l.name)} <small style="color:var(--text2)">· ${wmk().filter(m=>m.layer===l.key).length} จุด</small></label>`).join('')
+    +`<span class="fr-lbl">เอกสารที่จะออก (ไฟล์เดียว)</span>
+    <label class="fr-ck"><input type="checkbox" ${frSel.sum?'checked':''} onchange="frSet('sum',this.checked)"> ใบสรุปทั้งโครงการ แยกตามชั้นและงาน</label>
+    <label class="fr-ck"><input type="checkbox" ${frSel.pages?'checked':''} onchange="frSet('pages',this.checked)"> หน้ารายชั้น — แบบระบายสี + ตาราง (${n} แผ่น)</label>
+    <label class="fr-ck"><input type="checkbox" ${frSel.photos?'checked':''} onchange="frSet('photos',this.checked)"> หน้ารูปถ่ายรายชั้น (หน้าละ 9 รูป · ข้ามชั้นที่ไม่มีรูป)</label>
+    ${frSel.photos?`<div style="margin:4px 0 0 25px;display:flex;gap:14px;font-size:12px">
+      <label><input type="radio" style="width:auto;margin-right:5px" name="frPh" ${frSel.phMode==='period'?'checked':''} onchange="frSet('phMode','period')"> เฉพาะรูปของงานสัปดาห์นี้</label>
+      <label><input type="radio" style="width:auto;margin-right:5px" name="frPh" ${frSel.phMode==='all'?'checked':''} onchange="frSet('phMode','all')"> รูปทั้งหมด</label></div>`:''}
+    <div class="fr-key"><span><i style="background:${FR_COL.sl}"></i>ปรับพื้นเสร็จ (รอปู)</span><span><i style="background:${FR_COL.in}"></i>ปูเสร็จ</span><span><i style="background:#fff;border:1.5px dashed ${FR_COL.plan}"></i>แผนสัปดาห์หน้า</span><span><i style="background:repeating-linear-gradient(45deg,${FR_COL.issue} 0 2px,#fff 2px 5px)"></i>ติดปัญหา</span></div>
+    ${noPq?`<div class="sc-note" style="margin-top:8px">ยังไม่ได้ใส่ปริมาณรายชั้น ช่อง "ทั้งหมด" ของแต่ละชั้นจะว่าง — <a href="#" style="color:var(--accent)" onclick="closeFloorReport();openFloorQty();return false">เปิดตารางปริมาณรายชั้น</a></div>`:''}
+    ${bad?`<div class="fr-err">⚠ ${bad}</div>`:''}`;
+  document.getElementById('frGo').disabled=!!bad;
+}
+function doFloorReport(){
+  if(!frSel.start||!frSel.end||frSel.start>frSel.end)return;
+  closeFloorReport();
+  printFloorReport(frSel);
+}
+// ── วาดแบบ: เทาจาง + ปรับพื้น (ส้ม) + ปู (เขียว เจาะทับ) + ติดปัญหา (ลายแดง) + แผน (เส้นประ) + ป้ายเลข ──
+function frShapes(m){ return [m.shape,...(m.extraShapes||[])].filter(Boolean); }
+function frTrace(c,s,k){
+  c.beginPath();
+  if(s.type==='rect'){ c.rect(s.x*k,s.y*k,s.w*k,s.h*k); return true; }
+  if(Array.isArray(s.points)&&s.points.length){ c.moveTo(s.points[0].x*k,s.points[0].y*k); s.points.slice(1).forEach(p=>c.lineTo(p.x*k,p.y*k)); if(s.type==='poly'){c.closePath();return true;} }
+  return false; // เส้นวาดมือ/ไฮไลต์ — ไม่มีพื้นที่ปิด
+}
+function frPaint(c,m,W,fill,stroke,lw,dash){
+  const k=W/(m.canvasW||W);
+  frShapes(m).forEach(s=>{
+    const closed=frTrace(c,s,k);
+    if(closed){ if(fill){c.fillStyle=fill;c.fill();} if(stroke){c.setLineDash(dash||[]);c.strokeStyle=stroke;c.lineWidth=lw;c.stroke();c.setLineDash([]);} }
+    else { c.strokeStyle=fill||stroke; c.lineWidth=Math.max(lw*4,(s.type==='highlight'?(m.width||14):(m.width||3))*k); c.lineCap='round'; c.lineJoin='round'; c.stroke(); }
+  });
+}
+function frBBox(m,W){ const b=mkShapesBBox(frShapes(m)); if(!b)return null; const k=W/(m.canvasW||W); return {cx:b.cx*k,cy:b.cy*k,w:b.w*k,h:b.h*k}; }
+function frRgba(hex,a){ const h=hex.replace('#',''); return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`; }
+async function frSheetImage(pg,o){
+  const page=await pdfDoc.getPage(pg);
+  const w1=page.getViewport({scale:1}).width;
+  const base=await renderPageToCanvas(pg,Math.max(1,Math.min(3,2400/w1)));
+  const W=base.width,H=base.height;
+  const out=document.createElement('canvas'); out.width=W; out.height=H;
+  const x=out.getContext('2d');
+  x.drawImage(base,0,0);
+  // แบบเป็นสีเทาจาง ให้สีงานเด่น
+  try{ const id=x.getImageData(0,0,W,H), d=id.data;
+    for(let i=0;i<d.length;i+=4){ const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]; const v=255-(255-g)*0.72; d[i]=d[i+1]=d[i+2]=v; }
+    x.putImageData(id,0,0); }catch(_){}
+  base.width=base.height=0;
+  const ov=document.createElement('canvas'); ov.width=W; ov.height=H; const v=ov.getContext('2d');
+  const lw=Math.max(1.2,W/1600);
+  o.sl.forEach(m=>frPaint(v,m,W,frRgba(FR_COL.sl,0.45),'#111',lw));
+  v.globalCompositeOperation='destination-out'; o.ins.forEach(m=>frPaint(v,m,W,'#000','#000',lw)); v.globalCompositeOperation='source-over';
+  o.ins.forEach(m=>frPaint(v,m,W,frRgba(FR_COL.in,0.45),'#111',lw));
+  // ติดปัญหา: ลายเส้นทแยงสีแดง (เฉพาะที่ยังไม่แก้)
+  const S=Math.max(10,Math.round(W/170)), pc=document.createElement('canvas'); pc.width=pc.height=S;
+  const pt=pc.getContext('2d'); pt.fillStyle=frRgba(FR_COL.issue,0.10); pt.fillRect(0,0,S,S); pt.strokeStyle=FR_COL.issue; pt.lineWidth=Math.max(1.5,S/6);
+  pt.beginPath(); pt.moveTo(0,S); pt.lineTo(S,0); pt.moveTo(-S/2,S/2); pt.lineTo(S/2,-S/2); pt.moveTo(S/2,S*1.5); pt.lineTo(S*1.5,S/2); pt.stroke();
+  const hatch=v.createPattern(pc,'repeat');
+  o.issues.filter(i=>!i.done).forEach(i=>frPaint(v,i.m,W,hatch,FR_COL.issue,lw*1.4));
+  o.plan.forEach(m=>frPaint(v,m,W,frRgba(FR_COL.plan,0.30),FR_COL.plan,lw*3,[lw*9,lw*4]));
+  x.drawImage(ov,0,0);
+  // ป้าย
+  const fs=Math.round(W/95), font=w=>`${w} ${fs}px Sarabun, Loma, sans-serif`;
+  x.textAlign='center'; x.textBaseline='middle';
+  o.plan.forEach(m=>{ const b=frBBox(m,W); if(!b)return;
+    const d1='แผนสัปดาห์หน้า', d2=(m.start||m.end)?`${thDate(m.start)||'-'} – ${thDate(m.end)||'-'}`:'';
+    x.font=font('700'); const tw=Math.max(x.measureText(d1).width,(x.font=font('400'),x.measureText(d2).width))+fs*1.4, th=fs*(d2?2.9:1.7);
+    x.fillStyle='#fff'; x.strokeStyle=FR_COL.plan; x.lineWidth=lw*2.2; x.fillRect(b.cx-tw/2,b.cy-th/2,tw,th); x.strokeRect(b.cx-tw/2,b.cy-th/2,tw,th);
+    x.fillStyle=FR_COL.plan; x.font=font('700'); x.fillText(d1,b.cx,b.cy-(d2?fs*0.65:0)); if(d2){x.font=font('400'); x.fillText(d2,b.cx,b.cy+fs*0.7);} });
+  o.issues.filter(i=>!i.done).forEach(i=>{ const b=frBBox(i.m,W); if(!b)return;
+    x.font=font('700'); const tw=x.measureText(i.tag).width+fs*1.2, th=fs*1.7;
+    x.fillStyle=FR_COL.issue; x.fillRect(b.cx-tw/2,b.cy-th/2,tw,th); x.fillStyle='#fff'; x.fillText(i.tag,b.cx,b.cy+fs*0.05); });
+  o.pins.forEach(p=>{ const b=frBBox(p.m,W); if(!b)return;
+    const r=fs*0.95; x.beginPath(); x.arc(b.cx,b.cy,r,0,7); x.fillStyle='#fff'; x.fill(); x.strokeStyle='#111'; x.lineWidth=lw; x.stroke();
+    x.fillStyle='#111'; x.font=font('700'); x.fillText(String(p.no),b.cx,b.cy+fs*0.05); });
+  const url=out.toDataURL('image/jpeg',0.85); out.width=out.height=0; ov.width=ov.height=0;
+  return url;
+}
+// ── HTML ──
+const frF=v=>{ v=+v||0; if(!v)return '–'; return (Math.round(v*100)/100).toLocaleString('en-US'); };
+const frP=(a,b)=>(b>0&&a)?(a/b*100).toFixed(1)+'%':'';
+function frQP(q,T,cls){ return `<td class="n ${cls||''}">${frF(q)}<small>${frP(q,T)}</small></td>`; }
+function frTop(P,k,t,S,E){
+  return `<div class="top"><div class="l">${logoData?`<img src="${logoData}" style="height:14mm;width:auto" alt="">`:''}<div><div class="k">${prEsc(k)}</div><div class="t">${prEsc(t)}</div><div class="s">${prEsc(P.name)}</div></div></div>
+  <div class="r">ช่วงรายงาน <b>${thDate(S)} – ${thDate(E)}</b><br>ยกมา = สะสมถึง ${thDate(addDays(S,-1))}</div></div>`;
+}
+function frTblk(P,pg,tot){
+  return `<div class="tblk"><div><span>โครงการ</span>${prEsc(P.name)}${P.client?`<br><span style="margin-top:1mm">ผู้ว่าจ้าง</span>${prEsc(P.client)}`:''}</div>
+  <div><span>จัดทำโดย</span>${P.author?prEsc(P.author):'<br>...........................'}</div><div><span>ตรวจสอบโดย</span><br>...........................</div>
+  <div><span>วันที่ออกรายงาน / หน้า</span>${thDate(todayISO())}<br><b style="font-size:10pt">หน้า ${pg}/${tot}</b></div></div>`;
+}
+function frFlow(T,P,C,col,label,unit){
+  const p=v=>T>0?(v/T*100).toFixed(1)+'%':'–';
+  const cell=(h,pc,q,cls)=>`<td class="${cls||''}"><small>${h}</small><b>${pc}</b><span>${q}</span></td>`;
+  return `<div class="kpb" style="border-top-color:${col}"><div class="kpb-h"><i style="background:${col}"></i>${prEsc(label)}</div>
+    <table><tr>${cell('ยกมา',p(P),frF(P)+' '+unit)}${cell('สัปดาห์นี้',p(C),frF(C)+' '+unit,'g')}${cell('สะสม',p(P+C),frF(P+C)+' '+unit,'c')}</tr>
+    <tr class="f"><td colspan="3">ทั้งหมด <b>${T>0?frF(T)+' '+unit:'–'}</b>${T>0?` &nbsp;·&nbsp; คงเหลือ <b>${frF(Math.max(0,T-P-C))} ${unit}</b>`:''}</td></tr></table></div>`;
+}
+// กลุ่มคอลัมน์ของใบสรุป: หมวดงานละหนึ่งกลุ่ม (รวมรายการหน่วย ตร.ม.) + รายการหน่วยอื่น (เช่น บัว ม.) รายการละกลุ่ม
+function frGroups(lks,IL){
+  const g=[];
+  lks.forEach(lk=>{ const L=LAYERS.find(l=>l.key===lk);
+    const its=poItems.filter(it=>IL.get(String(it.id))===lk&&isAreaUnit(it.unit));
+    g.push({key:lk+'|a',lk,name:L?L.name:lk,unit:'ตร.ม.',col:frLayerColor(lk),ids:new Set(its.map(i=>String(i.id))),items:its,fallback:!poItems.some(it=>IL.get(String(it.id))===lk)}); });
+  lks.forEach(lk=>poItems.filter(it=>IL.get(String(it.id))===lk&&!isAreaUnit(it.unit)&&(parseFloat(it.qty)>0||pqHas(it))).forEach(it=>
+    g.push({key:String(it.id),lk,name:it.name||'-',unit:(it.unit||'').trim(),col:frLayerColor(lk),ids:new Set([String(it.id)]),items:[it],fallback:false})));
+  return g;
+}
+function frGroupCell(D,g){ // D = ข้อมูลหลายแผ่นของชั้นเดียวกัน (frPageLayer ของหมวด g.lk)
+  let T=0,P=0,C=0,unk=false;
+  D.forEach(d=>d.rows.forEach(r=>{
+    if(g.fallback?r.id===null:(r.id!==null&&g.ids.has(r.id))){ if(r.unknown&&(r.prev+r.cur>0||g.fallback===false))unk=unk||r.unknown; T+=r.total; P+=r.prev; C+=r.cur; }
+  }));
+  return {T:unk&&!T?0:T,P,C,unk};
+}
+function frSummaryHTML(P,S,E,SD,pg0,tot){
+  const pages=[];
+  const chunks=[]; for(let i=0;i<SD.groups.length;i+=4)chunks.push(SD.groups.slice(i,i+4));
+  const rowsPer=12, fchunks=[]; for(let i=0;i<SD.floors.length;i+=rowsPer)fchunks.push(SD.floors.slice(i,i+rowsPer));
+  const issueTbl=SD.issues.length?`<div class="sec" style="margin:6mm 0 2mm;color:${FR_COL.issue};border-color:${FR_COL.issue}">พื้นที่ติดปัญหาทั้งโครงการ — ยังเข้าทำงานไม่ได้ ณ ${thDate(E)}</div>
+    <table class="iss sum"><tr><th style="width:12%">ชั้น</th><th style="width:8%">จำนวนจุด</th><th style="width:11%">พื้นที่ (ตร.ม.)</th><th style="width:12%">ร้อยละของคงเหลือ</th><th>สาเหตุ</th><th style="width:12%">ค้างนานที่สุด</th></tr>
+    ${SD.issues.map(r=>`<tr><td class="l"><b>${prEsc(r.floor)}</b></td><td class="c">${r.n}</td><td class="n">${frF(r.area)}</td><td class="n">${r.rem>0?(r.area/r.rem*100).toFixed(1)+'%':'–'}</td><td>${prEsc(r.causes)}</td><td class="c"><b>${r.days!=null?r.days+' วัน':'–'}</b></td></tr>`).join('')}
+    <tr class="t"><td class="l">รวม</td><td class="c">${SD.issues.reduce((s,r)=>s+r.n,0)}</td><td class="n">${frF(SD.issues.reduce((s,r)=>s+r.area,0))}</td><td colspan="3">ร้อยละของคงเหลือ = พื้นที่ติดปัญหา ÷ พื้นที่${prEsc(SD.mainName)}ที่ยังเหลือในชั้นนั้น</td></tr></table>`:'';
+  const note=`<div class="note" style="margin-top:3mm">ร้อยละของแต่ละงาน = ปริมาณที่ทำเสร็จ ÷ ปริมาณทั้งหมดของงานนั้นในชั้น · ยกมา = สะสมถึง ${thDate(addDays(S,-1))} · สัปดาห์นี้ = ทำเพิ่มระหว่าง ${thDate(S)} – ${thDate(E)}<br>
+    แต่ละงานแยกกัน ไม่นำมาบวกรวม · ช่องสะสมพื้นเขียวอ่อน = งานนั้นเสร็จครบทั้งชั้น · นับเป็นเสร็จเฉพาะพื้นที่ที่ลงวันเสร็จแล้ว${SD.anyUnk?' · ช่อง "ทั้งหมด" ที่เป็น – คือยังไม่ได้ใส่ปริมาณรายชั้น':''}</div>`;
+  chunks.forEach((gs,ci)=>fchunks.forEach((fl,fi)=>{
+    const head1='<tr><th rowspan="2" style="width:6%">ชั้น</th>'+gs.map(g=>`<th colspan="5" class="grp"><i style="background:${g.col}"></i>${prEsc(g.name)} (${prEsc(g.unit)})</th>`).join('')+'</tr>';
+    const head2='<tr>'+gs.map(()=>'<th class="sub">ทั้งหมด</th><th class="sub">ยกมา</th><th class="sub">สัปดาห์นี้</th><th class="sub">สะสม</th><th class="sub">คงเหลือ</th>').join('')+'</tr>';
+    const cell=(c,grand)=>{ const T=c.T, cum=c.P+c.C, full=T>0&&cum>=T-0.01?' full':'';
+      return `<td class="n tt">${T>0?frF(T):'–'}</td>`+frQP(c.P,T,'pv')+frQP(c.C,T,'nw')+frQP(cum,T,'cu'+full+(T>0&&cum>T+0.01?' ov':''))+(T>0?frQP(Math.max(0,T-cum),T,'rm'):'<td class="n rm">–</td>'); };
+    const body=fl.map(f=>`<tr><td class="l flr">${prEsc(f.label)}${f.pages.length>1?`<small>${f.pages.length} แผ่น</small>`:''}</td>${gs.map(g=>cell(f.cells[g.key])).join('')}</tr>`).join('');
+    const last=fi===fchunks.length-1;
+    const grand=last?`<tr class="grand"><td class="l">รวมทั้งโครงการ</td>${gs.map(g=>cell(SD.total[g.key])).join('')}</tr>`:'';
+    const first=ci===0&&fi===0;
+    pages.push(`<section class="sheet">${frTop(P,'ใบสรุปความคืบหน้า','สรุปทั้งโครงการ แยกตามชั้นและงาน',S,E)}
+      ${first?`<div class="kps4">${SD.groups.slice(0,4).map(g=>{const t=SD.total[g.key];return frFlow(t.T,t.P,t.C,g.col,g.name,g.unit);}).join('')}</div>`:'<div style="height:5mm"></div>'}
+      <div class="sec" style="margin-bottom:2mm">ปริมาณและร้อยละของแต่ละงาน แยกตามชั้น — ยกมา + สัปดาห์นี้ = สะสม · คงเหลือ = ทั้งหมด − สะสม (ตัวเล็ก = ร้อยละของทั้งหมด)</div>
+      <div class="fitw"><table class="mx">${head1}${head2}${body}${grand}</table>${note}${(ci===chunks.length-1&&last)?(frAccTableHTML([...new Set(SD.groups.map(g=>g.lk))])+issueTbl):''}</div>
+      ${frTblk(P,pg0+pages.length,tot)}</section>`);
+  }));
+  return pages;
+}
+function frFloorPageHTML(P,S,E,pg,o,img,pno,tot){
+  const esc=prEsc;
+  // ความคืบหน้าของชั้นนี้ (หมวดละแถว รวมรายการ ตร.ม.)
+  const prog=o.layers.map(d=>{ const L=LAYERS.find(l=>l.key===d.lk); const ar=d.rows.filter(r=>r.area&&!r.acc);
+    const T=ar.reduce((s,r)=>s+r.total,0), Pv=ar.reduce((s,r)=>s+r.prev,0), C=ar.reduce((s,r)=>s+r.cur,0);
+    return `<tr><td class="l flr"><i class="sw" style="background:${frLayerColor(d.lk)}"></i>${esc(L?L.name:d.lk)}</td><td class="c">ตร.ม.</td><td class="n tt">${T>0?frF(T):'–'}</td>${frQP(Pv,T,'pv')}${frQP(C,T,'nw')}${frQP(Pv+C,T,'cu')}<td class="n">${T>0?frF(Math.max(0,T-Pv-C)):'–'}</td></tr>`; }).join('');
+  const rows=o.layers.map(d=>{ const L=LAYERS.find(l=>l.key===d.lk), col=frLayerColor(d.lk);
+    return `<tr class="g"><td colspan="8"><i style="background:${col}"></i>${esc(L?L.name:d.lk)}</td></tr>`+d.rows.map(r=>{ const cum=r.prev+r.cur;
+      if(r.acc)return `<tr><td class="l">${esc(r.name)}</td><td class="c">${esc(r.unit)}</td><td class="n">${r.total>0?frF(r.total):'–'}</td><td colspan="5" style="color:#6b737c;font-size:8pt;text-align:left">ของประกอบ — แสดงเฉพาะปริมาณ</td></tr>`;
+      return `<tr><td class="l">${esc(r.name)}${r.unknown?' *':''}</td><td class="c">${esc(r.unit)}</td><td class="n">${r.total>0?frF(r.total):'–'}</td><td class="n">${frF(r.prev)}</td>
+        <td class="n cur">${frF(r.cur)}</td><td class="n cur">${r.cur&&r.total>0?'+'+frP(r.cur,r.total):'–'}</td><td class="n${r.over?' ov':''}">${frF(cum)}${r.over?' ▲':''}</td>
+        <td class="n pct${r.over?' ov':''}"><b>${r.total>0?((cum/r.total*100).toFixed(1)+'%'):'–'}</b>${r.total>0?`<div class="bar"><i style="width:${Math.min(100,cum/r.total*100).toFixed(1)}%;background:${col}"></i></div>`:''}</td></tr>`; }).join(''); }).join('');
+  const act=o.issues.filter(i=>!i.done), fix=o.issues.filter(i=>i.done), MAXI=6;
+  const iss=o.issues.length?`<div class="sec" style="color:${FR_COL.issue};border-color:${FR_COL.issue}">พื้นที่ติดปัญหา — ยังเข้าทำงานไม่ได้ ${act.length} จุด · ${frF(act.reduce((s,i)=>s+i.area,0))} ตร.ม.${fix.length?` · แก้แล้วในสัปดาห์นี้ ${fix.length} จุด`:''}</div>
+    <table class="iss"><tr><th style="width:7%">เลข</th><th style="width:20%">ตำแหน่ง</th><th style="width:9%">ตร.ม.</th><th>สาเหตุ</th><th style="width:12%">พบเมื่อ</th><th style="width:9%">ค้างมา</th><th style="width:14%">คาดว่าเข้าได้</th></tr>
+    ${o.issues.slice(0,MAXI).map(i=>i.done?`<tr class="done"><td class="c"><span class="it ok">${i.tag}</span></td><td>${esc(i.m.note)||'-'}</td><td class="n">${frF(i.area)}</td><td>${esc(i.m.cause)||'-'}</td><td class="c">${thDate(i.m.start)||'-'}</td><td class="c" colspan="2"><b>แก้แล้ว ${thDate(i.m.end)}</b>${i.days!=null?` (ค้าง ${i.days} วัน)`:''}</td></tr>`
+      :`<tr><td class="c"><span class="it">${i.tag}</span></td><td>${esc(i.m.note)||'-'}</td><td class="n">${frF(i.area)}</td><td>${esc(i.m.cause)||'-'}</td><td class="c">${thDate(i.m.start)||'-'}</td><td class="c"><b>${i.days!=null?i.days+' วัน':'–'}</b></td><td class="c">${thDate(i.m.expect)||'ยังไม่ระบุ'}</td></tr>`).join('')}
+    ${o.issues.length>MAXI?`<tr><td colspan="7" class="c">และอีก ${o.issues.length-MAXI} จุด — ดูในหน้ารูปถ่าย</td></tr>`:''}</table>`:'';
+  const pl=o.plan, pd=pl.map(m=>[m.start,m.end]).flat().filter(Boolean).sort();
+  const planTxt=pl.length?`แผนสัปดาห์หน้า ${pd.length?thDate(pd[0])+' – '+thDate(pd[pd.length-1]):''}: ${pl.map(m=>esc(m.note)||'').filter(Boolean).join(' · ')||'ตามกรอบเส้นประบนแบบ'} ประมาณ ${frF(pl.reduce((s,m)=>s+(parseFloat(m.area)||0),0))} ตร.ม. · `:'';
+  const notes=[];
+  if(o.layers.some(d=>d.rows.some(r=>r.unknown)))notes.push('* ยังไม่ได้ใส่ปริมาณรายชั้นของรายการนี้');
+  const un=o.layers.reduce((s,d)=>s+d.unlinked.length,0), nd=o.layers.reduce((s,d)=>s+d.noDate.length,0);
+  if(un)notes.push(`มีพื้นที่ ${un} จุดที่ยังไม่ได้ผูกรายการ จึงไม่ถูกนับ`);
+  if(nd)notes.push(`มีพื้นที่ ${nd} จุดที่ยังไม่ลงวันที่ จึงไม่ถูกนับและไม่ถูกระบายสี`);
+  const cr=o.layers.reduce((s,d)=>s+(d.cross||[]).length,0);
+  if(cr)notes.push(`มีพื้นที่ ${cr} จุดที่ผูกรายการของหมวดงานอื่น ส่วนนั้นจึงไม่ถูกนับ`);
+  if(o.layers.some(d=>d.rows.some(r=>r.over)))notes.push('▲ ตัวแดง = สะสมเกินปริมาณที่ตั้งไว้ของแผ่นนี้');
+  const fl=frFloorLabel(pg), nm=getPageName(pg);
+  return `<section class="sheet">${frTop(P,'รายงานความคืบหน้ารายชั้น',fl+((nm&&nm!==fl)?' · '+nm:(o.multi?' · แผ่นที่ '+pg:'')),S,E)}
+  <div class="bd"><div class="figw"><div class="fig">${img?`<img src="${img}" alt="">`:'<div class="empty">— ไม่มีไฟล์แบบในโครงการนี้ —</div>'}</div>
+    <div class="fbar"><div class="lg"><b>สัญลักษณ์</b><span><i style="background:${frRgba(FR_COL.sl,.7)}"></i>ปรับพื้นเสร็จ (รอปู)</span><span><i style="background:${frRgba(FR_COL.in,.7)}"></i>ปูเสร็จ</span>
+      <span><i style="background:${frRgba(FR_COL.plan,.30)};border:1.4pt dashed ${FR_COL.plan}"></i>แผนสัปดาห์หน้า</span><span><i style="background:repeating-linear-gradient(45deg,${FR_COL.issue} 0 1.2pt,#fbe9e7 1.2pt 3.4pt);border-color:${FR_COL.issue}"></i>ติดปัญหา</span>
+      <span><i style="width:4.2mm;height:4.2mm;border-radius:50%;background:#fff;vertical-align:-1mm;text-align:center;font-style:normal;font-size:7pt;line-height:4mm;font-weight:700">1</i>เลขรูปถ่าย</span></div>
+      <span class="cap">ไม่ได้ตามมาตราส่วน</span></div></div>
+  <div class="side"><div class="fitw">
+    <div class="sec">ความคืบหน้าของชั้นนี้ — ยกมา + สัปดาห์นี้ = สะสม</div>
+    <table class="mx sm"><tr><th style="text-align:left">งาน</th><th>หน่วย</th><th>ทั้งชั้น</th><th>ยกมา</th><th>สัปดาห์นี้</th><th>สะสม</th><th>คงเหลือ</th></tr>${prog}</table>
+    <div class="sec" style="margin-top:3mm">ปริมาณงานตามรายการ</div>
+    <table><tr><th style="text-align:left">รายการ</th><th style="width:7%">หน่วย</th><th style="width:10%">ทั้งชั้น</th><th style="width:11%">ยกมา</th><th style="width:9%">สัปดาห์นี้</th><th style="width:9%">สัปดาห์นี้<br>ร้อยละ</th><th style="width:11%">สะสมถึง<br>ปัจจุบัน</th><th style="width:13%">สะสม<br>ร้อยละ</th></tr>${rows}</table>
+    ${iss?'<div style="height:3mm"></div>'+iss:''}
+    <div class="note" style="margin-top:3mm">${planTxt}${notes.map(esc).join(' · ')}${notes.length?' · ':''}นับเป็นเสร็จเฉพาะพื้นที่ที่ลงวันเสร็จแล้ว</div>
+  </div>${frTblk(P,pno,tot)}</div></div></section>`;
+}
+function frPhotoPagesHTML(P,S,E,pg,o,pno0,tot){
+  const esc=prEsc, cards=[];
+  o.issues.forEach(i=>(i.m.photos||[]).forEach((src,k,arr)=>cards.push(`<figure class="ph bad"><div class="im"><img src="${src}" alt=""><span class="no it">${i.tag}${arr.length>1?'.'+(k+1):''}</span></div>
+    <figcaption><b>${i.tag}</b> · ${esc(i.m.note)||'-'}<span class="tg" style="border-color:${i.done?FR_COL.in:FR_COL.issue};color:${i.done?FR_COL.in:FR_COL.issue}">${i.done?'แก้แล้ว':'ติดปัญหา'}</span><br>${esc(i.m.cause)||'-'}
+    <small>พบเมื่อ ${thDate(i.m.start)||'-'}${i.done?' · แก้แล้ว '+thDate(i.m.end):(i.days!=null?' · ค้างมา '+i.days+' วัน':'')}</small></figcaption></figure>`)));
+  o.pins.forEach(p=>(p.m.photos||[]).forEach((src,k,arr)=>{ const L=LAYERS.find(l=>l.key===p.m.layer), col=frLayerColor(p.m.layer), st=frStat(p.m,S,E);
+    cards.push(`<figure class="ph"><div class="im"><img src="${src}" alt=""><span class="no">${p.no}</span></div>
+    <figcaption><b>รูปที่ ${p.no}${arr.length>1?'.'+(k+1):''}</b> · ${esc(p.m.note)||esc(L?L.name:'')}<span class="tg" style="border-color:${col};color:${col}">${esc(L?L.name:'')}</span><br>${esc(L?L.name:'')}${p.m.area?' · '+frF(p.m.area)+' ตร.ม.':''}
+    <small>${thDate(p.m.end||p.m.start)||'-'} · ${st==='cur'?'สัปดาห์นี้':st==='prev'?'ยกมา':st==='wip'?'กำลังทำ':'ยังไม่ลงวันที่'}</small></figcaption></figure>`); }));
+  if(!cards.length)return [];
+  const out=[], fl=frFloorLabel(pg), nm=getPageName(pg);
+  for(let i=0;i<cards.length;i+=9)out.push(`<section class="sheet">${frTop(P,'ภาพถ่ายหน้างาน',fl+((nm&&nm!==fl)?' · '+nm:(o.multi?' · แผ่นที่ '+pg:'')),S,E)}
+    <div class="sec" style="margin:4mm 0 3mm">${o.issues.some(x=>(x.m.photos||[]).length)?'ภาพพื้นที่ติดปัญหาขึ้นก่อน ตามด้วย':''}ภาพ${frSel.phMode==='all'?'ทั้งหมด':'งานสัปดาห์นี้ '+thDate(S)+' – '+thDate(E)} · เลขตรงกับป้ายบนแบบหน้ารายชั้น${cards.length>9?` · หน้า ${i/9+1}/${Math.ceil(cards.length/9)}`:''}</div>
+    <div class="phg">${cards.slice(i,i+9).join('')}</div>${frTblk(P,pno0+out.length,tot)}</section>`);
+  return out;
+}
+const FR14_EXTRA_CSS=`
+html,body{background:#9aa1a9}
+.tb{position:sticky;top:0;z-index:9;display:flex;gap:10px;align-items:center;justify-content:center;background:#2b3138;color:#e8ecf0;padding:9px 12px;font-size:13px;flex-wrap:wrap;font-family:Sarabun,sans-serif}
+.tb button{font:inherit;font-weight:700;background:#f4a726;color:#111;border:0;border-radius:7px;padding:7px 16px;cursor:pointer}.tb span{color:#b9c1c9}
+.tb-warn{background:#fef3c7;color:#78350f;font-size:13px;padding:7px 14px;text-align:center;border-bottom:1px solid #f4d58d;font-family:Sarabun,sans-serif}
+.sheet{background:#fff;margin:14px auto;box-shadow:0 2px 14px rgba(0,0,0,.25)}
+.fig img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.fig .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b737c}
+.side{overflow:hidden}.fitw{min-height:0;transform-origin:top left}
+.mx td.flr small{display:block;font-weight:400;font-size:7.5pt;color:#6b737c}
+.mx.acc{width:auto;min-width:60%}.mx.acc td,.mx.acc th{padding:1.3mm 2.5mm}
+td.ov,td.ov b,td.ov small{color:#C0392B!important;font-weight:700}
+.kps4{gap:5mm}
+.kpb{border:.8pt solid #1d2228;border-top:3pt solid #1d2228;background:#fff}
+.kpb-h{font-size:10.5pt;font-weight:700;padding:1.6mm 2.5mm;border-bottom:.6pt solid #1d2228;background:#eef4fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpb-h i{display:inline-block;width:3mm;height:3mm;margin-right:1.8mm;vertical-align:-.3mm}
+.kpb table{width:100%;border-collapse:collapse;table-layout:fixed}
+.kpb td{border:.6pt solid #1d2228;border-top:0;text-align:center;padding:1.6mm 1mm 1.4mm;vertical-align:top}
+.kpb td:first-child{border-left:0}.kpb td:last-child{border-right:0}
+.kpb td small{display:block;font-size:8.5pt;color:#4b525a}
+.kpb td b{display:block;font-size:17pt;line-height:1.2;font-weight:700;color:#1d2228}
+.kpb td span{display:block;font-size:9pt;color:#1d2228}
+.kpb td.g b,.kpb td.g span{color:#15803d}
+.kpb td.c{background:#f3f6f9}
+.kpb tr.f td{border-bottom:0;font-size:9pt;text-align:left;padding:1.4mm 2.5mm;color:#1d2228}
+.kpb tr.f td b{display:inline;font-size:9pt}
+
+@media screen{.wrap{zoom:var(--z,1)}}
+@media print{html,body{background:#fff}.tb,.tb-warn{display:none}.sheet{margin:0;box-shadow:none}.sheet:last-child{page-break-after:auto}}
+`;
+async function printFloorReport(opt,S0,E0,o0){
+  if(typeof opt==='string')opt=Object.assign({layers:[opt],start:S0,end:E0},o0||{}); // รูปแบบเรียกเดิม (หมวดเดียว)
+  opt=Object.assign({},frSel,opt||{});
+  if(!opt.start||!opt.end){ opt.end=opt.end||todayISO(); opt.start=opt.start||addDays(opt.end,-6); }
+  const S=opt.start, E=opt.end, IL=frItemLayerMap();
+  const lks=(opt.layers||frLayers(IL).map(l=>l.key)).filter(k=>LAYERS.some(l=>l.key===k));
+  const pages=frPagesInScope(lks,S,E);
+  if(!pages.length){alert('ยังไม่มีพื้นที่งานในหมวดที่เลือก');return;}
+  const w=openPrintWin('กำลังสร้างรายงาน...');
+  const say=t=>{try{ if(w&&!w._fb&&w.document.body)w.document.body.textContent=t; }catch(_){}};
+  await new Promise(r=>setTimeout(r,30));
+  const P=projInfo(), act=activePlan();
+  // ข้อมูลรายแผ่น
+  const PD={};
+  pages.forEach(pg=>{
+    const layers=lks.map(lk=>frPageLayer(pg,lk,S,E,IL)).filter(d=>d.rows.length||d.mks.length);
+    const issues=frIssues(pg,S,E);
+    const inc=m=>opt.phMode==='all'||(()=>{const st=frStat(m,S,E);return st==='cur'||(st==='wip'&&m.start&&m.start>=S);})();
+    const phMk=opt.photos?wmk().filter(m=>m.page===pg&&lks.includes(m.layer)&&(m.photos||[]).length&&inc(m)).sort((a,b)=>a.layer.localeCompare(b.layer)||mkNo(a)-mkNo(b)):[];
+    PD[pg]={layers,issues,pins:phMk.map((m,i)=>({m,no:i+1})),plan:act?pmk(act.id).filter(m=>m.page===pg):[],
+      sl:wmk().filter(m=>m.page===pg&&m.layer==='screed'&&lks.includes('screed')&&['prev','cur'].includes(frStat(m,S,E))),
+      ins:wmk().filter(m=>m.page===pg&&m.layer==='install'&&lks.includes('install')&&['prev','cur'].includes(frStat(m,S,E)))};
+  });
+  const floorOfPg={}; pages.forEach(pg=>floorOfPg[pg]=frFloorLabel(pg));
+  pages.forEach(pg=>PD[pg].multi=pages.filter(x=>floorOfPg[x]===floorOfPg[pg]).length>1);
+  // ใบสรุป
+  let SD=null;
+  if(opt.sum){
+    const groups=frGroups(lks,IL);
+    const floors=[], fm={};
+    pages.forEach(pg=>{ const k=floorOfPg[pg]; if(!fm[k]){fm[k]={label:k,pages:[]};floors.push(fm[k]);} fm[k].pages.push(pg); });
+    // ชั้นที่ยังไม่มีงานเลย แต่มีปริมาณรายชั้น → แสดงเป็นแถวว่าง (ยังไม่เริ่ม)
+    for(let pg=1;pg<=frSheetCount();pg++){ if(pages.includes(pg))continue;
+      if(poItems.some(it=>lks.includes(IL.get(String(it.id)))&&pqGet(it,pg)>0)){ const k=frFloorLabel(pg); if(!fm[k]){fm[k]={label:k,pages:[]};floors.push(fm[k]);} fm[k].pages.push(pg);
+        PD[pg]=PD[pg]||{layers:lks.map(lk=>frPageLayer(pg,lk,S,E,IL)).filter(d=>d.rows.length),issues:[],pins:[],plan:[],sl:[],ins:[]}; } }
+    floors.sort((a,b)=>Math.min(...a.pages)-Math.min(...b.pages));
+    let anyUnk=false;
+    floors.forEach(f=>{ f.cells={}; groups.forEach(g=>{ const D=f.pages.map(pg=>(PD[pg].layers.find(d=>d.lk===g.lk))).filter(Boolean); const c=frGroupCell(D,g); f.cells[g.key]=c; if(c.unk)anyUnk=true; }); });
+    const total={};
+    groups.forEach(g=>{ const P2=floors.reduce((s,f)=>s+f.cells[g.key].P,0), C2=floors.reduce((s,f)=>s+f.cells[g.key].C,0);
+      let T=g.fallback?floors.reduce((s,f)=>s+f.cells[g.key].T,0):g.items.reduce((s,it)=>s+(pqHas(it)?pqSum(it):(parseFloat(it.qty)||0)),0);
+      total[g.key]={T,P:P2,C:C2}; });
+    const main=groups.find(g=>g.lk==='install'&&g.key.endsWith('|a'))||groups[0];
+    const issues=floors.map(f=>{ const its=f.pages.flatMap(pg=>PD[pg].issues.filter(i=>!i.done)); if(!its.length)return null;
+      const c=main?f.cells[main.key]:{T:0,P:0,C:0};
+      return {floor:f.label,n:its.length,area:its.reduce((s,i)=>s+i.area,0),rem:Math.max(0,c.T-c.P-c.C),causes:[...new Set(its.map(i=>i.m.cause).filter(Boolean))].join(' · ')||'-',days:its.reduce((s,i)=>Math.max(s,i.days||0),0)}; }).filter(Boolean);
+    SD={groups,floors,total,issues,anyUnk,mainName:main?main.name.replace(/^งาน/,''):'งาน'};
+  }
+  // รวมหน้า (นับหน้าก่อน แล้วค่อยสร้าง HTML ที่มีเลขหน้า)
+  const plan=[]; // [{kind,pg}]
+  let nSum=0; if(SD){ nSum=Math.ceil(SD.groups.length/4)*Math.max(1,Math.ceil(SD.floors.length/12)); }
+  const photoCnt=pg=>(PD[pg].issues.reduce((s,i)=>s+(i.m.photos||[]).length,0)+PD[pg].pins.reduce((s,p)=>s+(p.m.photos||[]).length,0));
+  pages.forEach(pg=>{ if(opt.pages)plan.push({kind:'floor',pg}); if(opt.photos&&photoCnt(pg))plan.push({kind:'photo',pg,n:Math.ceil(photoCnt(pg)/9)}); });
+  const tot=nSum+plan.reduce((s,p)=>s+(p.kind==='photo'?p.n:1),0);
+  let html='', pno=1;
+  if(SD){ const sp=frSummaryHTML(P,S,E,SD,1,tot); html+=sp.join(''); pno+=sp.length; }
+  let k=0;
+  for(const it of plan){
+    const o=PD[it.pg];
+    if(it.kind==='floor'){
+      say(`กำลังเตรียมแบบแผ่นที่ ${++k}/${pages.length}...`);
+      let img=''; if(pdfDoc){ try{ img=await frSheetImage(it.pg,o); }catch(e){ console.warn('รายงานรายชั้น แผ่น',it.pg,e); } }
+      await new Promise(r=>setTimeout(r,0));
+      html+=frFloorPageHTML(P,S,E,it.pg,o,img,pno++,tot);
+    }else{ const ph=frPhotoPagesHTML(P,S,E,it.pg,o,pno,tot); html+=ph.join(''); pno+=ph.length; }
+  }
+  const warns=[];
+  const nd=pages.reduce((s,pg)=>s+PD[pg].layers.reduce((a,d)=>a+d.noDate.length,0),0), un=pages.reduce((s,pg)=>s+PD[pg].layers.reduce((a,d)=>a+d.unlinked.length,0),0);
+  if(nd)warns.push(`มี ${nd} จุดที่ยังไม่ลงวันที่ จึงไม่ถูกนับ`);
+  if(un)warns.push(`มี ${un} จุดที่ยังไม่ผูกรายการ จึงไม่ถูกนับในตาราง`);
+  if(SD&&SD.anyUnk)warns.push('บางรายการยังไม่ได้ใส่ปริมาณรายชั้น');
+  const cr=pages.reduce((s,pg)=>s+PD[pg].layers.reduce((a,d)=>a+(d.cross||[]).length,0),0), ov=pages.reduce((s,pg)=>s+PD[pg].layers.reduce((a,d)=>a+d.rows.filter(r=>r.over).length,0),0);
+  if(cr)warns.push(`มี ${cr} จุดที่ผูกรายการของหมวดงานอื่น ส่วนนั้นไม่ถูกนับ`);
+  if(ov)warns.push(`มี ${ov} รายการที่สะสมเกินปริมาณรายชั้นที่ตั้งไว้ (ตัวแดง)`);
+  const fileName=`${P.name}-รายงานความคืบหน้า-${E}`.replace(/[\\/:*?"<>|]/g,'-');
+  const doc=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${prEsc(fileName)}</title><style>${appFontCSS()}${FR14_CSS}${FR14_EXTRA_CSS}</style></head><body>
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A3 แนวนอน · ขอบกระดาษ "ไม่มี" · เปิดพื้นหลังกราฟิก</span></div>${warns.length?`<div class="tb-warn">⚠ ควรตรวจก่อนส่ง: ${warns.map(prEsc).join(' · ')}</div>`:''}
+    <div class="wrap">${html}</div>
+    <script>(function(){
+      function fit(){var mm=96/25.4,need=420*mm+28;document.documentElement.style.setProperty('--z',Math.min(1,window.innerWidth/need));}
+      fit();window.addEventListener('resize',fit);
+      // ตารางยาวเกินพื้นที่ → ย่อทั้งก้อนลงจนพอดีหน้า (ไม่ตัดทิ้ง)
+      function shrink(){[].forEach.call(document.querySelectorAll('.fitw'),function(el){var box=el.parentNode;var avail=box.classList.contains('side')?box.clientHeight-(box.querySelector('.tblk')?box.querySelector('.tblk').offsetHeight+8:0):(box.clientHeight-(el.offsetTop-box.offsetTop)-(box.querySelector('.tblk')?box.querySelector('.tblk').offsetHeight+10:0));var h=el.scrollHeight;if(avail>0&&h>avail){var s=Math.max(.55,avail/h);el.style.zoom=s;}});}
+      if(document.readyState==='complete')shrink();else window.addEventListener('load',shrink);
+    })();<\/script>
+    </body></html>`;
+  showPrintResult(w,doc);
+}
+
+// ── หน้าต่างกรอกข้อมูลของพื้นที่ติดปัญหา ──
+const ISSUE_CAUSES=['พื้นที่ยังไม่ส่งมอบ','ความชื้นพื้นเกินเกณฑ์','งานระบบยังไม่เสร็จ','ผู้รับเหมาอื่นยังใช้พื้นที่','พื้นเดิมเสียหาย ต้องซ่อมก่อน','รอวัสดุ','รออนุมัติตัวอย่าง / แบบ','อื่นๆ'];
+const _r14OpenMkPopup=openMkPopup;
+openMkPopup=function(id){
+  _r14OpenMkPopup(id);
+  const m=markups.find(x=>x.id===id); if(!m)return;
+  const isI=isIssueMk(m), box=document.getElementById('mkPopIssue');
+  box.style.display=isI?'block':'none';
+  document.getElementById('mkPopItemFld').style.display=isI?'none':document.getElementById('mkPopItemFld').style.display;
+  if(isI){ const q=document.getElementById('mkPopQuick'); if(q)q.style.display='none'; }
+  const ls=document.getElementById('mkPopStart').previousElementSibling, le=document.getElementById('mkPopEnd').previousElementSibling;
+  if(ls)ls.textContent=isI?'วันที่พบ':'วันเริ่ม'; if(le)le.textContent=isI?'วันที่แก้แล้ว (เว้นว่าง = ยังติด)':'วันเสร็จ';
+  const nl=document.getElementById('mkPopNote').previousElementSibling; if(nl)nl.textContent='ตำแหน่ง / ห้อง';
+  if(isI){
+    const sel=document.getElementById('mkPopCause'), tx=document.getElementById('mkPopCauseTx'), c=m.cause||'';
+    const known=ISSUE_CAUSES.includes(c);
+    sel.innerHTML='<option value="">— เลือกสาเหตุ —</option>'+ISSUE_CAUSES.map(x=>`<option ${((known&&x===c)||(!known&&c&&x==='อื่นๆ'))?'selected':''}>${x}</option>`).join('');
+    tx.value=known?'':c; tx.style.display=(!known&&c)?'block':'none';
+    document.getElementById('mkPopExpect').value=m.expect||'';
+    if(!m.start)document.getElementById('mkPopStart').value=todayISO();
+  }
+};
+const _r14Collect=collectMkPopup;
+collectMkPopup=function(){
+  const m=_r14Collect(); if(!m)return m;
+  if(isIssueMk(m)){
+    const sel=document.getElementById('mkPopCause').value, tx=document.getElementById('mkPopCauseTx').value.trim();
+    m.cause=sel==='อื่นๆ'?(tx||'อื่นๆ'):sel; m.expect=document.getElementById('mkPopExpect').value; m.items=[];
+  }
+  return m;
+};
+
+try{stickyRender();}catch(_){}
+</script>
+<script>
+// rev 13: อัปเดตแถบขั้นตอนในหน้ารายการ PO ทุกครั้งที่สถานะเปลี่ยน
+['renderPoLines','poApplyParsed','renderPoMatch','poMatchClose','poMatchApply'].forEach(fn=>{
+  const f0=window[fn]; if(typeof f0!=='function')return;
+  window[fn]=function(){ const r=f0.apply(this,arguments); try{ Promise.resolve(r).then(()=>poStepsRender()); }catch(_){ poStepsRender(); } return r; };
+});
+</script>
+<script>
+// ══════ rev 15: สวิตช์เปิด/ปิดใบส่งงานและพื้นที่ติดปัญหา ══════
+function applyFeat(){
+  const b=document.getElementById('delivBtn'); if(b)b.style.display=featDeliv?'':'none';
+  const d=document.getElementById('featDelivToggle'); if(d)d.checked=featDeliv;
+  const i=document.getElementById('featIssueToggle'); if(i)i.checked=featIssue;
+  if(!ALL_LAYERS.filter(featOn).some(l=>l.key===activeLayer)){ activeLayer=LAYERS[0].key; }
+  try{ renderLayerBar(); updateSideTitle(); updateLayerCue(); renderList(); redraw(); }catch(_){}
+}
+function setFeat(k,on){
+  if(!on){
+    const n=markups.filter(m=>m.layer===k).length;
+    if(n&&!confirm(`ปิด${k==='deliv'?'ใบส่งงาน':'พื้นที่ติดปัญหา'}?\n\nพื้นที่ที่วาดไว้ ${n} จุดจะซ่อนจากแบบ${k==='issue'?'และรายงาน':''} แต่ไม่ถูกลบ — เปิดกลับมาเมื่อไหร่ก็อยู่ครบ`)){ applyFeat(); return; }
+  }
+  if(k==='deliv')featDeliv=!!on; else featIssue=!!on;
+  applyFeat(); try{Autosave.mark();}catch(_){}
+}
+const _r15Build=buildProjectData;
+buildProjectData=function(){ const d=_r15Build.apply(this,arguments); d.feat={deliv:featDeliv,issue:featIssue}; return d; };
+const _r15Apply=applyProjectData;
+applyProjectData=async function(d){
+  const r=await _r15Apply.apply(this,arguments);
+  // ไฟล์ที่บันทึกสวิตช์ไว้ → ใช้ตามนั้น · ไฟล์เก่า → เปิดให้เองถ้ามีข้อมูลของส่วนนั้นอยู่แล้ว
+  if(d&&d.feat){ featDeliv=!!d.feat.deliv; featIssue=!!d.feat.issue; }
+  else{ featDeliv=markups.some(m=>m.layer==='deliv')||(typeof delivs!=='undefined'&&delivs.length>0); featIssue=markups.some(m=>m.layer==='issue'); }
+  applyFeat();
+  return r;
+};
+applyFeat();
+</script>
+<script>
+// ══════ rev 16: ชื่อแผ่นที่เป็นเลขชั้น (เช่น "ชั้น 4", "ชั้น 5 ปีกซ้าย") → ย้ายเลขไปช่องชั้น ส่วนที่เหลือเป็นโซน ══════
+function migrateFloorNames(){
+  let n=0;
+  Object.keys(pageNames).forEach(pg=>{
+    const name=String(pageNames[pg]||'').trim(); if(!name||(pageFloors[pg]||'').trim())return;
+    const m=name.match(/^(?:ชั้น(?:ที่)?|floor|fl\.?|level|lv\.?)\s*([A-Za-z]?\d{1,3}[A-Za-z]?)(?![\d.])\s*[-–·,:]?\s*(.*)$/i);
+    if(!m)return;
+    pageFloors[pg]=m[1].toUpperCase(); pageNames[pg]=m[2].trim(); n++;
+  });
+  if(n){ try{syncPageAreaInput();}catch(_){} }
+  return n;
+}
+const _r16Apply=applyProjectData;
+applyProjectData=async function(){ const r=await _r16Apply.apply(this,arguments); if(migrateFloorNames()){try{Autosave.mark();}catch(_){}} return r; };
+const _r16Name=onPageNameChange;
+onPageNameChange=function(){ _r16Name(); };
+try{ migrateFloorNames(); }catch(_){}
+</script>
+<script>
+// ══════ rev 17: บันทึก/เปิด "ปริมาณจากแบบ" ไปกับไฟล์โครงการ ══════
+const _r17Build=buildProjectData;
+buildProjectData=function(){ const d=_r17Build.apply(this,arguments); d.drawQty=drawQty; return d; };
+const _r17Apply=applyProjectData;
+applyProjectData=async function(d){ drawQty=(d&&Array.isArray(d.drawQty))?JSON.parse(JSON.stringify(d.drawQty)):[]; const r=await _r17Apply.apply(this,arguments); pqSyncSrc(); return r; };
+</script>
+<script>
+// ══════ rev 18: รายการ BOQ จัดการที่หน้ารายการ BOQ ที่เดียว · รายการใหม่ผูกปริมาณรายชั้นจากแบบให้เอง ══════
+const _r18Add=addPoItem;
+addPoItem=function(name){
+  const r=_r18Add.apply(this,arguments);
+  try{ const it=poItems[poItems.length-1]; if(name&&it&&!it.src&&!pqHas(it)&&drawQty.length){ const g=pqGuessSrc(it); if(g){it.src=g;pqSyncSrc();} } }catch(_){}
+  return r;
+};
+const _r18Del=delPoItem;
+delPoItem=function(){ const r=_r18Del.apply(this,arguments); try{ if(document.getElementById('pqOverlay').style.display==='flex')renderFloorQty(); }catch(_){} return r; };
+</script>
+<script>
+// ══════ rev 19: ผูกรายการกับหมวดงานให้ชัด · กันติ๊กข้ามหมวด · แถบข้างตรงกับรายงาน · จำรายการค้าง · เตือนเกินปริมาณ · แท็บงานลงแว็กซ์ ══════
+const R19_WAX=/แว็กซ์|แวกซ์|wax|เคลือบเงา/i;
+let waxOff=false; // ผู้ใช้ลบแท็บแว็กซ์เองแล้ว → ไม่สร้างซ้ำ
+function r19Valid(k){ return !!k&&LAYERS.some(l=>l.key===k); }
+// หมวดของรายการ: ที่เลือกไว้เอง > หมวดที่พื้นที่ส่วนใหญ่ผูกอยู่ > เดาจากชื่อ
+const _r19IL=frItemLayerMap;
+frItemLayerMap=function(){ const map=_r19IL(); poItems.forEach(it=>{ if(r19Valid(it.layer))map.set(String(it.id),it.layer); }); return map; };
+function pqSetLayer(id,lk){ const it=poItems.find(x=>String(x.id)===String(id)); if(!it)return; it.layer=r19Valid(lk)?lk:''; renderFloorQty(); try{Autosave.mark();}catch(_){} }
+// แท็บงานลงแว็กซ์: มีรายการแว็กซ์ที่ยังไม่ถูกผูกกับพื้นที่ใด → สร้างแท็บและจัดรายการเข้าให้
+function r19EnsureWax(){
+  if(waxOff)return false;
+  const its=poItems.filter(it=>R19_WAX.test(it.name||'')&&!r19Valid(it.layer)&&!markups.some(m=>mkItems(m).some(x=>x.id===String(it.id))));
+  if(!its.length)return false;
+  let L=LAYERS.find(l=>R19_WAX.test(l.name||''));
+  if(!L){ L={key:'wax',name:'งานลงแว็กซ์',color:'#8E6BBF',visible:true,custom:true}; LAYERS.push(L);
+    ALL_LAYERS.splice(0,ALL_LAYERS.length,...LAYERS,PLAN_LAYER,DELIV_LAYER,ISSUE_LAYER);
+    try{buildSwatches();}catch(_){} }
+  its.forEach(it=>it.layer=L.key);
+  try{renderLayerBar();renderProgress();}catch(_){}
+  return true;
+}
+const _r19DelLayer=delLayer;
+delLayer=function(key){ const had=LAYERS.some(l=>l.key===key), wasWax=had&&R19_WAX.test((LAYERS.find(l=>l.key===key)||{}).name||''); _r19DelLayer.apply(this,arguments);
+  if(had&&!LAYERS.some(l=>l.key===key)){ if(wasWax)waxOff=true; poItems.forEach(it=>{ if(it.layer===key)it.layer=''; }); delete lastItemByLayer[key]; } };
+const _r19Add=addPoItem;
+addPoItem=function(){ const r=_r19Add.apply(this,arguments); try{r19EnsureWax();}catch(_){} return r; };
+const _r19ApplyParsed=poApplyParsed;
+poApplyParsed=function(){ const r=_r19ApplyParsed.apply(this,arguments); try{r19EnsureWax();}catch(_){} return r; };
+const _r19ClosePo=closePoManager;
+closePoManager=function(){ const r=_r19ClosePo.apply(this,arguments); try{r19EnsureWax();stickyRender();}catch(_){} return r; };
+// แถบข้าง: ใช้กติกาเดียวกับรายงาน — รายการหน่วยพื้นที่ของหมวด ฐาน = ปริมาณรายชั้นรวม (ถ้ามี) ไม่งั้นใช้ปริมาณ BOQ
+layerItems=function(lk){ const IL=frItemLayerMap(); return poItems.filter(it=>IL.get(String(it.id))===lk&&isAreaUnit(it.unit)&&(parseFloat(it.qty)>0||pqHas(it))); };
+const _r19LP=layerProg;
+layerProg=function(lk,cut){ const r=_r19LP(lk,cut);
+  if(r.basis==='boq'){ r.base=layerItems(lk).reduce((s,i)=>s+(pqHas(i)?pqSum(i):(parseFloat(i.qty)||0)),0); r.pct=r.base?r.done/r.base*100:null; }
+  return r; };
+// รายงาน: นับจุดที่ผูกรายการของหมวดอื่น + ทำเครื่องหมายแถวที่สะสมเกินปริมาณทั้งชั้น
+const _r19PL=frPageLayer;
+frPageLayer=function(pg,lk,S,E,IL){ const d=_r19PL(pg,lk,S,E,IL);
+  d.cross=d.mks.filter(m=>mkItems(m).some(x=>IL.has(String(x.id))&&IL.get(String(x.id))!==lk));
+  d.rows.forEach(r=>{ r.over=r.total>0&&(r.prev+r.cur)>r.total+0.01; });
+  return d; };
+// รายการค้าง: แสดงเฉพาะรายการของหมวดที่เปิดอยู่
+stickyRender=function(){
+  const bar=document.getElementById('stickyBar'), sel=document.getElementById('stickyItem'); if(!bar||!sel)return;
+  if(!poItems.length||activeLayer==='deliv'){bar.style.display='none';return;}
+  bar.style.display='';
+  const IL=frItemLayerMap(), byL=r19Valid(activeLayer);
+  const items=poItemsForPage(pageNum).filter(it=>(!pqHas(it)||pqGet(it,pageNum)>0)&&(!byL||IL.get(String(it.id))===activeLayer));
+  const ok=new Set(items.map(it=>String(it.id)));
+  const cur=(lastItemByLayer[activeLayer]||[]).map(String).filter(id=>ok.has(id));
+  sel.innerHTML=`<option value="">— ยังไม่เลือก (ติ๊กเองทุกครั้ง) —</option>`
+    +(cur.length>1?`<option value="*" selected>หลายรายการ (ตามจุดล่าสุด)</option>`:'')
+    +items.map(it=>`<option value="${it.id}" ${cur.length===1&&cur[0]===String(it.id)?'selected':''}>${prEsc(it.name)}</option>`).join('');
+  sel.classList.toggle('none',!cur.length);
+};
+const _r19Sticky=stickySet;
+stickySet=function(v){ _r19Sticky(v); try{stickyRender();Autosave.mark();}catch(_){} };
+// หน้าต่างกรอก: ซ่อนรายการของหมวดอื่น (ยกเว้นที่จุดนี้ติ๊กไว้แล้ว) + เตือนเมื่อเกินปริมาณของชั้น
+const _r19Open=openMkPopup;
+openMkPopup=function(id){
+  _r19Open(id);
+  try{
+    const m=markups.find(x=>x.id===id), box=document.getElementById('mkPopItems'); if(!m||!box)return;
+    const old=box.parentNode.querySelector('.po-hid'); if(old)old.remove();
+    if(!r19Valid(m.layer))return;
+    const IL=frItemLayerMap(), mine=new Set(mkItems(m).map(x=>x.id)); let hid=0, no=0;
+    box.querySelectorAll('.po-row').forEach(row=>{
+      const cb=row.querySelector('input[type=checkbox]'), iid=String(cb.value), other=IL.get(iid)!==m.layer;
+      if(other&&!mine.has(iid)){ if(cb.checked){ cb.checked=false; try{mkPopRowToggle(cb);}catch(_){} } row.style.display='none'; hid++; return; }
+      no++; const nmEl=row.querySelector('.po-row-name'); if(nmEl&&nmEl.firstChild&&nmEl.firstChild.nodeType===3)nmEl.firstChild.nodeValue=nmEl.firstChild.nodeValue.replace(/^\d+\.\s*/,no+'. ');
+      if(other){ const w=document.createElement('div'); w.className='po-xl'; const L=LAYERS.find(l=>l.key===IL.get(iid)); w.textContent='⚠ รายการนี้อยู่หมวด '+(L?L.name:'อื่น')+' — รายงานจะไม่นับส่วนนี้'; nmEl.appendChild(w); }
+    });
+    if(hid){ const h=document.createElement('div'); h.className='po-hid'; h.textContent=`ซ่อนรายการของหมวดงานอื่น ${hid} รายการ — เปลี่ยนหมวดของรายการได้ที่ 📊 ปริมาณรายชั้น ช่อง "หมวดงาน"`; box.parentNode.appendChild(h); }
+    mkPopUpdateRemains();
+  }catch(e){ console.warn('rev19 popup',e); }
+};
+const _r19Rem=mkPopUpdateRemains;
+mkPopUpdateRemains=function(){
+  _r19Rem.apply(this,arguments);
+  try{
+    const m=markups.find(x=>x.id===popId); if(!m||isPlanMk(m))return;
+    document.querySelectorAll('#mkPopItems .po-row').forEach(row=>{
+      const cb=row.querySelector('input[type=checkbox]'), info=row.querySelector('.po-rem'); if(!info||!cb.checked)return;
+      const it=poItems.find(x=>String(x.id)===String(cb.value)); const fq=it?pqGet(it,m.page):0; if(!(fq>0))return;
+      const used=(parseFloat(row.dataset.dones)||0)+(parseFloat(row.querySelector('.po-qty').value)||0);
+      const s=document.createElement('div'); s.className='po-fl'+(used>fq+0.01?' over':'');
+      s.textContent=`ชั้นนี้ ${fmtQ(used)} / ${fmtQ(fq)}${row.dataset.unit?' '+row.dataset.unit:''}`+(used>fq+0.01?` ⚠ เกินปริมาณของชั้นนี้ ${fmtQ(used-fq)}`:'');
+      info.appendChild(s);
+    });
+  }catch(_){}
+};
+// ลบรายการ → ล้างออกจากรายการค้างด้วย
+const _r19Del=delPoItem;
+delPoItem=function(id){ const r=_r19Del.apply(this,arguments);
+  try{ const live=new Set(poItems.map(it=>String(it.id))); Object.keys(lastItemByLayer).forEach(k=>lastItemByLayer[k]=(lastItemByLayer[k]||[]).filter(x=>live.has(String(x)))); stickyRender(); }catch(_){}
+  return r; };
+// บันทึก / เปิดไฟล์
+const _r19Build=buildProjectData;
+buildProjectData=function(){ const d=_r19Build.apply(this,arguments); d.sticky=lastItemByLayer; d.waxOff=waxOff; return d; };
+const _r19Apply=applyProjectData;
+applyProjectData=async function(d){
+  const r=await _r19Apply.apply(this,arguments);
+  try{
+    waxOff=!!(d&&d.waxOff);
+    const live=new Set(poItems.map(it=>String(it.id))); lastItemByLayer={};
+    if(d&&d.sticky&&typeof d.sticky==='object')Object.keys(d.sticky).forEach(k=>{ const a=(d.sticky[k]||[]).map(String).filter(x=>live.has(x)); if(a.length)lastItemByLayer[k]=a; });
+    r19EnsureWax(); stickyRender();
+  }catch(_){}
+  return r;
+};
+(function(){ const st=document.createElement('style'); st.textContent='.po-hid{font-size:11.5px;color:var(--text2);margin-top:6px}.po-xl{font-size:11px;color:#e06c5c}.po-fl{font-size:11px;color:var(--text2)}.po-fl.over{color:#e06c5c;font-weight:700}#stickyItem.none{border-color:#f4a726;color:#f4a726}.pq-lay{font-size:12px;padding:3px 4px;min-width:185px}'; document.head.appendChild(st); })();
+</script>
+<script>
+// ══════ rev 20: อ่านปริมาณจากแบบให้ถูก — แยกพื้น / ขึ้นผนัง / รวม · วัสดุสีเดียวกันคนละวิธีปู · เส้นหนุนหลัง เส้นปิดหัว · เตือนตัวเลขในแบบที่ขัดกัน ══════
+const R20_NUM=s=>parseFloat(String(s).replace(/,/g,''))||0;
+const R20_R2=v=>Math.round(v*100)/100;
+function r20ParsePage(items){
+  const lines=pdfTextLines(items);
+  const U='(?:sq\\.?\\s?m|ตร\\.?\\s?ม)';
+  const reA=new RegExp('(total|floor|cove)?\\s*area\\s*[:=]?\\s*([\\d,]+\\.?\\d*)\\s*'+U+'\\.?','gi');
+  const o={mats:[],boxTotal:0,boxFloor:0,cove:0,cap:0,fillet:0,nBox:0};
+  lines.forEach(r=>{
+    const t=r.text; let m, prev=0; reA.lastIndex=0;
+    while((m=reA.exec(t))!==null){
+      const kind=(m[1]||'').toLowerCase(), v=R20_NUM(m[2]);
+      if(kind==='total'){ o.boxTotal+=v; o.nBox++; }
+      else if(kind==='floor')o.boxFloor+=v;
+      else if(kind==='cove')o.cove+=v;
+      else if(v>0){
+        let prod=t.slice(prev,m.index).replace(/^\s*[≈=]\s*[\d,]+\s*(rolls?|cartons?|ม้วน|กล่อง)\.?\s*/i,'').replace(/^[\s.·•\-–]+/,'').replace(/\s+/g,' ').trim();
+        if(prod.length>80)prod=prod.slice(-80).replace(/^\S*\s/,'');
+        o.mats.push({name:prod,area:v,y:r.y});
+      }
+      prev=reA.lastIndex;
+    }
+    const sum=re=>{ let s=0,x; const g=new RegExp(re,'gi'); while((x=g.exec(t))!==null)s+=R20_NUM(x[1]); return s; };
+    o.cap+=sum('wall\\s*capping\\s*strip\\s*[:=]?\\s*([\\d,]+\\.?\\d*)\\s*m');
+    o.fillet+=sum('cove\\s*fillet\\s*[:=]?\\s*([\\d,]+\\.?\\d*)\\s*m');
+  });
+  // วัสดุที่ชื่ออยู่คนละบรรทัดกับตัวเลข → จับคู่กับชื่อที่ยังไม่ถูกใช้และอยู่ใกล้ที่สุด
+  const reName=/^V\d+\s*(?:\([^)]*\))?\s*-?\s*No\.?\s*\S+/i;
+  const used=o.mats.map(x=>pqNorm(x.name));
+  const orphan=items.filter(i=>reName.test(i.s)&&!/area/i.test(i.s)&&!used.some(u=>u&&u.includes(pqNorm(i.s))));
+  o.mats.filter(x=>!/No\.?\s*\S+/i.test(x.name)).forEach(x=>{
+    let best=null,bd=1e9; orphan.forEach(c=>{ if(c._u)return; const d=Math.abs(c.y-x.y); if(d<bd){bd=d;best=c;} });
+    if(best&&bd<40){ best._u=true; x.name=best.s; }
+  });
+  // รายการซ้ำ (ชื่อและพื้นที่เดียวกันโผล่สองที่) → นับครั้งเดียว
+  const seen=new Set(); o.mats=o.mats.filter(x=>{ const k=pqNorm(x.name)+'|'+x.area.toFixed(2); if(seen.has(k))return false; seen.add(k); return true; });
+  o.mats.forEach(x=>{ const c=(x.name.match(/No\.?\s*([A-Za-z0-9-]{4,})/i)||[])[1]||''; x.code=c.toUpperCase(); x.butt=/ปูชน|ชนผนัง/.test(x.name); });
+  o.matSum=R20_R2(o.mats.reduce((s,x)=>s+x.area,0));
+  o.total=o.matSum>0?o.matSum:R20_R2(o.boxTotal);
+  o.cove=R20_R2(o.cove); o.floor=R20_R2(o.total-o.cove);
+  o.warn=[];
+  if(o.matSum>0&&o.nBox&&Math.abs(o.matSum-o.boxTotal)>0.05)o.warn.push(`ยอดรวมในกล่องสรุป ${fmtQ(R20_R2(o.boxTotal))} ไม่ตรงกับผลรวมบรรทัดวัสดุ ${fmtQ(o.matSum)} (ใช้ผลรวมบรรทัดวัสดุ)`);
+  if(o.cove>0&&o.fillet>0){ /* ขึ้นผนังควรเท่ากับความยาว × ความสูง — แจ้งเฉพาะเมื่อไม่มีความสูงใดอธิบายได้ */ }
+  return o;
+}
+let r20Warn=[];
+pqGuessSrc=function(it){
+  const nm=pqNorm(it.name), kind=pqUnitKind(it.unit), has=id=>dqGet(id)?id:'';
+  if(kind==='a'&&/ขึ้นcurve|curve|cove|ขึ้นผนัง|ขึ้นโค้ง/.test(nm))return has('cove');
+  if(kind==='m'){
+    if(/หนุนหลัง|fillet|รองโค้ง/.test(nm))return has('fillet');
+    if(/ปิดหัว|capping/.test(nm))return has('cap');
+    if(/บัว|skirt/.test(nm))return has('skirt');
+    if(/คิ้ว|trim|ปิดขอบ/.test(nm))return has('trim');
+    return '';
+  }
+  for(const t of pqTokens(it.name)){ const d=drawQty.find(x=>x.id.startsWith('mat:')&&pqNorm(x.name).includes(t)); if(d&&pqUnitKind(d.unit)===kind)return d.id; }
+  if(kind==='a'&&/ปรับพื้น|ปรับระดับ|selflevel|เซลฟ์|ติดตั้ง|ปูพื้น|ปูกระเบื้อง|กระเบื้อง|ไวนิล|vinyl|แว็กซ์|แวกซ์|wax|เคลือบ|ขัดพื้น|ขัดล้าง/.test(nm))return has('area');
+  return '';
+};
+pqAutoFill=async function(){
+  if(!pdfDoc){alert('ใส่แบบ PDF ก่อน');return;}
+  const btn=document.getElementById('pqFillBtn'); if(btn){btn.disabled=true; btn.textContent='กำลังอ่านแบบ…';}
+  try{
+    if(!scanResult)await scanPlan();
+    const want=[]; // [{id,name,unit,pg,v}]
+    const W=[]; let nFloor=0;
+    const anyCove=[];
+    const per={};
+    for(const p of scanResult.pages){
+      const page=await pdfDoc.getPage(p.n); const tc=await page.getTextContent();
+      const items=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str.trim(),x:i.transform[4],y:i.transform[5]}));
+      const q=r20ParsePage(items); per[p.n]=q;
+      const has=q.total>0||p.totals.skirting>0||p.totals.trim>0||q.cap>0||q.fillet>0||pqHasData(p);
+      if(!has)continue;
+      if(!(pageFloors[p.n]||'').trim()&&!getPageName(p.n)){ const f=await pqDetectFloor(p.n); if(f){pageFloors[p.n]=f;nFloor++;} }
+      if(q.cove>0)anyCove.push(p.n);
+      q.warn.forEach(w=>W.push(`${frFloorLabel(p.n)}: ${w}`));
+    }
+    const coveMode=anyCove.length>0;
+    Object.keys(per).forEach(k=>{ const pg=+k, q=per[pg], p=scanResult.pages.find(x=>x.n===pg);
+      const legacyA=(p.legend||[]).length?0:p.totals.area; // แบบที่ไม่มีบรรทัดวัสดุ → ใช้ยอดรวมเดิม
+      const tot=q.total>0?q.total:legacyA;
+      want.push({id:'area',name:coveMode?'พื้นที่พื้น (ไม่รวมขึ้นผนัง)':'พื้นที่ปูพื้น',unit:'ตร.ม.',pg,v:q.total>0?q.floor:tot});
+      if(coveMode){ want.push({id:'cove',name:'ปูขึ้นผนัง',unit:'ตร.ม.',pg,v:q.cove}); want.push({id:'total',name:'พื้นรวมขึ้นผนัง (ใช้สั่งวัสดุ)',unit:'ตร.ม.',pg,v:tot}); }
+      want.push({id:'skirt',name:'บัวเชิงผนัง',unit:'ม.',pg,v:p.totals.skirting});
+      want.push({id:'trim',name:'คิ้วขอบ',unit:'ม.',pg,v:p.totals.trim});
+      want.push({id:'fillet',name:'เส้นหนุนหลัง (ตัวรองโค้งมุม)',unit:'ม.',pg,v:q.fillet});
+      want.push({id:'cap',name:'เส้นปิดหัว',unit:'ม.',pg,v:q.cap});
+      if(q.mats.length>1)q.mats.forEach(x=>want.push({id:'mat:'+(pqNorm(x.code)||pqNorm(x.name)||'x')+(x.butt?'|ชน':''),name:x.name||'วัสดุ (ไม่พบชื่อในแบบ)',unit:'ตร.ม.',pg,v:x.area}));
+    });
+    // ช่องที่มีค่าเดิมต่างจากที่อ่านใหม่ → ให้ติ๊กเลือกก่อนแตะข้อมูล
+    const diff=want.filter(w=>{ const d=dqGet(w.id); const cur=d?parseFloat(d.pq[w.pg])||0:0; return d&&d.auto&&cur>0&&Math.abs(cur-R20_R2(w.v))>0.005; });
+    let replace=false;
+    if(diff.length){
+      const ex=diff.slice(0,6).map(w=>`• ${w.name} ${frFloorLabel(w.pg)}: ${fmtQ(parseFloat(dqGet(w.id).pq[w.pg]))} → ${w.v>0?fmtQ(R20_R2(w.v)):'ว่าง'}`).join('\n');
+      const ans=await askChoice({title:'ตัวเลขจากแบบต่างจากที่มีอยู่',msg:`พบ ${diff.length} ช่องที่ค่าที่อ่านรอบนี้ไม่ตรงกับในตาราง\n\n${ex}${diff.length>6?`\n…และอีก ${diff.length-6} ช่อง`:''}`,okText:'ดำเนินการ',def:'replace',options:[
+        {value:'replace',label:'แทนที่ด้วยค่าที่อ่านใหม่',desc:'ใช้เมื่อค่าเดิมมาจากการอ่านของรุ่นก่อน หรือแบบถูกแก้ไข'},
+        {value:'keep',label:'คงค่าเดิมไว้',desc:'เติมเฉพาะช่องที่ยังว่าง ไม่แตะช่องที่มีตัวเลขอยู่แล้ว'}]});
+      if(ans===null){ pqMsg='ยกเลิกแล้ว — ไม่มีอะไรเปลี่ยน'; if(btn){btn.disabled=false; btn.textContent='🔍 เติมจากแบบ';} renderFloorQty(); return; }
+      replace=(ans==='replace');
+    }
+    // แถววัสดุที่อ่านไว้ด้วยรุ่นก่อน (รหัสย่อผิด) และไม่มีรายการ BOQ ใช้อยู่ → ล้างก่อนใส่ใหม่
+    const wantIds=new Set(want.map(w=>w.id));
+    drawQty=drawQty.filter(d=>!(d.auto&&d.id.startsWith('mat:')&&!wantIds.has(d.id)&&!poItems.some(it=>it.src===d.id)));
+    let nCell=0;
+    want.forEach(w=>{ const v=R20_R2(w.v); let d=dqGet(w.id);
+      if(!d){ if(!(v>0))return; d={id:w.id,name:w.name,unit:w.unit,pq:{},auto:true}; drawQty.push(d); }
+      if(d.auto)d.name=w.name;
+      const cur=parseFloat(d.pq[w.pg])||0;
+      if(!(cur>0)){ if(v>0){d.pq[w.pg]=v;nCell++;} }
+      else if(replace&&d.auto&&Math.abs(cur-v)>0.005){ if(v>0)d.pq[w.pg]=v; else delete d.pq[w.pg]; nCell++; }
+    });
+    // เรียงแถวอ้างอิง: พื้น ขึ้นผนัง รวม ของประกอบ แล้วตามด้วยวัสดุ
+    const ord=['area','cove','total','skirt','trim','fillet','cap'];
+    drawQty.sort((a,b)=>{ const x=ord.indexOf(a.id), y=ord.indexOf(b.id); return (x<0?99:x)-(y<0?99:y); });
+    let nLink=0;
+    poItems.forEach(it=>{ if(it.src||pqHas(it))return; const g=pqGuessSrc(it); if(g){it.src=g;nLink++;} });
+    pqSyncSrc();
+    r20Warn=W;
+    pqMsg=`อ่านจากแบบแล้ว ${nCell} ช่อง${nFloor?` · ใส่เลขชั้นให้ ${nFloor} แผ่น`:''}${nLink?` · ผูกรายการ BOQ กับปริมาณจากแบบให้ ${nLink} รายการ (ตรวจในช่อง "ใช้ปริมาณจาก")`:''}${(!nCell&&!nLink)?' — ไม่พบตัวเลขใหม่ในแบบ':''}`
+      +(W.length?`<div style="color:#e8a33a;margin-top:5px">⚠ ตัวเลขในแบบขัดกันเอง ควรให้คนเขียนแบบตรวจ:<br>${W.map(prEsc).join('<br>')}</div>`:'');
+    const el=document.getElementById('pageFloorIn'); if(el)el.value=pageFloors[pageNum]||'';
+  }catch(e){ console.warn('เติมปริมาณจากแบบ',e); pqMsg='อ่านแบบไม่สำเร็จ — ลองกดอีกครั้ง'; }
+  if(btn){btn.disabled=false; btn.textContent='🔍 เติมจากแบบ';}
+  renderFloorQty();
+  try{Autosave.mark();}catch(_){}
+};
+</script>
+<script>
+// ══════ rev 21: แถบยอดของแผ่นที่เปิดอยู่ — ทั้งแผ่น / เสร็จแล้ว / คงเหลือ ของงานที่เลือก (ลดลงทันทีเมื่อระบายแล้วกดเสร็จ) ══════
+(function(){
+  const st=document.createElement('style');
+  st.textContent='.pg-sum{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:7px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)}'
+    +'.pg-sum .ps-h{font-size:13px;color:var(--text);font-weight:700;min-width:150px}.pg-sum .ps-h small{display:block;font-weight:400;font-size:11px;color:var(--text2)}'
+    +'.pg-sum .ps-c b{display:block;font-size:17px;color:var(--text);line-height:1.15}.pg-sum .ps-c.d b{color:#3fbf7f}.pg-sum .ps-c.r b{font-size:25px;color:#f4a726}.pg-sum .ps-c.r.ok b{color:#3fbf7f}.pg-sum .ps-c.r.ov b{color:#e06c5c}'
+    +'.pg-sum .ps-bar{flex:1;min-width:120px}.pg-sum .ps-bar i{display:block;height:7px;border-radius:4px;background:var(--bg3,#2a3038);overflow:hidden}.pg-sum .ps-bar i u{display:block;height:7px}'
+    +'.pg-sum .ps-bar span{display:block;margin-top:3px;font-size:11px}.pg-sum .ps-no{color:#f4a726}.pg-sum button{font:inherit;font-size:11.5px;padding:4px 9px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}'
+    +'@media(max-width:700px){.pg-sum{gap:10px;padding:6px 9px}.pg-sum .ps-c.r b{font-size:20px}.pg-sum .ps-h{min-width:0;width:100%}}';
+  document.head.appendChild(st);
+  const bar=document.createElement('div'); bar.className='pg-sum'; bar.id='pgSum'; bar.style.display='none';
+  const lb=document.getElementById('layerBar'); if(lb&&lb.parentNode)lb.parentNode.insertBefore(bar,lb.nextSibling);
+})();
+function pgSumData(pg,lk){
+  const q=v=>parseFloat(v)||0, today=todayISO(), IL=frItemLayerMap();
+  const d=frPageLayer(pg,lk,today,today,IL);
+  // ปูขึ้นผนังเป็นรายการแยก (เดินตามงานปู) — ไม่นับรวมในยอดพื้นของแผ่น
+  const isCove=r=>{ const it=r.id!==null&&poItems.find(x=>String(x.id)===r.id); return !!(it&&it.src==='cove'); };
+  const ar=d.rows.filter(r=>r.area&&!isCove(r)), cove=d.rows.filter(r=>r.area&&isCove(r)).reduce((s,r)=>s+r.total,0);
+  const T=ar.reduce((s,r)=>s+r.total,0), D=ar.reduce((s,r)=>s+r.prev+r.cur,0);
+  const wip=d.mks.filter(m=>isWipMk(m,today)).reduce((s,m)=>s+q(m.area),0);
+  return {T,D,wip,cove,basis:d.basis,unlinked:d.unlinked.length,cross:(d.cross||[]).length,noDate:d.noDate.filter(m=>!isWipMk(m,today)).length};
+}
+function renderPgSum(){
+  const el=document.getElementById('pgSum'); if(!el)return;
+  if(!pdfDoc||!LAYERS.some(l=>l.key===activeLayer)){ el.style.display='none'; return; }
+  const L=LAYERS.find(l=>l.key===activeLayer), pg=pageNum, x=pgSumData(pg,activeLayer), f=v=>fmtQ(Math.round(v*100)/100);
+  const fl=frFloorLabel(pg), zone=getPageName(pg);
+  const head=`<div class="ps-h">${prEsc(fl)}${zone&&zone!==fl?' · '+prEsc(zone):''}<small>${prEsc(L.name)}</small></div>`;
+  el.style.display='';
+  if(!(x.T>0)){
+    el.innerHTML=head+`<span class="ps-no">ยังไม่มีปริมาณของแผ่นนี้ — ใส่ก่อนจึงจะเห็นยอดคงเหลือ</span>${x.D>0?`<span>ระบายเสร็จแล้ว <b style="color:var(--text)">${f(x.D)}</b> ตร.ม.</span>`:''}<button onclick="openFloorQty()">📊 ปริมาณรายชั้น</button>`;
+    return;
+  }
+  const R=x.T-x.D, pct=x.D/x.T*100, cls=R<-0.01?'ov':(R<=0.01?'ok':'');
+  // ชั้นเดียวกันมีหลายแผ่น → บอกยอดรวมทั้งชั้นด้วย
+  let more='';
+  const same=[]; for(let p=1;p<=frSheetCount();p++){ if(p!==pg&&frFloorLabel(p)===fl)same.push(p); }
+  if(same.length){ let T=x.T,D=x.D; same.forEach(p=>{const y=pgSumData(p,activeLayer);T+=y.T;D+=y.D;}); more=` · รวมทั้ง${prEsc(fl)} (${same.length+1} แผ่น) เหลือ ${f(Math.max(0,T-D))} จาก ${f(T)}`; }
+  const notes=[];
+  if(x.cove>0)more+=` · ไม่รวมปูขึ้นผนัง ${f(x.cove)}`;
+  if(x.wip>0)notes.push(`กำลังทำ ${f(x.wip)} (ยังไม่หักออก)`);
+  if(x.unlinked)notes.push(`${x.unlinked} จุดยังไม่ผูกรายการ`);
+  if(x.cross)notes.push(`${x.cross} จุดผูกรายการผิดหมวด`);
+  if(x.noDate)notes.push(`${x.noDate} จุดยังไม่ลงวันที่`);
+  el.innerHTML=head
+    +`<div class="ps-c"><span>ทั้งแผ่น</span><b>${f(x.T)}</b></div>`
+    +`<div class="ps-c d"><span>เสร็จแล้ว</span><b>${f(x.D)}</b></div>`
+    +`<div class="ps-c r ${cls}"><span>${R<-0.01?'เกิน (ตร.ม.)':'คงเหลือ (ตร.ม.)'}</span><b>${f(Math.abs(R))}</b></div>`
+    +`<div class="ps-bar"><i><u style="width:${Math.min(100,pct).toFixed(1)}%;background:${L.color||'#2F9E6E'}"></u></i><span>เสร็จ ${pct.toFixed(1)}% ของแผ่น${more}${notes.length?' · <span style="color:#e8a33a">'+notes.join(' · ')+'</span>':''}</span></div>`;
+}
+(function(){
+  const wrap=name=>{ const o=window[name]; if(typeof o!=='function')return; window[name]=function(){ const r=o.apply(this,arguments); try{renderPgSum();}catch(e){console.warn('แถบยอดของแผ่น',e);} return r; }; };
+  ['renderLayerBar','renderList','syncPageAreaInput','closeFloorQty','renderProgress'].forEach(wrap);
+  try{renderPgSum();}catch(_){}
+})();
+</script>
+<script>
+// ══════ rev 22: หน้าต่างถามแบบติ๊กเลือกแล้วกดยืนยัน (แทน "ตกลง = อย่างหนึ่ง / ยกเลิก = อีกอย่าง") ══════
+(function(){
+  const st=document.createElement('style');
+  st.textContent='.ask-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}'
+   +'.ask-box{background:var(--bg2,#1b2027);color:var(--text,#e8ecf0);border:1px solid var(--border,#39414b);border-radius:14px;max-width:520px;width:100%;padding:18px 18px 14px;font-size:14px;max-height:90vh;overflow:auto}'
+   +'.ask-box h3{font-size:16px;margin:0 0 6px;color:var(--accent,#f4a726)}.ask-box .ask-msg{color:var(--text2,#aab3bd);font-size:13px;margin-bottom:12px;white-space:pre-line}'
+   +'.ask-opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border,#39414b);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}'
+   +'.ask-opt.on{border-color:var(--accent,#f4a726);background:rgba(244,167,38,.08)}.ask-opt input{width:18px;height:18px;margin-top:2px;flex:none;accent-color:#f4a726}'
+   +'.ask-opt b{display:block;font-size:14px}.ask-opt span{display:block;font-size:12.5px;color:var(--text2,#aab3bd);margin-top:2px;white-space:pre-line}'
+   +'.ask-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}.ask-btns button{font:inherit;font-size:14px;padding:9px 18px;border-radius:9px;border:1px solid var(--border,#39414b);background:transparent;color:inherit;cursor:pointer;min-width:96px}'
+   +'.ask-btns button.pri{background:#f4a726;border-color:#f4a726;color:#111;font-weight:700}';
+  document.head.appendChild(st);
+})();
+// คืนค่า value ของตัวเลือกที่ติ๊ก หรือ null เมื่อกดยกเลิก
+function askChoice(o){
+  return new Promise(res=>{
+    const ov=document.createElement('div'); ov.className='ask-ov'; ov.style.zIndex=(typeof ovTop!=='undefined'?(++ovTop)+5:99999);
+    const def=o.def!==undefined?o.def:o.options[0].value, nm='ask'+Date.now();
+    ov.innerHTML=`<div class="ask-box" role="dialog" aria-modal="true"><h3>${prEsc(o.title||'')}</h3>${o.msg?`<div class="ask-msg">${prEsc(o.msg)}</div>`:''}`
+      +o.options.map((x,i)=>`<label class="ask-opt ${x.value===def?'on':''}"><input type="radio" name="${nm}" value="${i}" ${x.value===def?'checked':''}><div><b>${prEsc(x.label)}</b>${x.desc?`<span>${prEsc(x.desc)}</span>`:''}</div></label>`).join('')
+      +`<div class="ask-btns"><button type="button" data-a="no">ยกเลิก</button><button type="button" class="pri" data-a="ok">${prEsc(o.okText||'ตกลง')}</button></div></div>`;
+    const done=v=>{ document.removeEventListener('keydown',key,true); ov.remove(); res(v); };
+    const key=e=>{ if(e.key==='Escape'){e.stopPropagation();done(null);} };
+    ov.addEventListener('change',()=>ov.querySelectorAll('.ask-opt').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked)));
+    ov.addEventListener('click',e=>{
+      if(e.target===ov)return done(null);
+      const a=e.target.closest&&e.target.closest('button[data-a]'); if(!a)return;
+      if(a.dataset.a==='no')return done(null);
+      const c=ov.querySelector('input:checked'); done(c?o.options[+c.value].value:null);
+    });
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(ov);
+    try{ov.querySelector('button.pri').focus();}catch(_){}
+  });
+}
+// ① บันทึกโครงการ
+const _r22Save=saveProject;
+saveProject=async function(withPdf){
+  const pdfMB=pdfData?pdfData.byteLength/1048576:0;
+  if(withPdf===undefined&&pdfMB>=8){
+    const est=pdfMB*1.37+2;
+    const v=await askChoice({title:'บันทึกโครงการเป็นไฟล์',msg:`แบบ PDF ในโครงการนี้ใหญ่ ${pdfMB.toFixed(0)} MB`,okText:'บันทึก',def:'light',options:[
+      {value:'light',label:'บันทึกแบบเบา (แนะนำ)',desc:'ไฟล์เล็กมาก · ตอนเปิดกลับมาต้องเลือกไฟล์แบบ PDF ชุดเดิมอีกครั้ง พื้นที่ที่ระบายไว้จะกลับมาตรงตำแหน่งเดิม'},
+      {value:'full',label:'บันทึกพร้อมแบบ',desc:`ไฟล์ราว ${est.toFixed(0)} MB · เปิดได้ทันทีโดยไม่ต้องหาไฟล์แบบ แต่เปิดบนแท็บเล็ตอาจไม่ไหว`}]});
+    if(v===null)return;            // ยกเลิก = ไม่บันทึก
+    withPdf=(v==='full');
+  }
+  return _r22Save(withPdf);
+};
+// ② ลบแผนงาน
+delPlan=async function(){
+  const p=plans.find(x=>x.id===planSel); if(!p)return;
+  const mine=pmk(p.id), name=p.name||'แผนที่ '+p.no;
+  if(!mine.length){ if(!confirm(`ลบ "${name}" ?`))return; }
+  else{
+    const other=plans.find(x=>x.id!==p.id);
+    const v=await askChoice({title:`ลบ "${name}"`,msg:`แผนนี้มีพื้นที่ที่วาดไว้บนแบบ ${mine.length} จุด`,okText:'ลบแผน',def:'keep',options:[
+      {value:'keep',label:'ลบแผน แต่เก็บพื้นที่ที่วาดไว้',desc:other?`ย้ายพื้นที่ไปอยู่ใน "${other.name||'แผนที่ '+other.no}"`:'พื้นที่จะไปอยู่ในแผนใหม่ที่สร้างให้แทน'},
+      {value:'del',label:'ลบแผนพร้อมพื้นที่ที่วาดไว้',desc:'พื้นที่ทั้งหมดของแผนนี้หายจากแบบ (กด ↶ ย้อนกลับได้)'}]});
+    if(v===null)return;            // ยกเลิก = ไม่ลบ
+    if(v==='del'){ pushHistory(); markups=markups.filter(m=>!(isPlanMk(m)&&m.planId===p.id)); }
+    else markups.forEach(m=>{ if(isPlanMk(m)&&m.planId===p.id)m.planId=other?other.id:null; });
+  }
+  plans=plans.filter(x=>x.id!==p.id);
+  if(!plans.length){ plans.push(newPlan()); markups.forEach(m=>{ if(isPlanMk(m)&&!m.planId)m.planId=plans[0].id; }); }
+  planSel=plans[plans.length-1].id;
+  renderPlanTabs(); loadPlanForm(); redraw(); renderLayerBar(); renderList();
+};
+</script>
+<script>
+// ══════ rev 23: หน้าต่างกรอกแบบสั้น (เสร็จ ระบายห้องต่อไป) · ผูกรายการให้เองเมื่อแท็บมีรายการพื้นรายการเดียว · เอาช่องรายการค้างออก · ลงวันเสร็จทีเดียวหลายจุด ══════
+// ① ช่องรายการค้างบนแถบเครื่องมือ — เอาออก (ยังจำรายการล่าสุดต่อแท็บไว้ใช้ในหน้าต่างกรอกเหมือนเดิม)
+stickyRender=function(){ const bar=document.getElementById('stickyBar'); if(bar)bar.style.display='none'; };
+try{stickyRender();}catch(_){}
+// ② รายการพื้นหลักของแท็บ: หน่วยพื้นที่ อยู่ในหมวดนี้ ไม่ใช่รายการปูขึ้นผนัง และมีปริมาณในแผ่นนี้
+function r23MainItems(lk,pg){
+  const IL=frItemLayerMap();
+  return poItemsForPage(pg).filter(it=>IL.get(String(it.id))===lk&&isAreaUnit(it.unit)&&it.src!=='cove'&&(!pqHas(it)||pqGet(it,pg)>0));
+}
+// ③ หน้าต่างกรอกแบบสั้น
+(function(){
+  const st=document.createElement('style');
+  st.textContent='.r23-main{margin-top:4px}.r23-date{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);margin:2px 0 10px}.r23-date input{width:auto;padding:6px 8px;font-size:14px}'
+   +'.r23-go{display:block;width:100%;padding:15px 12px;font:inherit;font-size:17px;font-weight:700;border:0;border-radius:11px;background:#22a55b;color:#fff;cursor:pointer;margin-bottom:8px}'
+   +'.r23-go:active{transform:scale(.99)}.r23-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.r23-row button{font:inherit;font-size:14px;padding:10px 8px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}'
+   +'.r23-row.one{grid-template-columns:1fr}.r23-err{color:#e06c5c;font-size:12.5px;min-height:17px;margin:-4px 0 4px}.r23-link{font-size:12.5px;color:var(--text2);margin-top:6px}.r23-link b{color:var(--text);font-weight:600}'
+   +'.r23-more-t{display:block;width:100%;text-align:left;font:inherit;font-size:13px;color:var(--text2);background:transparent;border:0;padding:12px 0 4px;cursor:pointer}'
+   +'.mkpop.simple #mkPopZoneFld{display:none}.mkpop.simple:not(.more-open) #r23More,.mkpop.simple:not(.more-open) .mkpop-btns{display:none}'
+   +'.mkpop:not(.simple) #r23Main,.mkpop:not(.simple) .r23-more-t{display:none}.mkpop.simple .mkpop-photo{display:none}.mkpop.simple #r23More{border-top:1px dashed var(--border);margin-top:4px;padding-top:8px}'
+   +'.r23-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1f2a33;color:#e8ecf0;border:1px solid #22a55b;border-radius:10px;padding:10px 16px;font-size:14px;z-index:99990;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.4)}';
+  document.head.appendChild(st);
+  const body=document.querySelector('#mkPopOverlay .mkpop-body'); if(!body)return;
+  const zone=document.getElementById('mkPopZone'); if(zone&&zone.parentNode)zone.parentNode.id='mkPopZoneFld';
+  const quick=document.getElementById('mkPopQuick'), dateRow=document.getElementById('mkPopStart').closest('.mkpop-row'), itemFld=document.getElementById('mkPopItemFld'), issue=document.getElementById('mkPopIssue');
+  const main=document.createElement('div'); main.id='r23Main'; main.className='r23-main';
+  main.innerHTML='<div class="r23-link" id="r23Link"></div>'
+    +'<div class="r23-date"><span id="r23DateLbl">เสร็จวันที่</span><input type="date" id="r23Date" onchange="r23DateChange(this.value)"></div>'
+    +'<div class="r23-err" id="r23Err"></div>'
+    +'<button type="button" class="r23-go" id="r23Go" onclick="r23Done(true)">✔ เสร็จ ระบายห้องต่อไป</button>'
+    +'<div class="r23-row" id="r23Row"><button type="button" id="r23End" onclick="r23Done(false)">✔ เสร็จ จบรอบนี้</button><button type="button" onclick="mkPopAddPhoto()">📷 แนบรูปภาพ<span id="r23PhN"></span></button></div>';
+  const moreT=document.createElement('button'); moreT.type='button'; moreT.className='r23-more-t'; moreT.id='r23MoreT'; moreT.textContent='ตัวเลือกเพิ่ม ▾';
+  moreT.onclick=()=>{ const p=document.querySelector('#mkPopOverlay .mkpop'); const on=p.classList.toggle('more-open'); moreT.textContent='ตัวเลือกเพิ่ม '+(on?'▴':'▾'); };
+  const more=document.createElement('div'); more.id='r23More';
+  const anchor=issue?issue.nextSibling:null;
+  body.insertBefore(main,anchor); body.insertBefore(moreT,anchor); body.insertBefore(more,anchor);
+  more.appendChild(quick); more.appendChild(dateRow);
+  const slot=document.createElement('div'); slot.id='r23ItemSlot'; more.insertBefore(slot,more.firstChild);   // ที่พักช่องรายการเมื่อผูกให้เองแล้ว
+  const home=document.createComment('ที่เดิมของช่องรายการ'); itemFld.parentNode.insertBefore(home,itemFld); window._r23ItemHome=home;
+  const ph=document.querySelector('#mkPopOverlay .mkpop-photo'); if(ph)ph.textContent='📷 แนบรูปภาพ';
+  document.getElementById('mkPopArea').addEventListener('input',()=>{ const e=document.getElementById('r23Err'); if(e)e.textContent=''; });
+})();
+let r23IsNew=false;
+function r23DateChange(v){ if(r23IsNew&&v)qsSetDate(v); }
+function r23Toast(t){ try{ document.querySelectorAll('.r23-toast').forEach(e=>e.remove()); const d=document.createElement('div'); d.className='r23-toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2600); }catch(_){} }
+const _r23Open=openMkPopup;
+openMkPopup=function(id){
+  _r23Open(id);
+  try{
+    const m=markups.find(x=>x.id===id), pop=document.querySelector('#mkPopOverlay .mkpop'); if(!m||!pop)return;
+    const simple=r19Valid(m.layer);
+    pop.classList.toggle('simple',simple); pop.classList.remove('more-open');
+    try{ const ln=document.getElementById('mkPopNote').parentNode.querySelector('label'), la=document.getElementById('mkPopArea').parentNode.querySelector('label'); ln.textContent=simple?'ห้อง':'ตำแหน่ง / ห้อง'; la.textContent=simple?'พื้นที่ (ตร.ม.)':'พื้นที่บนแบบ (ตร.ม.)'; }catch(_){}
+    const moreT=document.getElementById('r23MoreT'); if(moreT)moreT.textContent='ตัวเลือกเพิ่ม ▾';
+    const itemFld=document.getElementById('mkPopItemFld'), slot=document.getElementById('r23ItemSlot'), home=window._r23ItemHome;
+    if(!simple){ if(home&&itemFld.parentNode!==home.parentNode)home.parentNode.insertBefore(itemFld,home.nextSibling); return; }
+    r23IsNew=!m.end&&!m.start;
+    const mains=r23MainItems(m.layer,m.page), rows=[...document.querySelectorAll('#mkPopItems .po-row')];
+    const rowOf=it=>rows.find(r=>String(r.querySelector('input[type=checkbox]').value)===String(it.id));
+    const checked=()=>rows.filter(r=>r.querySelector('input[type=checkbox]').checked);
+    const link=document.getElementById('r23Link');
+    if(mains.length===1&&rowOf(mains[0])){
+      // แท็บนี้มีรายการพื้นรายการเดียว → ผูกให้เอง ไม่ต้องติ๊ก (จุดที่ผูกรายการอื่นไว้แล้วคงตามเดิม)
+      if(!mkItems(m).length){ rows.forEach(r=>{ const cb=r.querySelector('input[type=checkbox]'), want=r===rowOf(mains[0]); if(cb.checked!==want){ cb.checked=want; try{mkPopRowToggle(cb);}catch(_){} } }); }
+      slot.appendChild(itemFld);
+      const names=checked().map(r=>poItems.find(x=>String(x.id)===String(r.querySelector('input').value))).filter(Boolean).map(x=>x.name);
+      link.innerHTML=names.length?`นับเข้ารายการ: <b>${prEsc(names.join(' + '))}</b>`:'';
+    }else{
+      if(home&&itemFld.parentNode!==home.parentNode)home.parentNode.insertBefore(itemFld,home.nextSibling);
+      link.innerHTML=mains.length>1?'แท็บนี้มีหลายรายการ — ติ๊กรายการของห้องนี้ด้านบน (เครื่องมือจำตัวล่าสุดให้)':(poItems.length?'<span style="color:#e8a33a">แท็บนี้ยังไม่มีรายการ BOQ ของแผ่นนี้ — พื้นที่จะนับเทียบพื้นที่ตามแบบของแผ่น</span>':'');
+    }
+    // วันที่ + ปุ่ม: จุดใหม่ = เสร็จแล้วไปต่อ · จุดที่มีวันเสร็จแล้ว = บันทึกการแก้ไข
+    const dIn=document.getElementById('r23Date'), go=document.getElementById('r23Go'), end=document.getElementById('r23End'), row=document.getElementById('r23Row');
+    if(!qsDate)qsDate=todayISO();
+    dIn.value=m.end||qsDate;
+    document.getElementById('r23Err').textContent='';
+    if(m.end){ go.textContent='✔ บันทึก'; go.onclick=()=>r23Done(false); end.style.display='none'; row.classList.add('one'); }
+    else{ go.textContent='✔ เสร็จ ระบายห้องต่อไป'; go.onclick=()=>r23Done(true); end.style.display=''; row.classList.remove('one'); }
+    const n=(m.photos||[]).length; document.getElementById('r23PhN').textContent=n?` (${n})`:'';
+    mkPopUpdateRemains();
+  }catch(e){ console.warn('rev23 popup',e); }
+};
+function r23Done(next){
+  if(Date.now()-mkPopOpenT<450)return;
+  const m=markups.find(x=>x.id===popId); if(!m)return;
+  const a=parseFloat(document.getElementById('mkPopArea').value), err=document.getElementById('r23Err');
+  if(!(a>0)){ err.textContent='ใส่พื้นที่ (ตร.ม.) ก่อน'; try{document.getElementById('mkPopArea').focus();}catch(_){} return; }
+  const mains=r23MainItems(m.layer,m.page), any=[...document.querySelectorAll('#mkPopItems .po-row input[type=checkbox]')].some(c=>c.checked);
+  if(mains.length>1&&!any){ err.textContent='ติ๊กรายการของห้องนี้ก่อน'; return; }
+  const d=document.getElementById('r23Date').value||todayISO();
+  const S=document.getElementById('mkPopStart'), E=document.getElementById('mkPopEnd');
+  E.value=d; if(!S.value||S.value>d)S.value=d;
+  if(r23IsNew)qsSetDate(d);
+  const room=(document.getElementById('mkPopNote').value||'').trim();
+  mkPopOpenT=0; saveMkPopup();
+  try{Autosave.mark();}catch(_){}
+  if(next){ try{setToolSilent('poly');}catch(_){} r23Toast(`บันทึก${room?' "'+room+'"':''} ${fmtQ(a)} ตร.ม. แล้ว — ระบายห้องถัดไปได้เลย`); }
+  else{ try{ if(document.body.classList.contains('side-hidden')&&typeof toggleSide==='function')toggleSide(); }catch(_){} r23Toast('บันทึกแล้ว — รายการทั้งหมดอยู่ที่แถบข้อมูลด้านข้าง'); }
+}
+// ④ ลงวันเสร็จทีเดียวหลายจุด (ตัวเลือก — ต้องกดเรียกเอง)
+function bulkEndTargets(scope,lay){
+  return wmk().filter(m=>!m.end&&(scope==='all'||m.page===pageNum)&&(lay==='all'||m.layer===activeLayer));
+}
+function openBulkEnd(){
+  const curL=LAYERS.find(l=>l.key===activeLayer);
+  const ov=document.createElement('div'); ov.className='ask-ov'; ov.style.zIndex=(typeof ovTop!=='undefined'?(++ovTop)+5:99999);
+  const st={scope:'page',lay:curL?'cur':'all',date:todayISO()};
+  const draw=()=>{
+    const n=bulkEndTargets(st.scope,st.lay==='cur'?'cur':'all').length;
+    const opt=(grp,val,label,desc)=>`<label class="ask-opt ${st[grp]===val?'on':''}"><input type="radio" name="be_${grp}" value="${val}" ${st[grp]===val?'checked':''}><div><b>${prEsc(label)}</b>${desc?`<span>${prEsc(desc)}</span>`:''}</div></label>`;
+    ov.innerHTML=`<div class="ask-box" role="dialog" aria-modal="true"><h3>ลงวันเสร็จให้จุดที่ยังว่าง</h3>
+      <div class="ask-msg">ใช้กับไฟล์งานเดิมที่ระบายไว้แต่ยังไม่ได้ลงวันเสร็จ — จุดที่มีวันเสร็จอยู่แล้ว แผนงาน และพื้นที่ติดปัญหา จะไม่ถูกแตะ</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><b>วันเสร็จ</b><input type="date" id="beDate" value="${st.date}" style="width:auto;padding:7px 9px;font-size:14px"></div>
+      <div style="font-size:12.5px;color:var(--text2);margin:0 0 5px">ขอบเขต</div>
+      ${opt('scope','page','เฉพาะแผ่นที่เปิดอยู่',getPageLabel(pageNum))}${opt('scope','all','ทั้งโครงการ','ทุกแผ่น')}
+      <div style="font-size:12.5px;color:var(--text2);margin:10px 0 5px">งาน</div>
+      ${curL?opt('lay','cur','เฉพาะ '+curL.name,''):''}${opt('lay','all','ทุกงาน','')}
+      <div style="margin-top:10px;font-size:14px">จะลงวันเสร็จให้ <b style="color:#f4a726;font-size:17px">${n}</b> จุด</div>
+      <div class="ask-btns"><button type="button" data-a="no">ยกเลิก</button><button type="button" class="pri" data-a="ok" ${n?'':'disabled style="opacity:.45"'}>ลงวันเสร็จ</button></div></div>`;
+  };
+  const key=e=>{ if(e.key==='Escape'){e.stopPropagation();close();} };
+  const close=()=>{ document.removeEventListener('keydown',key,true); ov.remove(); };
+  ov.addEventListener('change',e=>{ if(e.target.id==='beDate'){st.date=e.target.value||todayISO();return;} const m=/^be_(\w+)$/.exec(e.target.name||''); if(m){st[m[1]]=e.target.value;draw();} });
+  ov.addEventListener('click',e=>{
+    if(e.target===ov)return close();
+    const b=e.target.closest&&e.target.closest('button[data-a]'); if(!b)return;
+    if(b.dataset.a==='no')return close();
+    const d=(ov.querySelector('#beDate').value)||todayISO(), list=bulkEndTargets(st.scope,st.lay==='cur'?'cur':'all'); if(!list.length)return;
+    pushHistory();
+    list.forEach(m=>{ m.end=d; if(!m.start||m.start>d)m.start=d; });
+    close();
+    try{ redraw(); renderList(); renderLayerBar(); renderProgress(); if(document.getElementById('auditOverlay').style.display==='flex')renderAudit(); Autosave.mark(); }catch(_){}
+    r23Toast(`ลงวันเสร็จ ${thDate(d)} ให้ ${list.length} จุดแล้ว — กด ↶ เพื่อย้อนกลับได้`);
+  });
+  document.addEventListener('keydown',key,true);
+  draw(); document.body.appendChild(ov);
+}
+const _r23RenderAudit=renderAudit;
+renderAudit=function(){
+  _r23RenderAudit.apply(this,arguments);
+  try{
+    const n=wmk().filter(m=>!m.end).length, body=document.getElementById('auditBody'); if(!n||!body)return;
+    const d=document.createElement('div'); d.style.cssText='margin:0 0 10px;padding:9px 11px;border:1px dashed var(--border);border-radius:9px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px';
+    d.innerHTML=`<span style="flex:1;min-width:180px;color:var(--text2)">มี ${n} จุดที่ยังไม่ลงวันเสร็จ — ถ้าเสร็จวันเดียวกันหลายจุด ลงทีเดียวได้</span><button type="button" onclick="openBulkEnd()" style="font:inherit;font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">🗓 ลงวันเสร็จให้จุดที่ยังว่าง</button>`;
+    body.insertBefore(d,body.firstChild);
+  }catch(_){}
+};
+</script>
+<script>
+// ══════ rev 24: รายงานเล่มประจำสัปดาห์ (A4 แนวนอน) · คำ ยกมา / สัปดาห์นี้ / สะสม · ของประกอบไม่แสดงเป็นค่าเริ่มต้น (ติ๊กเลือกได้ตอนพิมพ์) ══════
+// ── ของประกอบ = รายการที่ไม่ได้ระบาย: หน่วยไม่ใช่พื้นที่ หรือเป็นรายการปูขึ้นผนัง และไม่มีพื้นที่ใดผูกอยู่ ──
+function frIsAcc(it){
+  if(!it)return false; if(isAreaUnit(it.unit)&&it.src!=='cove')return false;
+  const id=String(it.id); return !wmk().some(m=>mkItems(m).some(x=>x.id===id));
+}
+function frAccItems(lks,IL){ IL=IL||frItemLayerMap(); return poItems.filter(it=>(!lks||lks.includes(IL.get(String(it.id))))&&frIsAcc(it)&&(pqHas(it)||parseFloat(it.qty)>0)); }
+function frAccOn(it){ return (frSel.acc||[]).map(String).includes(String(it.id)); }
+function frToggleAcc(id,on){ const a=(frSel.acc||[]).map(String).filter(x=>x!==String(id)); if(on)a.push(String(id)); frSel.acc=a; renderFloorPick(); try{Autosave.mark();}catch(_){} }
+const _r24PL=frPageLayer;
+frPageLayer=function(pg,lk,S,E,IL){ const d=_r24PL(pg,lk,S,E,IL);
+  if(d.basis==='boq'){
+    const byId=id=>poItems.find(x=>String(x.id)===id);
+    const keep=[]; d.rows.forEach(r=>{ const it=r.id!==null&&byId(r.id); if(it&&frIsAcc(it)){ if(frAccOn(it)){ r.acc=true; r.unknown=false; keep.push(r); } } else keep.push(r); });
+    d.rows=keep;
+    if(!d.rows.some(r=>!r.acc)&&d.mks.length){ // หมวดนี้เหลือแต่ของประกอบ → ใช้พื้นที่ตามแบบของแผ่นแทน
+      const q=v=>parseFloat(v)||0, A=st=>d.mks.filter(m=>frStat(m,S,E)===st).reduce((s,m)=>s+q(m.area),0);
+      d.rows.unshift({id:null,name:'พื้นที่ตามแบบของแผ่น',unit:'ตร.ม.',area:true,total:getPageArea(pg)||0,prev:A('prev'),cur:A('cur'),unknown:!(getPageArea(pg)>0)});
+    }
+  }
+  return d; };
+const _r24Groups=frGroups;
+frGroups=function(lks,IL){
+  const acc=new Set(poItems.filter(frIsAcc).map(i=>String(i.id)));
+  return _r24Groups(lks,IL).filter(g=>g.key.endsWith('|a')||!acc.has(g.key)).map(g=>{ if(!g.key.endsWith('|a'))return g;
+    const items=g.items.filter(i=>!acc.has(String(i.id)));
+    return Object.assign({},g,{items,ids:new Set(items.map(i=>String(i.id))),fallback:!poItems.some(it=>IL.get(String(it.id))===g.lk&&!acc.has(String(it.id)))}); });
+};
+function frAccTableHTML(lks){
+  const IL=frItemLayerMap(), its=frAccItems(lks,IL).filter(frAccOn); if(!its.length)return '';
+  const cols=[]; for(let pg=1;pg<=frSheetCount();pg++){ if(its.some(it=>pqGet(it,pg)>0))cols.push(pg); }
+  return `<div class="sec" style="margin:5mm 0 2mm">ของประกอบ — แสดงเฉพาะปริมาณ (ไม่ได้ติดตามความคืบหน้ารายห้อง)</div>
+    <table class="mx acc"><tr><th style="text-align:left;width:34%">รายการ</th><th style="width:7%">หน่วย</th>${cols.map(pg=>`<th>${prEsc(frFloorLabel(pg))}</th>`).join('')}<th style="width:11%">รวม</th></tr>
+    ${its.map(it=>`<tr><td class="l">${prEsc(it.name)}</td><td class="c" style="text-align:center">${prEsc((it.unit||'').trim())}</td>${cols.map(pg=>`<td class="n">${pqGet(it,pg)>0?frF(pqGet(it,pg)):'–'}</td>`).join('')}<td class="n"><b>${frF(pqHas(it)?pqSum(it):parseFloat(it.qty)||0)}</b></td></tr>`).join('')}</table>`;
+}
+// แถบข้าง: ฐานของหมวดไม่รวมของประกอบ (ให้ตรงกับรายงาน)
+const _r24LI=layerItems;
+layerItems=function(lk){ return _r24LI(lk).filter(it=>!frIsAcc(it)); };
+// ── เลขสัปดาห์: นับจากวันเริ่มสัญญา หรือพิมพ์เอง ──
+function frWeekAuto(){ const cs=(document.getElementById('contractStart')||{}).value, E=frSel.end; if(!cs||!E||E<cs)return ''; return String(Math.floor((new Date(E+'T00:00:00')-new Date(cs+'T00:00:00'))/864e5/7)+1); }
+function frWeekNo(){ return String(frSel.week||'').trim()||frWeekAuto(); }
+function frSetEnd(v){ frSel.end=v; if(v)frSel.start=addDays(v,-6); renderFloorPick(); }
+// ── หน้าต่างก่อนพิมพ์ ใช้ร่วมกันสองรายงาน ──
+function openBookReport(){ frSel.mode='book'; _r24OpenPick(); }
+const _r24OpenFR=openFloorReport;
+openFloorReport=function(){ frSel.mode='a3'; _r24OpenPick(); };
+function _r24OpenPick(){
+  const IL=frItemLayerMap(), has=frLayers(IL);
+  if(!has.length&&!(featIssue&&markups.some(isIssueMk))){alert('ยังไม่มีพื้นที่งานให้ออกรายงาน');return;}
+  if(!frSel.layers)frSel.layers=has.map(l=>l.key);
+  frSel.layers=frSel.layers.filter(k=>has.some(l=>l.key===k)); if(!frSel.layers.length)frSel.layers=has.map(l=>l.key);
+  if(!frSel.end)frSel.end=todayISO();
+  if(!frSel.start)frSel.start=addDays(frSel.end,-6);
+  const h=document.querySelector('#frOverlay .mkpop-head span'); if(h)h.textContent=frSel.mode==='book'?'🖨 รายงานความคืบหน้า ประจำสัปดาห์ (A4 แนวนอน)':'🏢 รายงานความคืบหน้า + ใบสรุป (A3 แนวนอน)';
+  renderFloorPick(); showOverlay('frOverlay');
+}
+renderFloorPick=function(){
+  const IL=frItemLayerMap(), has=frLayers(IL), S=frSel.start, E=frSel.end, book=frSel.mode==='book';
+  const n=frPagesInScope(frSel.layers,S,E).length;
+  const bad=!S||!E?'เลือกวันที่รายงาน':(S>E?'วันเริ่มต้องไม่หลังวันที่รายงาน':
+    ((!frSel.sum&&!frSel.pages&&!frSel.photos)?'ติ๊กเอกสารอย่างน้อยหนึ่งอย่าง':(!frSel.layers.length?'ติ๊กหมวดงานอย่างน้อยหนึ่งหมวด':'')));
+  const noPq=!poItems.some(pqHas)&&frSheetCount()>1, acc=frAccItems(null,IL), wkA=frWeekAuto();
+  document.getElementById('frBody').innerHTML=
+    `<div class="fr-dates">
+      <div><span class="fr-lbl" style="margin-top:0">วันที่รายงาน</span><input type="date" value="${E}" onchange="frSetEnd(this.value)"></div>
+      <div><span class="fr-lbl" style="margin-top:0">นับตั้งแต่วันที่</span><input type="date" value="${S}" onchange="frSet('start',this.value)"></div>
+    </div>
+    <div class="sc-note">เลือกวันที่รายงาน เครื่องมือย้อนให้เอง 7 วัน (แก้วันเริ่มได้) · งานที่เสร็จก่อนวันเริ่ม = ยกมา · งานที่เสร็จในช่วงนี้ = สัปดาห์นี้</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px"><span class="fr-lbl" style="margin:0">สัปดาห์ที่</span><input type="number" min="1" style="width:84px" value="${prEsc(String(frSel.week||''))}" placeholder="${wkA||'–'}" onchange="frSet('week',this.value)"><small style="color:var(--text2)">${wkA?'เว้นว่าง = นับจากวันเริ่มสัญญา (สัปดาห์ที่ '+wkA+')':'เว้นว่าง = ไม่แสดงเลขสัปดาห์'}</small></div>
+    <span class="fr-lbl">หมวดงานที่รวมในรายงาน</span>`
+    +has.map(l=>`<label class="fr-ck"><input type="checkbox" ${frSel.layers.includes(l.key)?'checked':''} onchange="frToggleLayer('${l.key}',this.checked)"> <span class="dot" style="background:${frLayerColor(l.key)}"></span> ${prEsc(l.name)} <small style="color:var(--text2)">· ${wmk().filter(m=>m.layer===l.key).length} จุด</small></label>`).join('')
+    +`<span class="fr-lbl">เอกสารที่จะออก (ไฟล์เดียว)</span>
+    <label class="fr-ck"><input type="checkbox" ${frSel.sum?'checked':''} onchange="frSet('sum',this.checked)"> ${book?'หน้าสรุป + ตารางแยกตามชั้นและงาน':'ใบสรุปทั้งโครงการ แยกตามชั้นและงาน'}</label>
+    <label class="fr-ck"><input type="checkbox" ${frSel.pages?'checked':''} onchange="frSet('pages',this.checked)"> หน้ารายชั้น — แบบระบายสี + ${book?'รายการห้องที่เสร็จ':'ตาราง'} (${n} แผ่น)</label>
+    <label class="fr-ck"><input type="checkbox" ${frSel.photos?'checked':''} onchange="frSet('photos',this.checked)"> ${book?'รูปถ่ายของสัปดาห์นี้ เรียงตามวัน (ต่อท้ายแบบของชั้นนั้น)':'หน้ารูปถ่ายรายชั้น (หน้าละ 9 รูป · ข้ามชั้นที่ไม่มีรูป)'}</label>
+    ${(!book&&frSel.photos)?`<div style="margin:4px 0 0 25px;display:flex;gap:14px;font-size:12px">
+      <label><input type="radio" style="width:auto;margin-right:5px" name="frPh" ${frSel.phMode==='period'?'checked':''} onchange="frSet('phMode','period')"> เฉพาะรูปของงานสัปดาห์นี้</label>
+      <label><input type="radio" style="width:auto;margin-right:5px" name="frPh" ${frSel.phMode==='all'?'checked':''} onchange="frSet('phMode','all')"> รูปทั้งหมด</label></div>`:''}
+    ${acc.length?`<span class="fr-lbl">ของประกอบที่ไม่ได้ระบาย <small style="font-weight:400;color:var(--text2)">(ปกติไม่แสดง — ติ๊กถ้าต้องการให้แสดงปริมาณ)</small></span>`
+      +acc.map(it=>`<label class="fr-ck"><input type="checkbox" ${frAccOn(it)?'checked':''} onchange="frToggleAcc('${it.id}',this.checked)"> ${prEsc(it.name)} <small style="color:var(--text2)">· ${frF(pqHas(it)?pqSum(it):parseFloat(it.qty)||0)} ${prEsc((it.unit||'').trim())}</small></label>`).join(''):''}
+    <div class="fr-key"><span><i style="background:${FR_COL.sl}"></i>ปรับพื้นเสร็จ (รอปู)</span><span><i style="background:${FR_COL.in}"></i>ปูเสร็จ</span><span><i style="background:${frRgba(FR_COL.plan,.3)};border:1.5px dashed ${FR_COL.plan}"></i>แผนสัปดาห์หน้า</span><span><i style="background:repeating-linear-gradient(45deg,${FR_COL.issue} 0 2px,#fff 2px 5px)"></i>ติดปัญหา</span></div>
+    ${noPq?`<div class="sc-note" style="margin-top:8px">ยังไม่ได้ใส่ปริมาณรายชั้น ช่อง "ทั้งหมด" ของแต่ละชั้นจะว่าง — <a href="#" style="color:var(--accent)" onclick="closeFloorReport();openFloorQty();return false">เปิดตารางปริมาณรายชั้น</a></div>`:''}
+    ${bad?`<div class="fr-err">⚠ ${bad}</div>`:''}`;
+  document.getElementById('frGo').disabled=!!bad;
+};
+doFloorReport=function(){
+  if(!frSel.start||!frSel.end||frSel.start>frSel.end)return;
+  closeFloorReport();
+  if(frSel.mode==='book')printBookReport(frSel); else printFloorReport(frSel);
+};
+// บันทึกตัวเลือกของประกอบและเลขสัปดาห์ไปกับโครงการ
+const _r24Build=buildProjectData;
+buildProjectData=function(){ const d=_r24Build.apply(this,arguments); d.frAcc=(frSel.acc||[]).map(String); return d; };
+const _r24Apply=applyProjectData;
+applyProjectData=async function(d){ const r=await _r24Apply.apply(this,arguments); try{ const live=new Set(poItems.map(i=>String(i.id))); frSel.acc=(d&&Array.isArray(d.frAcc)?d.frAcc:[]).map(String).filter(x=>live.has(x)); }catch(_){} return r; };
+// ══════ รายงานเล่มประจำสัปดาห์ A4 แนวนอน — สรุป + ตารางรายชั้น + แบบรายชั้น + รูปถ่ายเรียงตามวัน (ใช้ตัวเลขชุดเดียวกับรายงาน A3) ══════
+const BK_CSS=`
+@page{size:A4 landscape;margin:0}
+.sheet{width:297mm;height:210mm;padding:8mm 10mm 7mm}
+body{font-size:9pt}
+.top .t{font-size:15pt}.top .k{font-size:8pt}.top .s{font-size:9pt}.top .r{font-size:8.5pt}.top .r b{font-size:10.5pt}
+.kps4{grid-template-columns:repeat(3,1fr);gap:4mm;margin:4mm 0 4mm}
+.kpb td b{font-size:15pt}
+.bk-info{width:100%;border-collapse:collapse;margin-top:4mm;font-size:9pt}
+.bk-info th,.bk-info td{border:.6pt solid #1d2228;padding:1.3mm 2.2mm;text-align:left}
+.bk-info th{background:#eef4fb;width:13%;font-weight:700;white-space:nowrap}
+.bk-h{font-size:10.5pt;font-weight:700;margin:4mm 0 1.6mm;padding-bottom:1mm;border-bottom:.8pt solid #1d2228}
+.bk-ul{margin:0 0 0 5mm;font-size:9.5pt;line-height:1.55}
+.bk-two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm}
+.bk-sign{display:grid;grid-template-columns:repeat(3,1fr);gap:8mm;margin-top:auto;padding-top:5mm;font-size:9pt;text-align:center}
+.bk-sign div{border-top:.6pt solid #1d2228;padding-top:1.5mm}
+.bk-foot{display:flex;justify-content:space-between;font-size:8pt;color:#4b525a;border-top:.6pt solid #1d2228;padding-top:1.2mm;margin-top:2mm}
+.bk-fill{flex:1;min-height:0;display:flex;flex-direction:column}
+.bk-t{width:100%;border-collapse:collapse;font-size:8.5pt}
+.bk-t th,.bk-t td{border:.6pt solid #8a929b;padding:1mm 1.6mm}
+.bk-t th{background:#dbe8f5;font-weight:700;text-align:center}
+.bk-t td.n{text-align:right}.bk-t td.c{text-align:center}
+.bk-t tr.g td{background:#f1f3f5;font-weight:700}
+.bk-t i.sw{display:inline-block;width:2.6mm;height:2.6mm;margin-right:1.5mm;vertical-align:-.2mm}
+.bk-day{font-size:10pt;font-weight:700;background:#eef4fb;border:.6pt solid #1d2228;padding:1.2mm 2.5mm;margin:0 0 2mm}
+.bk-ph{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-bottom:3mm}
+.bk-ph figure{border:.6pt solid #8a929b;margin:0;display:flex;flex-direction:column}
+.bk-ph .im{height:47mm;background:#e9edf1;overflow:hidden}.bk-ph .im img{width:100%;height:100%;object-fit:cover;display:block}
+.bk-ph figcaption{font-size:8.5pt;padding:1.2mm 2mm;border-top:.6pt solid #8a929b;line-height:1.35}
+.bk-ph figcaption b{display:block}
+.bd{grid-template-columns:56% 1fr;gap:5mm;margin-top:3mm}
+.mx{font-size:8pt}.mx td.n small{font-size:6.5pt}
+`;
+function frShortWork(n){ n=String(n||''); return n.replace(/^งาน/,'').replace(/^เท/,'').replace(/กระเบื้องยาง$/,'กระเบื้อง'); }
+async function printBookReport(opt){
+  opt=Object.assign({sum:true,pages:true,photos:true},frSel,opt||{});
+  if(!opt.start||!opt.end){ opt.end=opt.end||todayISO(); opt.start=opt.start||addDays(opt.end,-6); }
+  const S=opt.start,E=opt.end,IL=frItemLayerMap(),esc=prEsc,q=v=>parseFloat(v)||0;
+  const lks=(opt.layers||frLayers(IL).map(l=>l.key)).filter(k=>LAYERS.some(l=>l.key===k));
+  const pages=frPagesInScope(lks,S,E);
+  if(!pages.length){alert('ยังไม่มีพื้นที่งานในหมวดที่เลือก');return;}
+  const w=openPrintWin('กำลังสร้างรายงาน...');
+  const P=projInfo(), act=activePlan();
+  const PD={};
+  const mkPD=pg=>{ const layers=lks.map(lk=>frPageLayer(pg,lk,S,E,IL)).filter(d=>d.rows.length||d.mks.length);
+    const curMk=wmk().filter(m=>m.page===pg&&lks.includes(m.layer)&&frStat(m,S,E)==='cur').sort((a,b)=>String(a.end).localeCompare(String(b.end))||a.layer.localeCompare(b.layer)||mkNo(a)-mkNo(b));
+    const phMk=curMk.filter(m=>(m.photos||[]).length);
+    return {layers,issues:frIssues(pg,S,E),curMk,pins:phMk.map((m,i)=>({m,no:i+1})),plan:act?pmk(act.id).filter(m=>m.page===pg):[],
+      sl:wmk().filter(m=>m.page===pg&&m.layer==='screed'&&lks.includes('screed')&&['prev','cur'].includes(frStat(m,S,E))),
+      ins:wmk().filter(m=>m.page===pg&&m.layer==='install'&&lks.includes('install')&&['prev','cur'].includes(frStat(m,S,E)))}; };
+  pages.forEach(pg=>PD[pg]=mkPD(pg));
+  // สรุปรายชั้น (กติกาเดียวกับใบสรุป A3)
+  const groups=frGroups(lks,IL), floors=[], fm={};
+  const addF=pg=>{ const k=frFloorLabel(pg); if(!fm[k]){fm[k]={label:k,pages:[]};floors.push(fm[k]);} fm[k].pages.push(pg); };
+  pages.forEach(addF);
+  for(let pg=1;pg<=frSheetCount();pg++){ if(pages.includes(pg))continue;
+    if(poItems.some(it=>lks.includes(IL.get(String(it.id)))&&pqGet(it,pg)>0)){ addF(pg); PD[pg]=PD[pg]||Object.assign(mkPD(pg),{layers:lks.map(lk=>frPageLayer(pg,lk,S,E,IL)).filter(d=>d.rows.length)}); } }
+  floors.sort((a,b)=>Math.min(...a.pages)-Math.min(...b.pages));
+  floors.forEach(f=>{ f.cells={}; groups.forEach(g=>{ const D=f.pages.map(pg=>PD[pg].layers.find(d=>d.lk===g.lk)).filter(Boolean); f.cells[g.key]=frGroupCell(D,g); }); });
+  const total={}; groups.forEach(g=>{ total[g.key]={P:floors.reduce((s,f)=>s+f.cells[g.key].P,0),C:floors.reduce((s,f)=>s+f.cells[g.key].C,0),
+    T:g.fallback?floors.reduce((s,f)=>s+f.cells[g.key].T,0):g.items.reduce((s,it)=>s+(pqHas(it)?pqSum(it):q(it.qty)),0)}; });
+  const top=(k,t)=>`<div class="top"><div class="l">${logoData?`<img src="${logoData}" style="height:12mm;width:auto" alt="">`:''}<div><div class="k">${esc(k)}</div><div class="t">${esc(t)}</div><div class="s">${esc(P.name)}</div></div></div>
+    <div class="r">ช่วงรายงาน <b>${thDate(S)} – ${thDate(E)}</b><br>ยกมา = สะสมถึง ${thDate(addDays(S,-1))}</div></div>`;
+  const wk=frWeekNo(), RT='รายงานความคืบหน้า ประจำสัปดาห์'+(wk?'ที่ '+wk:'');
+  const out=[]; const foot=()=>`<div class="bk-foot"><span>${esc(P.name)} · ${esc(RT)} · ${thDate(S)} – ${thDate(E)}</span><span>หน้า {{n}} / {{t}}</span></div>`;
+  // ── หน้า 1 สรุป ──
+  const actIss=pages.flatMap(pg=>PD[pg].issues.filter(i=>!i.done));
+  const pts=groups.filter(g=>g.key.endsWith('|a')).map(g=>{ const t=total[g.key]; return `<li><b>${esc(g.name)}</b> สัปดาห์นี้ทำเพิ่ม ${frF(t.C)} ตร.ม. สะสม ${frF(t.P+t.C)} จาก ${frF(t.T)} ตร.ม. (${frP(t.P+t.C,t.T)||'0%'}) คงเหลือ ${frF(Math.max(0,t.T-t.P-t.C))} ตร.ม.</li>`; });
+  const doneFl=g=>floors.filter(f=>{const c=f.cells[g.key];return c.T>0&&c.P+c.C>=c.T-0.01;}).map(f=>f.label);
+  groups.filter(g=>g.key.endsWith('|a')).forEach(g=>{ const d=doneFl(g); if(d.length)pts.push(`<li>${esc(g.name)} เสร็จครบแล้ว: ${d.map(esc).join(', ')}</li>`); });
+  if(actIss.length)pts.push(`<li><b style="color:#C0392B">พื้นที่ติดปัญหา</b> ${actIss.length} จุด รวม ${frF(actIss.reduce((s,i)=>s+i.area,0))} ตร.ม. — ${[...new Set(actIss.map(i=>i.m.cause).filter(Boolean))].map(esc).join(' · ')||'ดูรายละเอียดในหน้ารายชั้น'}</li>`);
+  const plAll=act?pmk(act.id):[], pd=plAll.map(m=>[m.start,m.end]).flat().filter(Boolean).sort();
+  const planRows=plAll.slice(0,6).map(m=>`<tr><td>${esc(frFloorLabel(m.page))}</td><td>${esc(m.note)||'ตามกรอบเส้นประบนแบบ'}</td><td class="n">${frF(q(m.area))}</td><td class="c">${thDate(m.start)||'-'} – ${thDate(m.end)||'-'}</td></tr>`).join('');
+  if(opt.sum)out.push(`<section class="sheet">${top('สรุปความคืบหน้า',RT)}
+    <table class="bk-info"><tr><th>โครงการ</th><td>${esc(P.name)}</td><th>ผู้ว่าจ้าง</th><td>${esc(P.client)||'-'}</td></tr>
+    <tr><th>ช่วงรายงาน</th><td>${thDate(S)} – ${thDate(E)}</td><th>จัดทำโดย</th><td>${esc(P.author)||'-'}</td></tr></table>
+    <div class="kps4">${groups.slice(0,3).map(g=>{const t=total[g.key];return frFlow(t.T,t.P,t.C,g.col,g.name,g.unit);}).join('')}</div>
+    <div class="bk-two"><div><div class="bk-h" style="margin-top:0">ประเด็นสำคัญ</div><ul class="bk-ul">${pts.join('')}</ul></div>
+    <div><div class="bk-h" style="margin-top:0">แผนงานสัปดาห์หน้า${pd.length?` (${thDate(pd[0])} – ${thDate(pd[pd.length-1])})`:''}</div>
+    ${planRows?`<table class="bk-t"><tr><th>ชั้น</th><th>พื้นที่ / ห้อง</th><th>ตร.ม.</th><th>กำหนด</th></tr>${planRows}</table>`:'<div style="color:#6b737c">ยังไม่ได้วาดแผนสัปดาห์หน้า</div>'}</div></div>
+    <div class="bk-sign"><div>ผู้จัดทำรายงาน</div><div>ผู้ควบคุมงาน</div><div>ผู้แทนผู้ว่าจ้าง</div></div>${foot()}</section>`);
+  // ── หน้า 2 ตารางรายชั้น ──
+  const accTbl=frAccTableHTML(lks);
+  if(opt.sum)for(let ci=0;ci<groups.length;ci+=3){ const gs=groups.slice(ci,ci+3);
+    const cell=c=>{ const T=c.T,cum=c.P+c.C,full=T>0&&cum>=T-0.01?' full':''; return `<td class="n tt">${T>0?frF(T):'–'}</td>`+frQP(c.P,T,'pv')+frQP(c.C,T,'nw')+frQP(cum,T,'cu'+full+(T>0&&cum>T+0.01?' ov':''))+(T>0?frQP(Math.max(0,T-cum),T,'rm'):'<td class="n rm">–</td>'); };
+    out.push(`<section class="sheet">${top(RT,'ความคืบหน้าแยกตามชั้นและงาน')}
+      <div class="bk-fill" style="margin-top:4mm"><table class="mx"><tr><th rowspan="2" style="width:7%">ชั้น</th>${gs.map(g=>`<th colspan="5" class="grp"><i style="background:${g.col}"></i>${esc(g.name)} (${esc(g.unit)})</th>`).join('')}</tr>
+      <tr>${gs.map(()=>'<th class="sub">ทั้งหมด</th><th class="sub">ยกมา</th><th class="sub">สัปดาห์นี้</th><th class="sub">สะสม</th><th class="sub">คงเหลือ</th>').join('')}</tr>
+      ${floors.map(f=>`<tr><td class="l flr">${esc(f.label)}</td>${gs.map(g=>cell(f.cells[g.key])).join('')}</tr>`).join('')}
+      <tr class="grand"><td class="l">รวม</td>${gs.map(g=>cell(total[g.key])).join('')}</tr></table>
+      <div class="note" style="margin-top:2.5mm">ยกมา + สัปดาห์นี้ = สะสม · คงเหลือ = ทั้งหมด − สะสม · ตัวเล็ก = ร้อยละของทั้งหมด · นับเป็นเสร็จเฉพาะพื้นที่ที่ลงวันเสร็จแล้ว</div>${ci+3>=groups.length?accTbl:''}</div>${foot()}</section>`); }
+  // ── หน้าแบบรายชั้น + รูปถ่ายเรียงตามวัน ──
+  for(const pg of pages){ if(!opt.pages&&!opt.photos)break; const o=PD[pg], fl=frFloorLabel(pg), zone=getPageName(pg), ttl=fl+((zone&&zone!==fl)?' · '+zone:'');
+    let img=''; if(pdfDoc){ try{ img=await frSheetImage(pg,o); }catch(e){ console.warn(e); } }
+    const prog=o.layers.map(d=>{ const L=LAYERS.find(l=>l.key===d.lk), ar=d.rows.filter(r=>r.area&&!r.acc); const T=ar.reduce((s,r)=>s+r.total,0),Pv=ar.reduce((s,r)=>s+r.prev,0),C=ar.reduce((s,r)=>s+r.cur,0);
+      return `<tr><td><i class="sw" style="background:${frLayerColor(d.lk)}"></i><b>${esc(L?L.name:d.lk)}</b></td><td class="n">${T>0?frF(T):'–'}</td><td class="n">${frF(Pv)}</td><td class="n" style="color:#15803d;font-weight:700">${frF(C)}</td><td class="n"><b>${frF(Pv+C)}</b></td><td class="n"><b>${frP(Pv+C,T)||'–'}</b></td><td class="n">${T>0?frF(Math.max(0,T-Pv-C)):'–'}</td></tr>`; }).join('');
+    const MAXR=11, rooms=o.curMk.slice(0,MAXR).map((m,i)=>{ const L=LAYERS.find(l=>l.key===m.layer); const pin=o.pins.find(p=>p.m===m);
+      return `<tr><td class="c">${pin?pin.no:'–'}</td><td>${esc(m.note)||'-'}</td><td><i class="sw" style="background:${frLayerColor(m.layer)}"></i><span style="white-space:nowrap">${esc(frShortWork(L?L.name:m.layer))}</span></td><td class="n">${frF(q(m.area))}</td><td class="c">${thDate(m.end)}</td></tr>`; }).join('');
+    const act2=o.issues.filter(i=>!i.done);
+    if(opt.pages)out.push(`<section class="sheet">${top(RT,ttl)}
+      <div class="bd"><div class="figw"><div class="fig">${img?`<img src="${img}" alt="">`:'<div class="empty">— ไม่มีไฟล์แบบ —</div>'}</div>
+        <div class="fbar" style="gap:4mm;font-size:8pt;padding:1.5mm 3mm"><div class="lg" style="gap:3.5mm"><span><i style="background:${frRgba(FR_COL.sl,.7)}"></i>ปรับพื้นเสร็จ</span><span><i style="background:${frRgba(FR_COL.in,.7)}"></i>ปูเสร็จ</span><span><i style="background:${frRgba(FR_COL.plan,.30)};border:1.4pt dashed ${FR_COL.plan}"></i>แผนสัปดาห์หน้า</span><span><i style="background:repeating-linear-gradient(45deg,${FR_COL.issue} 0 1.2pt,#fbe9e7 1.2pt 3.4pt);border-color:${FR_COL.issue}"></i>ติดปัญหา</span><span>เลขในวงกลม = เลขรูปถ่าย</span></div></div></div>
+      <div class="side" style="display:flex;flex-direction:column;min-height:0">
+        <div class="bk-h" style="margin-top:0">ความคืบหน้าของชั้นนี้ (ตร.ม.)</div>
+        <table class="bk-t"><tr><th>งาน</th><th>ทั้งชั้น</th><th>ยกมา</th><th>สัปดาห์นี้</th><th>สะสม</th><th>ร้อยละ</th><th>คงเหลือ</th></tr>${prog}</table>
+        <div class="bk-h">ห้องที่เสร็จในสัปดาห์นี้ ${o.curMk.length?`(${o.curMk.length} ห้อง · ${frF(o.curMk.reduce((s,m)=>s+q(m.area),0))} ตร.ม.)`:''}</div>
+        ${rooms?`<table class="bk-t"><tr><th style="width:8%">รูป</th><th>ห้อง</th><th style="width:22%">งาน</th><th style="width:13%">ตร.ม.</th><th style="width:20%">วันเสร็จ</th></tr>${rooms}${o.curMk.length>MAXR?`<tr><td colspan="5" class="c">และอีก ${o.curMk.length-MAXR} ห้อง</td></tr>`:''}</table>`:'<div style="color:#6b737c">สัปดาห์นี้ยังไม่มีห้องที่เสร็จในชั้นนี้</div>'}
+        ${act2.length?`<div class="bk-h" style="color:#C0392B;border-color:#C0392B">พื้นที่ติดปัญหา ${act2.length} จุด</div><table class="bk-t">${act2.slice(0,3).map(i=>`<tr><td class="c" style="width:9%;color:#C0392B;font-weight:700">${i.tag}</td><td>${esc(i.m.cause)||'-'}</td><td class="c" style="width:30%">คาดเข้าได้ ${thDate(i.m.expect)||'ยังไม่ระบุ'}</td></tr>`).join('')}</table>`:''}
+        <div style="flex:1"></div>${foot()}</div></div></section>`);
+    if(opt.photos){ // รูปถ่ายเรียงตามวัน
+      const byDay={}; o.pins.forEach(p=>{ (byDay[p.m.end]=byDay[p.m.end]||[]).push(p); });
+      const blocks=[]; Object.keys(byDay).sort().forEach(d=>{ const figs=byDay[d].flatMap(p=>(p.m.photos||[]).map((src,k,arr)=>{ const L=LAYERS.find(l=>l.key===p.m.layer);
+          return `<figure><div class="im"><img src="${src}" alt=""></div><figcaption><b>รูปที่ ${p.no}${arr.length>1?'.'+(k+1):''} · ${esc(p.m.note)||'-'}</b>${esc(L?L.name:'')} · ${frF(q(p.m.area))} ตร.ม.</figcaption></figure>`; }));
+        for(let i=0;i<figs.length;i+=3)blocks.push({d,first:i===0,n:byDay[d].length,html:figs.slice(i,i+3).join('')}); });
+      for(let i=0;i<blocks.length;i+=2){ const part=blocks.slice(i,i+2);
+        out.push(`<section class="sheet">${top('ภาพถ่ายการทำงาน · '+RT,ttl)}<div class="bk-fill" style="margin-top:4mm">${part.map((b,j)=>`${(b.first||j===0)?`<div class="bk-day">วันที่ ${thDate(b.d)}${b.first?` — เสร็จ ${b.n} ห้อง`:' (ต่อ)'}</div>`:''}<div class="bk-ph">${b.html}</div>`).join('')}</div>${foot()}</section>`); }
+    }
+  }
+  const tot=out.length, html=out.map((h,i)=>h.replace('{{n}}',i+1).replace('{{t}}',tot)).join('');
+  const fileName=`${P.name}-รายงานความคืบหน้า-${E}`.replace(/[\\/:*?"<>|]/g,'-');
+  showPrintResult(w,`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${esc(fileName)}</title><style>${appFontCSS()}${FR14_CSS}${FR14_EXTRA_CSS}${BK_CSS}</style></head><body>
+    <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 แนวนอน · ขอบกระดาษ "ไม่มี" · เปิดพื้นหลังกราฟิก</span></div><div class="wrap">${html}</div></body></html>`);
+}
 </script>
 </body>
 </html>
