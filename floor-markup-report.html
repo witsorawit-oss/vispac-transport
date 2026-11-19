@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Floor Markup Report · rev 24</title>
+<title>Floor Markup Report · rev 26</title>
 <!-- pdf.js 3.11.174 (Apache-2.0) ฝังในไฟล์ เพื่อให้ใช้งานได้แม้ไม่มีเน็ต/CDN ถูกบล็อก -->
 <script>
 /**
@@ -763,7 +763,7 @@ input.ro{opacity:.75;pointer-events:none}
 <header class="hd">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" fill="#f4a726"/><rect x="13" y="1" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="1" y="13" width="10" height="10" rx="2" fill="#f4a726" opacity=".5"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#f4a726"/></svg>
-    Markup Report <span class="rev-tag">rev 24</span>
+    Markup Report <span class="rev-tag">rev 26</span>
   </div>
   <div class="hd-fields">
     <div class="fld" style="display:none"><input id="poArea" type="number" value="" oninput="onPoAreaChange()"></div>
@@ -6581,7 +6581,7 @@ renderList();
 updateSideTitle();
 
 // ════════════════ rev 1 ════════════════
-const APP_REV='rev 24';
+const APP_REV='rev 26';
 
 // ── 2) ดักข้อผิดพลาด: แสดงแถบแจ้งเตือน แทนการพังเงียบ ──
 const ErrTrap=(()=>{
@@ -8839,17 +8839,22 @@ function frPaint(c,m,W,fill,stroke,lw,dash){
 }
 function frBBox(m,W){ const b=mkShapesBBox(frShapes(m)); if(!b)return null; const k=W/(m.canvasW||W); return {cx:b.cx*k,cy:b.cy*k,w:b.w*k,h:b.h*k}; }
 function frRgba(hex,a){ const h=hex.replace('#',''); return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`; }
+// ความกว้างภาพแบบ (จุดภาพ) · ความเข้มเส้นแบบ · คุณภาพการบีบอัด — ปกติ = ไฟล์เล็ก · คมชัดสูง = แบบละเอียด เส้นเข้ม ไฟล์ใหญ่ราวสองเท่า
+const FR_QUAL={normal:{px:2400,ink:0.72,q:0.86,kpx:1100,kq:.84},high:{px:3600,ink:0.88,q:0.92,kpx:1800,kq:.9}};
+const frQ=()=>FR_QUAL[frSel.quality==='normal'?'normal':'high'];
+let FR_PX=3600, FR_INK=0.88, FR_Q=0.92;
 async function frSheetImage(pg,o){
   const page=await pdfDoc.getPage(pg);
   const w1=page.getViewport({scale:1}).width;
-  const base=await renderPageToCanvas(pg,Math.max(1,Math.min(3,2400/w1)));
+  const Q=frQ(); FR_PX=Q.px; FR_INK=Q.ink; FR_Q=Q.q;
+  const base=await renderPageToCanvas(pg,Math.max(1,Math.min(4.5,FR_PX/w1)));
   const W=base.width,H=base.height;
   const out=document.createElement('canvas'); out.width=W; out.height=H;
   const x=out.getContext('2d');
   x.drawImage(base,0,0);
   // แบบเป็นสีเทาจาง ให้สีงานเด่น
   try{ const id=x.getImageData(0,0,W,H), d=id.data;
-    for(let i=0;i<d.length;i+=4){ const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]; const v=255-(255-g)*0.72; d[i]=d[i+1]=d[i+2]=v; }
+    for(let i=0;i<d.length;i+=4){ const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]; const v=255-(255-g)*FR_INK; d[i]=d[i+1]=d[i+2]=v; }
     x.putImageData(id,0,0); }catch(_){}
   base.width=base.height=0;
   const ov=document.createElement('canvas'); ov.width=W; ov.height=H; const v=ov.getContext('2d');
@@ -8879,7 +8884,10 @@ async function frSheetImage(pg,o){
   o.pins.forEach(p=>{ const b=frBBox(p.m,W); if(!b)return;
     const r=fs*0.95; x.beginPath(); x.arc(b.cx,b.cy,r,0,7); x.fillStyle='#fff'; x.fill(); x.strokeStyle='#111'; x.lineWidth=lw; x.stroke();
     x.fillStyle='#111'; x.font=font('700'); x.fillText(String(p.no),b.cx,b.cy+fs*0.05); });
-  const url=out.toDataURL('image/jpeg',0.85); out.width=out.height=0; ov.width=ov.height=0;
+  // ตัดกรอบชื่อแบบก่อนบีบอัด (บีบอัดครั้งเดียว ภาพไม่แตกซ้ำ)
+  let fin=out; const cb=(frSel.cropMain&&frCropCache[pg])||null;
+  if(cb){ fin=document.createElement('canvas'); const sx=Math.round(cb.x*W),sy=Math.round(cb.y*H),sw=Math.round(cb.w*W),sh=Math.round(cb.h*H); fin.width=sw; fin.height=sh; fin.getContext('2d').drawImage(out,sx,sy,sw,sh,0,0,sw,sh); }
+  const url=fin.toDataURL('image/jpeg',FR_Q); if(fin!==out)fin.width=fin.height=0; out.width=out.height=0; ov.width=ov.height=0;
   return url;
 }
 // ── HTML ──
@@ -9110,7 +9118,7 @@ async function printFloorReport(opt,S0,E0,o0){
   if(cr)warns.push(`มี ${cr} จุดที่ผูกรายการของหมวดงานอื่น ส่วนนั้นไม่ถูกนับ`);
   if(ov)warns.push(`มี ${ov} รายการที่สะสมเกินปริมาณรายชั้นที่ตั้งไว้ (ตัวแดง)`);
   const fileName=`${P.name}-รายงานความคืบหน้า-${E}`.replace(/[\\/:*?"<>|]/g,'-');
-  const doc=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${prEsc(fileName)}</title><style>${appFontCSS()}${FR14_CSS}${FR14_EXTRA_CSS}</style></head><body>
+  const doc=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${prEsc(fileName)}</title><style>${appFontCSS()}${FR14_CSS}${FR14_EXTRA_CSS}${window.__FR_KEY_CSS||''}</style></head><body>
     <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A3 แนวนอน · ขอบกระดาษ "ไม่มี" · เปิดพื้นหลังกราฟิก</span></div>${warns.length?`<div class="tb-warn">⚠ ควรตรวจก่อนส่ง: ${warns.map(prEsc).join(' · ')}</div>`:''}
     <div class="wrap">${html}</div>
     <script>(function(){
@@ -9864,6 +9872,7 @@ body{font-size:9pt}
 .bk-two{display:grid;grid-template-columns:1.25fr 1fr;gap:6mm}
 .bk-sign{display:grid;grid-template-columns:repeat(3,1fr);gap:8mm;margin-top:auto;padding-top:5mm;font-size:9pt;text-align:center}
 .bk-sign div{border-top:.6pt solid #1d2228;padding-top:1.5mm}
+.bk-foot span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bk-foot span:last-child{white-space:nowrap;margin-left:3mm}
 .bk-foot{display:flex;justify-content:space-between;font-size:8pt;color:#4b525a;border-top:.6pt solid #1d2228;padding-top:1.2mm;margin-top:2mm}
 .bk-fill{flex:1;min-height:0;display:flex;flex-direction:column}
 .bk-t{width:100%;border-collapse:collapse;font-size:8.5pt}
@@ -9945,10 +9954,10 @@ async function printBookReport(opt){
     const prog=o.layers.map(d=>{ const L=LAYERS.find(l=>l.key===d.lk), ar=d.rows.filter(r=>r.area&&!r.acc); const T=ar.reduce((s,r)=>s+r.total,0),Pv=ar.reduce((s,r)=>s+r.prev,0),C=ar.reduce((s,r)=>s+r.cur,0);
       return `<tr><td><i class="sw" style="background:${frLayerColor(d.lk)}"></i><b>${esc(L?L.name:d.lk)}</b></td><td class="n">${T>0?frF(T):'–'}</td><td class="n">${frF(Pv)}</td><td class="n" style="color:#15803d;font-weight:700">${frF(C)}</td><td class="n"><b>${frF(Pv+C)}</b></td><td class="n"><b>${frP(Pv+C,T)||'–'}</b></td><td class="n">${T>0?frF(Math.max(0,T-Pv-C)):'–'}</td></tr>`; }).join('');
     const MAXR=11, rooms=o.curMk.slice(0,MAXR).map((m,i)=>{ const L=LAYERS.find(l=>l.key===m.layer); const pin=o.pins.find(p=>p.m===m);
-      return `<tr><td class="c">${pin?pin.no:'–'}</td><td>${esc(m.note)||'-'}</td><td><i class="sw" style="background:${frLayerColor(m.layer)}"></i><span style="white-space:nowrap">${esc(frShortWork(L?L.name:m.layer))}</span></td><td class="n">${frF(q(m.area))}</td><td class="c">${thDate(m.end)}</td></tr>`; }).join('');
+      return `<tr><td class="c">${pin?pin.no:'–'}</td><td>${esc(m.note)||'-'}</td><td style="white-space:nowrap"><i class="sw" style="background:${frLayerColor(m.layer)}"></i><span>${esc(frShortWork(L?L.name:m.layer))}</span></td><td class="n">${frF(q(m.area))}</td><td class="c">${thDate(m.end)}</td></tr>`; }).join('');
     const act2=o.issues.filter(i=>!i.done);
     if(opt.pages)out.push(`<section class="sheet">${top(RT,ttl)}
-      <div class="bd"><div class="figw"><div class="fig">${img?`<img src="${img}" alt="">`:'<div class="empty">— ไม่มีไฟล์แบบ —</div>'}</div>
+      <div class="bd"><div class="figw"><div class="fig${(img&&frKeyCache[pg])?' kpon'+(frSel.cropMain&&frCropCache[pg]?' cropped':''):''}">${img?(frKeyHTML(pg)+`<img class="main" src="${img}" alt="">`):'<div class="empty">— ไม่มีไฟล์แบบ —</div>'}</div>
         <div class="fbar" style="gap:4mm;font-size:8pt;padding:1.5mm 3mm"><div class="lg" style="gap:3.5mm"><span><i style="background:${frRgba(FR_COL.sl,.7)}"></i>ปรับพื้นเสร็จ</span><span><i style="background:${frRgba(FR_COL.in,.7)}"></i>ปูเสร็จ</span><span><i style="background:${frRgba(FR_COL.plan,.30)};border:1.4pt dashed ${FR_COL.plan}"></i>แผนสัปดาห์หน้า</span><span><i style="background:repeating-linear-gradient(45deg,${FR_COL.issue} 0 1.2pt,#fbe9e7 1.2pt 3.4pt);border-color:${FR_COL.issue}"></i>ติดปัญหา</span><span>เลขในวงกลม = เลขรูปถ่าย</span></div></div></div>
       <div class="side" style="display:flex;flex-direction:column;min-height:0">
         <div class="bk-h" style="margin-top:0">ความคืบหน้าของชั้นนี้ (ตร.ม.)</div>
@@ -9968,9 +9977,97 @@ async function printBookReport(opt){
   }
   const tot=out.length, html=out.map((h,i)=>h.replace('{{n}}',i+1).replace('{{t}}',tot)).join('');
   const fileName=`${P.name}-รายงานความคืบหน้า-${E}`.replace(/[\\/:*?"<>|]/g,'-');
-  showPrintResult(w,`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${esc(fileName)}</title><style>${appFontCSS()}${FR14_CSS}${FR14_EXTRA_CSS}${BK_CSS}</style></head><body>
+  showPrintResult(w,`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>${esc(fileName)}</title><style>${appFontCSS()}${FR14_CSS}${FR14_EXTRA_CSS}${BK_CSS}${window.__FR_KEY_CSS||''}</style></head><body>
     <div class="tb"><button onclick="window.print()">🖨 พิมพ์ / บันทึกเป็น PDF</button><span>กระดาษ A4 แนวนอน · ขอบกระดาษ "ไม่มี" · เปิดพื้นหลังกราฟิก</span></div><div class="wrap">${html}</div></body></html>`);
 }
+</script>
+<script>
+// ══════ rev 25: คีย์แปลน — แบบแผ่นเดียวกันสีตามต้นฉบับ วางมุมซ้ายบนของกรอบแบบในหน้ารายชั้น (เปิดเป็นค่าเริ่มต้น ปิดได้) ══════
+if(frSel.keyplan===undefined)frSel.keyplan=true;
+if(frSel.cropMain===undefined)frSel.cropMain=true; // ตัดกรอบชื่อแบบออกจากแบบหลักด้วย (ตัวเลือก ข)
+if(frSel.quality===undefined)frSel.quality='high';
+const frKeyCache={};
+async function frKeyImage(pg){
+  const g=grayscale; grayscale=false;               // คีย์แปลนใช้สีตามแบบเสมอ แม้จะตั้งให้แสดงแบบขาวดำ
+  try{ const page=await pdfDoc.getPage(pg), w1=page.getViewport({scale:1}).width;
+    const KQ=frQ(); const c=await renderPageToCanvas(pg,Math.max(.5,Math.min(3,KQ.kpx/w1)));
+    const u=c.toDataURL('image/jpeg',KQ.kq); c.width=c.height=0; return u;
+  }finally{ grayscale=g; }
+}
+const _r25SheetImg=frSheetImage;
+frSheetImage=async function(pg,o){
+  const r=await _r25SheetImg.apply(this,arguments);
+  delete frKeyCache[pg];
+  if(frSel.keyplan!==false){ try{ frKeyCache[pg]=await frKeyImage(pg); }catch(e){ console.warn('คีย์แปลน',e); } }
+  return r;
+};
+function frKeyHTML(pg){ const k=frKeyCache[pg]; return k?`<div class="kpbox"><img src="${k}" alt=""><span>แบบต้นฉบับ (สีตามแบบ)</span></div>`:''; }
+function frAddKey(html,pg){ return frKeyCache[pg]?html.replace('<div class="fig"><img src="','<div class="fig kpon'+(frSel.cropMain&&frCropCache[pg]?' cropped':'')+'">'+frKeyHTML(pg)+'<img class="main" src="'):html; }
+const _r25FloorHTML=frFloorPageHTML;
+frFloorPageHTML=function(P,S,E,pg){ return frAddKey(_r25FloorHTML.apply(this,arguments),pg); };
+(function(){
+  const css=`.fig.kpon>img.main{object-position:center bottom}
+.kpbox{position:absolute;left:2.5mm;top:2.5mm;width:36%;z-index:2;background:#fff;padding:.6mm .6mm .4mm;box-shadow:0 0 0 1.6mm #fff}
+.fig.kpon.cropped .kpbox{width:30%}
+.kpbox img{display:block;width:100%;height:auto;position:static}
+.kpbox span{display:block;font-size:7pt;color:#4b525a;text-align:center;margin-top:.6mm;font-weight:700}`;
+  window.__FR_KEY_CSS=css;
+})();
+// สวิตช์ในหน้าต่างก่อนพิมพ์
+const _r25Pick=renderFloorPick;
+renderFloorPick=function(){
+  _r25Pick.apply(this,arguments);
+  try{ const docs=[...document.querySelectorAll('#frBody label.fr-ck')].find(l=>/หน้ารายชั้น/.test(l.textContent)); if(!docs)return;
+    const l=document.createElement('label'); l.className='fr-ck'; l.style.marginLeft='25px'; l.style.fontSize='12.5px';
+    l.innerHTML=`<input type="checkbox" ${frSel.keyplan!==false?'checked':''} onchange="frSet('keyplan',this.checked)"> ใส่คีย์แปลน — แบบสีตามต้นฉบับ มุมซ้ายบนของกรอบแบบ`;
+    docs.parentNode.insertBefore(l,docs.nextSibling);
+    const q=document.createElement('div'); q.style.cssText='margin:4px 0 2px 25px;font-size:12.5px';
+    const hi=frSel.quality!=='normal';
+    q.innerHTML=`<div style="color:var(--text2);margin-bottom:3px">ความคมชัดของแบบ</div><label class="fr-ck" style="font-size:12.5px"><input type="radio" name="frQual" ${hi?'checked':''} onchange="frSetQual('high')"> คมชัดสูง <small style="color:var(--text2)">· ไฟล์ใหญ่ราวสองเท่า</small></label><label class="fr-ck" style="font-size:12.5px"><input type="radio" name="frQual" ${hi?'':'checked'} onchange="frSetQual('normal')"> ปกติ <small style="color:var(--text2)">· ไฟล์เล็ก เหมาะกับแท็บเล็ต</small></label>`;
+    l.parentNode.insertBefore(q,l.nextSibling); }catch(_){}
+};
+// ── ตัดเฉพาะตัวแบบ: หาเส้นกรอบแผ่นและเส้นกรอบชื่อแบบ (เส้นตั้งยาวเกือบสุดแผ่น) แล้วตัดพื้นที่ว่างรอบตัวแบบออก ──
+const frCropCache={};
+async function frCropBox(pg){
+  if(frCropCache[pg]!==undefined)return frCropCache[pg];
+  let box=null;
+  try{
+    const g=grayscale; grayscale=false; let c;
+    try{ const page=await pdfDoc.getPage(pg), w1=page.getViewport({scale:1}).width; c=await renderPageToCanvas(pg,700/w1); }finally{ grayscale=g; }
+    const W=c.width,H=c.height,d=c.getContext('2d').getImageData(0,0,W,H).data; c.width=c.height=0;
+    const dark=(x,y)=>{ const i=(y*W+x)*4; return (0.299*d[i]+0.587*d[i+1]+0.114*d[i+2])<170; };
+    const colF=(x,y0,y1)=>{ let n=0; for(let y=y0;y<y1;y++)if(dark(x,y))n++; return n/(y1-y0); };
+    const rowF=(y,x0,x1)=>{ let n=0; for(let x=x0;x<x1;x++)if(dark(x,y))n++; return n/(x1-x0); };
+    const longC=[]; for(let x=0;x<W;x++)if(colF(x,0,H)>0.72)longC.push(x);
+    let L=longC.find(x=>x<W*0.12); L=L===undefined?0:L+2;
+    let R=longC.find(x=>x>W*0.68); const hasTB=R!==undefined; R=hasTB?R-2:W-1;
+    const longR=[]; for(let y=0;y<H;y++)if(rowF(y,L,R)>0.72)longR.push(y);
+    let T=longR.find(y=>y<H*0.12); T=T===undefined?0:T+2;
+    let B=[...longR].reverse().find(y=>y>H*0.88); B=B===undefined?H-1:B-2;
+    // ตัดขอบขาวรอบตัวแบบ (ภายในกรอบ)
+    const has=(x0,y0,x1,y1)=>{ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(dark(x,y))return true; return false; };
+    let x0=L,x1=R,y0=T,y1=B;
+    while(x0<x1&&!has(x0,y0,x0,y1))x0++; while(x1>x0&&!has(x1,y0,x1,y1))x1--;
+    while(y0<y1&&!has(x0,y0,x1,y0))y0++; while(y1>y0&&!has(x0,y1,x1,y1))y1--;
+    const pad=Math.round(W*0.008); x0=Math.max(0,x0-pad); y0=Math.max(0,y0-pad); x1=Math.min(W-1,x1+pad); y1=Math.min(H-1,y1+pad);
+    const bw=(x1-x0)/W, bh=(y1-y0)/H;
+    if(hasTB&&bw>0.3&&bh>0.3)box={x:x0/W,y:y0/H,w:bw,h:bh};
+  }catch(e){ console.warn('หากรอบแบบ',e); }
+  frCropCache[pg]=box; return box;
+}
+async function frCropURL(url,box,q){
+  if(!box)return url;
+  const im=new Image(); await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url;});
+  const sx=Math.round(box.x*im.width),sy=Math.round(box.y*im.height),sw=Math.round(box.w*im.width),sh=Math.round(box.h*im.height);
+  const c=document.createElement('canvas'); c.width=sw; c.height=sh; c.getContext('2d').drawImage(im,sx,sy,sw,sh,0,0,sw,sh);
+  const u=c.toDataURL('image/jpeg',q||.85); c.width=c.height=0; return u;
+}
+frKeyImage=(function(orig){ return async function(pg){ const u=await orig(pg); return frCropURL(u,await frCropBox(pg),.85); }; })(frKeyImage);
+frSheetImage=(function(orig){ return async function(pg,o){ if(frSel.cropMain)await frCropBox(pg); return orig.apply(this,arguments); }; })(frSheetImage);
+
+function frSetQual(v){ frSel.quality=v; renderFloorPick(); try{Autosave.mark();}catch(_){} }
+{ const _b=buildProjectData; buildProjectData=function(){ const d=_b.apply(this,arguments); d.frQuality=frSel.quality; d.frKeyplan=frSel.keyplan; return d; }; }
+{ const _a=applyProjectData; applyProjectData=async function(d){ const r=await _a.apply(this,arguments); try{ if(d&&d.frQuality)frSel.quality=d.frQuality; if(d&&typeof d.frKeyplan==='boolean')frSel.keyplan=d.frKeyplan; }catch(_){} return r; }; }
 </script>
 </body>
 </html>
